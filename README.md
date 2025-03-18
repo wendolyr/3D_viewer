@@ -70,7 +70,7 @@ You can see an example of a suggested class diagram for a business logic domain 
 
 Develop a program to visualise the 3D wireframe models.
 
-- The program must be developed in C++ language of C++17 standard.
+- The program must be developed in C++ language of C++20 standard.
 - The program code must be located in the src folder.
 - When writing code it is necessary to follow the Google style.
 - The program must be built with Makefile which contains standard set of targets for GNU-programs: all, install, uninstall, clean, dvi, dist, tests. Installation directory could be arbitrary, except the building one.

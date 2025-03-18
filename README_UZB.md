@@ -69,7 +69,7 @@ Biznes-mantiq domeni uchun taklif qilingan sinf diagrammasining namunasini mater
 
 Uch o'lchovli fazoda karkas modelini vizualizatsiya qilish dasturini ishlab chiqing.
 
-- Dastur C++ 17 standarti C++ tilida ishlab chiqilgan bo'lishi kerak.
+- Dastur C++20 standarti C++ tilida ishlab chiqilgan bo'lishi kerak.
 - Dastur kodi src papkasida bo'lishi kerak.
 - Kod yozishda Google Stylega amal qilinishi kerak.
 - Dastur to’plami GNU dasturlari uchun standart maqsadlar to'plamiga ega bo'lgan Makefile yordamida tuzilishi kerak: all, install, uninstall, clean, dvi, dist, tests. O'rnatish boshqa har qanday ixtiyoriy katalogda amalga oshirilishi kerak.
