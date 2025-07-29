@@ -201,11 +201,11 @@ QWidget* MainWidget::CreateAxisWidgets(QDoubleSpinBox*& spin_box,
 double MainWidget::GetStepValue(TransformType type) const {
   switch (type) {
     case TransformType::Move:
-      return 0.1;
+      return 0.1f;
     case TransformType::Rotate:
-      return 1.0;
+      return 1.0f;
     case TransformType::Scale:
-      return 0.05;
+      return 0.05f;
   }
 }
 
@@ -298,8 +298,6 @@ int MainWidget::LoadModelData(const QString& file_path) {
       if (next == before_x) {
         QMessageBox::warning(this, "Ошибка", "Некорректный файл");
         return 1;
-        // ptr = SkipToNextLine(ptr, end);
-        // continue;
       }
       // Парсинг координаты Y
       const char* before_y = next;
@@ -307,8 +305,6 @@ int MainWidget::LoadModelData(const QString& file_path) {
       if (next == before_y) {
         QMessageBox::warning(this, "Ошибка", "Некорректный файл");
         return 1;
-        // ptr = SkipToNextLine(ptr, end);
-        // continue;
       }
       // Парсинг координаты Z
       const char* before_z = next;
@@ -316,8 +312,6 @@ int MainWidget::LoadModelData(const QString& file_path) {
       if (next == before_z) {
         QMessageBox::warning(this, "Ошибка", "Некорректный файл");
         return 1;
-        // ptr = SkipToNextLine(ptr, end);
-        // continue;
       }
       // Добавление вершины
       vertices.append(QVector3D(x, y, z));
