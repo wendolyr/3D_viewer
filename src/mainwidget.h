@@ -1,9 +1,11 @@
-#ifndef VIEWER3D_V2_0_VIEWER_H
-#define VIEWER3D_V2_0_VIEWER_H
+#ifndef CPP4_3DVIEWER_V2_0_MAINWIDGET_H
+#define CPP4_3DVIEWER_V2_0_MAINWIDGET_H
 
+#include "OpenGLWidget.h"
 #include <QWidget>
 #include <QDoubleSpinBox>
 #include <QLabel>
+#include <QVector3D>
 
 class MainWidget : public QWidget {
 public:
@@ -20,6 +22,7 @@ protected:
 private:
     enum class TransformType { Move, Rotate, Scale };
     enum class Axis { X, Y, Z, None };
+    OpenGLWidget* m_gl_widget;
 
     QString m_full_file_name;
 
@@ -34,6 +37,9 @@ private:
     QLabel* m_file_name_label;
     QLabel* m_vertex_count_label;
     QLabel* m_edge_count_label;
+
+    QVector<QVector3D> vertices;    // Вершины
+    QSet<QPair<unsigned, unsigned>> edges;  // Ребра
 
     // Создание пользовательского интерфейса
     void SetupUI();
@@ -56,4 +62,4 @@ private slots:
     // TODO Метод для применения преобразований к модели
 };
 
-#endif  // VIEWER3D_V2_0_VIEWER_H
+#endif  // CPP4_3DVIEWER_V2_0_MAINWIDGET_H

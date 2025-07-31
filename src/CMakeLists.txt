@@ -10,7 +10,8 @@ find_package(Curses REQUIRED)
 
 add_executable(viewer
     main.cc
-    mainwidget.cc
+    MainWidget.cc
+    OpenGLWidget.cc
 )
 
 add_compile_options(-Wall -Wextra)

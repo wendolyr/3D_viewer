@@ -1,4 +1,5 @@
-#include "mainwidget.h"
+#include "MainWidget.h"
+#include "OpenGLWidget.h"
 
 #include <QApplication>
 #include <QWidget>
@@ -16,6 +17,7 @@
 // public
 MainWidget::MainWidget(QWidget *parent) : QWidget(parent), m_full_file_name("") {
     MainWidget::SetupUI();
+    m_gl_widget->clearModel();
 }
 
 // public slots
@@ -54,9 +56,10 @@ void MainWidget::SetupUI() {
     main_layout->setSpacing(15);
 
     // Область для OpenGL (пока заглушка)
-    QWidget* gl_widget = new QWidget;
-    gl_widget->setMinimumSize(640, 480);
-    main_layout->addWidget(gl_widget, 7); // 70% ширины
+    // QWidget* gl_widget = new QWidget;
+    m_gl_widget = new OpenGLWidget;
+    m_gl_widget->setMinimumSize(640, 480);
+    main_layout->addWidget(m_gl_widget, 7); // 70% ширины
 
     // Боковая панель управления
     QWidget* sidebar = new QWidget;
@@ -248,6 +251,10 @@ int MainWidget::LoadModelData(const QString& file_path) {
         QMessageBox::warning(this, "Ошибка", "Не удается открыть файл");
         return 1;
     }
+
+    vertices.clear();
+    edges.clear();
+
     // Чтение всего файла в память
     QByteArray fileData = file.readAll();
     fileData += '\0';
@@ -256,8 +263,8 @@ int MainWidget::LoadModelData(const QString& file_path) {
     QElapsedTimer timer;
     timer.start();
     // Буфер для вершин
-    QVector<QVector3D> vertices;
-    QSet<QPair<unsigned, unsigned>> edges;   // New Буфер для граней
+    // QVector<QVector3D> vertices;
+    // QSet<QPair<unsigned, unsigned>> edges;   // New Буфер для граней
     const char* data = fileData.constData();
     const char* end = data + fileData.size() - 1;
     const char* ptr = data;
@@ -399,6 +406,15 @@ int MainWidget::LoadModelData(const QString& file_path) {
     for (const auto& edge : edges) {
         vec.append({edge.first, edge.second}); // Создаём QPair из std::pair
     }
+
+    QVector<QPair<unsigned, unsigned>> edgeVec;
+    edgeVec.reserve(edges.size());
+    for (const auto& edge : edges) {
+        edgeVec.append(edge);
+    }
+
+    // Передаем данные в OpenGLWidget
+    m_gl_widget->setModelData(vertices, edgeVec);
 
     return 0;
 }
