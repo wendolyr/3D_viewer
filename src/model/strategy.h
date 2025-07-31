@@ -1,38 +1,46 @@
 #ifndef CPP4_3DVIEWER_V2_0_MODEL_STRATEGY_H
 #define CPP4_3DVIEWER_V2_0_MODEL_STRATEGY_H
 
-#include <vector>  //change
+#include <vector>
+
+#include "common_objects.h"
 
 namespace s21 {
-
-struct Point {
-  double x, y, z;
-};
 
 class TransformStrategy {
  public:
   virtual ~TransformStrategy() = default;
-  virtual void Transform(std::vector<Point> &vertex, double value) = 0;
+  virtual void Transform(std::vector<Vertex> &vertices, const Vertex value) = 0;
 };
 
-class RotateModel : public TransformStrategy {
+class RotateStrategy : public TransformStrategy {
  public:
-  void Transform(std::vector<Point> &vertex, double degree) override;
+  void Transform(std::vector<Vertex> &vertices, const Vertex angles) override;
 };
 
-class ScaleModel : public TransformStrategy {
+class ScaleStrategy : public TransformStrategy {
  public:
-  void Transform(std::vector<Point> &vertex, double scale) override;
+  void Transform(std::vector<Vertex> &vertices, const Vertex scale) override;
 };
 
-class MoveModel : public TransformStrategy {
+class MoveStrategy : public TransformStrategy {
  public:
-  void Transform(std::vector<Point> &vertex, double abba) override;
+  void Transform(std::vector<Vertex> &vertices, const Vertex shift) override;
 };
 
-class Strategy {
+class Context {
+ public:
+  Context() {};
+  void SetStrategy(TransformStrategy *s) { strategy_ = s; }
+
+  void Transform(std::vector<Vertex> &vertices, const Vertex param) {
+    if (strategy_) {
+      strategy_->Transform(vertices, param);
+    }
+  }
+
  private:
-  TransformStrategy *stratege_;
+  TransformStrategy *strategy_;
 };
 
 }  // namespace s21
