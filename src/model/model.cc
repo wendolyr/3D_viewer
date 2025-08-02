@@ -3,7 +3,7 @@
 namespace s21 {
 
 FigureModel::FigureModel()
-    : shift_{0.0f, 0.0f, 0.0f}, rotation_{0.0, 0.0, 0.0}, scale_{1} {}
+    : shift_{0.0f, 0.0f, 0.0f}, rotation_{0.0f, 0.0f, 0.0f}, scale_{1} {}
 
 void FigureModel::MoveFigure(Vertex shift) {
   MoveStrategy *temp = new MoveStrategy();
@@ -30,9 +30,13 @@ void FigureModel::RotateFigure(Vertex angle) {
   delete temp;
 }
 
-/**
- * to do
- */
-void ResetParams();
+void FigureModel::ResetParams() {
+  MoveFigure({-shift_.x, -shift_.y, -shift_.z});
+  RotateFigure({-rotation_.x, -rotation_.y, -rotation_.z});
+  ScaleFigure(-scale_);
+  scale_ = 0;
+  shift_ = {0.0, 0.0, 0.0};
+  rotation_ = {0.0, 0.0, 0.0};
+}
 
 }  // namespace s21
