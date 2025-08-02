@@ -1,4 +1,4 @@
-#include "MainWidget.h"
+#include "View/MainWidget.h"
 
 #include <QApplication>
 #include <QSurfaceFormat>

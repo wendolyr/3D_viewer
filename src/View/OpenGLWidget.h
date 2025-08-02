@@ -1,5 +1,5 @@
-#ifndef CPP4_3DVIEWER_V2_0_OPENGLWIDGET_H
-#define CPP4_3DVIEWER_V2_0_OPENGLWIDGET_H
+#ifndef CPP4_3DVIEWER_V2_0_VIEW_OPENGLWIDGET_H
+#define CPP4_3DVIEWER_V2_0_VIEW_OPENGLWIDGET_H
 
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions>
@@ -15,7 +15,7 @@ public:
     ~OpenGLWidget();
     void setModelData(const QVector<QVector3D>& vertices, const QVector<QPair<unsigned, unsigned>>& edges); // Получение данных
     void clearModel();
-    void normalizeVertices(QVector<QVector3D>& vertices);
+    void setTransformations(const QVector3D& translation, const QVector3D& rotation, float scale);
 protected:
     // Переопределенные методы QOpenGLWidget
     void initializeGL() override;   // Инициализация OpenGL
@@ -29,6 +29,10 @@ private:
 
     int m_indexCount = 0;   // Количество индексов для отрисовки
     int m_vertexCount = 0;
+
+    QVector3D m_translation;
+    QVector3D m_rotation;
+    float m_scale;
 };
 
-#endif  // CPP4_3DVIEWER_V2_0_OPENGLWIDGET_H
+#endif  // CPP4_3DVIEWER_V2_0_VIEW_OPENGLWIDGET_H

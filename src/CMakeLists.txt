@@ -10,8 +10,9 @@ find_package(Curses REQUIRED)
 
 add_executable(viewer
     main.cc
-    MainWidget.cc
-    OpenGLWidget.cc
+    view/MainWidget.cc
+    view/OpenGLWidget.cc
+    view/CyclicDoubleSpinBox.cc
 )
 
 add_compile_options(-Wall -Wextra)

@@ -1,5 +1,6 @@
 #include "MainWidget.h"
 #include "OpenGLWidget.h"
+#include "CyclicDoubleSpinBox.h"
 
 #include <QApplication>
 #include <QWidget>
@@ -35,9 +36,10 @@ void MainWidget::LoadModel() {
         QFileInfo file_info(file_name);
         m_full_file_name = file_info.fileName();
 
-        if (!MainWidget::LoadModelData(file_name)) MainWidget::UpdateFileNameLabel();
-
-        MainWidget::ResetTransform();
+        if (!MainWidget::LoadModelData(file_name)) { 
+            MainWidget::UpdateFileNameLabel();
+            MainWidget::ResetTransform();
+        }
     }
 }
 
@@ -96,23 +98,23 @@ void MainWidget::SetupUI() {
     // Группа перемещения
     QGroupBox* move_group = new QGroupBox("Перемещение");
     QFormLayout* move_layout = new QFormLayout;
-    move_layout->addRow("По X:", MainWidget::CreateAxisWidgets(m_move_x, TransformType::Move, Axis::X));
-    move_layout->addRow("По Y:", MainWidget::CreateAxisWidgets(m_move_y, TransformType::Move, Axis::Y));
-    move_layout->addRow("По Z:", MainWidget::CreateAxisWidgets(m_move_z, TransformType::Move, Axis::Z));
+    move_layout->addRow("По X:", MainWidget::CreateAxisWidgetsMoveAndScale(m_move_x, TransformType::Move, Axis::X));
+    move_layout->addRow("По Y:", MainWidget::CreateAxisWidgetsMoveAndScale(m_move_y, TransformType::Move, Axis::Y));
+    move_layout->addRow("По Z:", MainWidget::CreateAxisWidgetsMoveAndScale(m_move_z, TransformType::Move, Axis::Z));
     move_group->setLayout(move_layout);
 
     // Группа поворота
     QGroupBox* rotate_group = new QGroupBox("Поворот");
     QFormLayout* rotate_layout = new QFormLayout;
-    rotate_layout->addRow("По X (°):", MainWidget::CreateAxisWidgets(m_rotate_x, TransformType::Rotate, Axis::X));
-    rotate_layout->addRow("По Y (°):", MainWidget::CreateAxisWidgets(m_rotate_y, TransformType::Rotate, Axis::Y));
-    rotate_layout->addRow("По Z (°):", MainWidget::CreateAxisWidgets(m_rotate_z, TransformType::Rotate, Axis::Z));
+    rotate_layout->addRow("По X (°):", MainWidget::CreateAxisWidgetsRotate(m_rotate_x, Axis::X));
+    rotate_layout->addRow("По Y (°):", MainWidget::CreateAxisWidgetsRotate(m_rotate_y, Axis::Y));
+    rotate_layout->addRow("По Z (°):", MainWidget::CreateAxisWidgetsRotate(m_rotate_z, Axis::Z));
     rotate_group->setLayout(rotate_layout);
 
     // Группа масштабирования
     QGroupBox* scale_group = new QGroupBox("Масштабирование");
     QFormLayout* scale_layout = new QFormLayout;
-    scale_layout->addRow("Коэффицент:", MainWidget::CreateAxisWidgets(m_scale, TransformType::Scale, Axis::None));
+    scale_layout->addRow("Коэффицент:", MainWidget::CreateAxisWidgetsMoveAndScale(m_scale, TransformType::Scale, Axis::None));
     scale_group->setLayout(scale_layout);
 
     // Группа сброса преобразований
@@ -136,9 +138,24 @@ void MainWidget::SetupUI() {
 
     // Добавление боковой панели в главную разметку (30% ширины)
     main_layout->addWidget(sidebar, 3);
+
+    connect(m_move_x, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+        this, &MainWidget::OnTransformChanged);
+    connect(m_move_y, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+        this, &MainWidget::OnTransformChanged);
+    connect(m_move_z, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+        this, &MainWidget::OnTransformChanged);
+    connect(m_rotate_x, QOverload<double>::of(&CyclicDoubleSpinBox::valueChanged),
+        this, &MainWidget::OnTransformChanged);
+    connect(m_rotate_y, QOverload<double>::of(&CyclicDoubleSpinBox::valueChanged),
+        this, &MainWidget::OnTransformChanged);
+    connect(m_rotate_z, QOverload<double>::of(&CyclicDoubleSpinBox::valueChanged),
+        this, &MainWidget::OnTransformChanged);
+    connect(m_scale, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+        this, &MainWidget::OnTransformChanged);
 }
 
-QWidget* MainWidget::CreateAxisWidgets(
+QWidget* MainWidget::CreateAxisWidgetsMoveAndScale(
     QDoubleSpinBox*& spin_box,
     TransformType type,
     Axis axis
@@ -154,27 +171,19 @@ QWidget* MainWidget::CreateAxisWidgets(
     // Фиксируем ширину кнопок
     btn_minus->setFixedWidth(25);
     btn_plus->setFixedWidth(25);
-
-    // Поле для ввода значений
     spin_box = new QDoubleSpinBox;
-    
-    // Настройка и точность формата
     spin_box->setDecimals(2);
-    spin_box->setButtonSymbols(QAbstractSpinBox::NoButtons); // Скрываем кнопки
 
     // Настройка диапозонов в зависимости от типа преобразования
     if (type == TransformType::Move) {
         spin_box->setRange(-1000000.0, 1000000.0);
         spin_box->setValue(0.0);
-    } else if (type == TransformType::Rotate) {
-        spin_box->setRange(0.0, 359.0);
-        spin_box->setValue(0.0);
-        spin_box->setDecimals(0);
     } else {
         spin_box->setRange(0.01, 1000.0);
         spin_box->setValue(1.0);
     }
     spin_box->setSingleStep(MainWidget::GetStepValue(type));
+    spin_box->setButtonSymbols(QAbstractSpinBox::NoButtons); // Скрываем кнопки
 
     // Компоновка элементов
     h_layout->addWidget(btn_minus);
@@ -183,10 +192,51 @@ QWidget* MainWidget::CreateAxisWidgets(
 
     // Обработчик кнопок +/-
     connect(btn_minus, &QPushButton::clicked, [this, spin_box, type]() {
-        spin_box->setValue(MainWidget::DoStep(spin_box->value(), false, type));
+        spin_box->setValue(DoStep(spin_box->value(), false, type));
     });
     connect(btn_plus, &QPushButton::clicked, [this, spin_box, type]() {
-        spin_box->setValue(MainWidget::DoStep(spin_box->value(), true, type));
+        spin_box->setValue(DoStep(spin_box->value(), true, type));
+    });
+
+    return container;
+}
+
+QWidget* MainWidget::CreateAxisWidgetsRotate(
+    CyclicDoubleSpinBox*& spin_box,
+    Axis axis
+) {
+    QWidget* container = new QWidget;
+    QHBoxLayout* h_layout = new QHBoxLayout(container);
+    h_layout->setContentsMargins(0, 0, 0, 0); // Убираем отступы
+
+    // Кнопка уменьшения значения
+    QPushButton* btn_minus = new QPushButton("-");
+    // Кнопка увеличения значения
+    QPushButton* btn_plus = new QPushButton("+");
+    // Фиксируем ширину кнопок
+    btn_minus->setFixedWidth(25);
+    btn_plus->setFixedWidth(25);
+    spin_box = new CyclicDoubleSpinBox;
+    spin_box->setDecimals(0);
+
+    // Настройка диапозонов в зависимости от типа преобразования
+    spin_box->setRange(0.0, 359.0); // Диапазон [0, 359]
+    spin_box->setValue(0.0);
+    spin_box->setDecimals(0);
+    spin_box->setSingleStep(MainWidget::GetStepValue(TransformType::Rotate));
+    spin_box->setButtonSymbols(QAbstractSpinBox::NoButtons); // Скрываем кнопки
+
+    // Компоновка элементов
+    h_layout->addWidget(btn_minus);
+    h_layout->addWidget(spin_box);
+    h_layout->addWidget(btn_plus);
+
+    // Обработчик кнопок +/-
+    connect(btn_minus, &QPushButton::clicked, [this, spin_box]() {
+        spin_box->setValue(DoStep(spin_box->value(), false, TransformType::Rotate));
+    });
+    connect(btn_plus, &QPushButton::clicked, [this, spin_box]() {
+        spin_box->setValue(DoStep(spin_box->value(), true, TransformType::Rotate));
     });
 
     return container;
@@ -194,7 +244,7 @@ QWidget* MainWidget::CreateAxisWidgets(
 
 double MainWidget::GetStepValue(TransformType type) const {
     switch (type) {
-    case TransformType::Move: return 0.1;
+    case TransformType::Move: return 0.25;
     case TransformType::Rotate: return 1.0;
     case TransformType::Scale: return 0.05;
     }
@@ -209,8 +259,8 @@ double MainWidget::DoStep(double value, bool sum, TransformType type) {
     }
     // Для поворотов цикличная арифметика
     if (type == TransformType::Rotate) {
-        if (value > 359.0) value -= 360;
-        if (value < 0.0) value += 360;
+        value = fmod(value, 360.0);
+        if (value < 0.0) value += 360.0;
     } else {
         const double factor = std::pow(10.0, 2);
         value = std::round(value * factor) / factor;
@@ -256,25 +306,27 @@ int MainWidget::LoadModelData(const QString& file_path) {
     edges.clear();
 
     // Чтение всего файла в память
-    QByteArray fileData = file.readAll();
-    fileData += '\0';
+    const QByteArray fileData = file.readAll();
+    // fileData += '\0';
     file.close();
     // Таймер для замера производительности
     QElapsedTimer timer;
     timer.start();
-    // Буфер для вершин
-    // QVector<QVector3D> vertices;
-    // QSet<QPair<unsigned, unsigned>> edges;   // New Буфер для граней
     const char* data = fileData.constData();
-    const char* end = data + fileData.size() - 1;
+    const char* end = data + fileData.size();
     const char* ptr = data;
     // Предварительное выделение памяти
-    vertices.reserve(fileData.size() / 32); // Эвристическое значение
+    vertices.reserve(fileData.size() / 80); // Эвристическое значение
+    edges.reserve(fileData.size() / 40);
+
+    static std::vector<unsigned> face;
+    face.clear();
+    face.reserve(16);
     // Основной цикл парсинга
     while (ptr < end) {
         // Пропуск пробелов и управляющих символов
         while (ptr < end && (*ptr == ' ' || *ptr == '\t' || *ptr == '\r' || *ptr == '\n')) {
-            ptr++;
+            ++ptr;
         }
         if (ptr >= end) break;
         // Обработка вершин (строки начинающиеся с "v ")
@@ -286,29 +338,33 @@ int MainWidget::LoadModelData(const QString& file_path) {
             // Парсинг координаты X
             const char* before_x = line_start;
             x = std::strtof(line_start, &next);
-            if (next == before_x) {
-                QMessageBox::warning(this, "Ошибка", "Некорректный файл");
-                return 1;
-                // ptr = SkipToNextLine(ptr, end);
-                // continue;
-            }
-            // Парсинг координаты Y
-            const char* before_y = next;
+            // if (next == before_x) {
+            //     QMessageBox::warning(this, "Ошибка", "Некорректный файл");
+            //     return 1;
+            //     // ptr = SkipToNextLine(ptr, end);
+            //     // continue;
+            // }
+            // // Парсинг координаты Y
+            // const char* before_y = next;
             y = std::strtof(next, &next);
-            if (next == before_y) {
-                QMessageBox::warning(this, "Ошибка", "Некорректный файл");
-                return 1;
-                // ptr = SkipToNextLine(ptr, end);
-                // continue;
-            }
-            // Парсинг координаты Z
-            const char* before_z = next;
+            // if (next == before_y) {
+            //     QMessageBox::warning(this, "Ошибка", "Некорректный файл");
+            //     return 1;
+            //     // ptr = SkipToNextLine(ptr, end);
+            //     // continue;
+            // }
+            // // Парсинг координаты Z
+            // const char* before_z = next;
             z = std::strtof(next, &next);
-            if (next == before_z) {
+            // if (next == before_z) {
+            //     QMessageBox::warning(this, "Ошибка", "Некорректный файл");
+            //     return 1;
+            //     // ptr = SkipToNextLine(ptr, end);
+            //     // continue;
+            // }
+            if (next == line_start) {
                 QMessageBox::warning(this, "Ошибка", "Некорректный файл");
                 return 1;
-                // ptr = SkipToNextLine(ptr, end);
-                // continue;
             }
             // Добавление вершины
             vertices.append(QVector3D(x, y, z));
@@ -320,61 +376,114 @@ int MainWidget::LoadModelData(const QString& file_path) {
             if (ptr + 2 >= end) break;
             
             const char* line_start = ptr + 2;
-            QVector<unsigned> face; // Временный контейнер для индексов грани
+            face.clear();
             
             // Парсинг каждого значения в строке грани
             const char* token_start = line_start;
-            while (token_start < end && *token_start != '\n' && *token_start != '\r') {
+            // while (token_start < end && *token_start != '\n' && *token_start != '\r') {
+            while (token_start < end) {
                 // Пропуск пробелов в начале токена
                 while (token_start < end && (*token_start == ' ' || *token_start == '\t')) {
-                    token_start++;
+                    ++token_start;
                 }
                 if (token_start >= end || *token_start == '\n' || *token_start == '\r') break;
-                
-                const char* token_end = token_start;
-                // Поиск конца токена (пробел, табуляция или конец строки)
-                while (token_end < end && *token_end != ' ' && *token_end != '\t' && *token_end != '\n' && *token_end != '\r') {
-                    token_end++;
+                // new variant
+                int idx = 0;
+                bool negative = false;
+                const char* num_start = token_start;
+
+                // Обработка знака
+                if (*num_start == '-') {
+                    negative = true;
+                    ++num_start;
+                } else if (*num_start == '+') {
+                    ++num_start;
                 }
-                // Преобразование строки в число
-                char* next_char;
-                int idx = std::strtol(token_start, &next_char, 10);
-                
-                // Проверка корректности преобразования
-                if (next_char == token_end) {
-                    // OBJ использует 1-индексацию, преобразуем в 0-индексацию
-                    unsigned vertex_index = static_cast<unsigned>(std::abs(idx)) - 1;
+
+                // Парсинг числа
+                if (num_start < end && *num_start >= '0' && *num_start <= '9') {
+                    while (num_start < end && *num_start >= '0' && *num_start <= '9') {
+                        idx = idx * 10 + (*num_start++ - '0');
+                    }
                     
-                    // Проверка валидности индекса
-                    if (vertex_index < static_cast<unsigned>(vertices.size())) {
-                        face.append(vertex_index);
+                    // Преобразование индекса
+                    unsigned vertex_index;
+                    if (negative) {
+                        vertex_index = static_cast<unsigned>(vertices.size() - idx);
                     } else {
-                        // qWarning() << "Invalid vertex index in face:" << vertex_index;
+                        vertex_index = static_cast<unsigned>(idx - 1);
+                    }
+                    
+                    // Проверка и добавление индекса
+                    if (vertex_index < static_cast<unsigned>(vertices.size())) {
+                        face.push_back(vertex_index);
                     }
                 }
-                // Добавлено: предупреждение о несовпадении формата
-                else if (next_char != token_start) {
-                    // qWarning() << "Skipping face token with unsupported format: " 
-                    //            << QString::fromUtf8(token_start, token_end - token_start);
+
+                while (token_start < end && *token_start != ' ' && 
+                       *token_start != '\t' && *token_start != '\n' && *token_start != '\r') {
+                    ++token_start;
                 }
+
+
+                // old variant
+                // const char* token_end = token_start;
+                // // Поиск конца токена (пробел, табуляция или конец строки)
+                // while (token_end < end && *token_end != ' ' && *token_end != '\t' && *token_end != '\n' && *token_end != '\r') {
+                //     token_end++;
+                // }
+                // // Преобразование строки в число
+                // char* next_char;
+                // int idx = std::strtol(token_start, &next_char, 10);
                 
-                // Переход к следующему токену
-                token_start = token_end;
+                // // Проверка корректности преобразования
+                // if (next_char != token_start) {
+                //     // OBJ использует 1-индексацию, преобразуем в 0-индексацию
+                //     unsigned vertex_index = static_cast<unsigned>(std::abs(idx)) - 1;
+                    
+                //     // Проверка валидности индекса
+                //     if (vertex_index < static_cast<unsigned>(vertices.size())) {
+                //         face.append(vertex_index);
+                //     }
+                // }
+                
+                // // Переход к следующему токену
+                // token_start = token_end;
             }
             
             // Сохраняем грань если есть хотя бы 3 вершины
-            if (face.size() >= 2) {
+            const size_t face_size = face.size();
+            // if (face.size() >= 2) {
+            if (face_size >= 2) {
                 // Для каждой вершины в грани
-                for (int i = 0; i < face.size(); i++) {
-                    // Получаем две соседние вершины
-                    unsigned idx1 = face[i];
-                    unsigned idx2 = face[(i + 1) % face.size()];
-
-                    // Создаем упорядоченную пару (min, max) для избежания дубликатов
-                    QPair<unsigned,unsigned> edge = (idx1 < idx2) ? qMakePair(idx1, idx2) : qMakePair(idx2, idx1);
-                    // Добавляем ребро в множество (автоматическое удаление дубликатов)
+                // new variant
+                const unsigned int last_index = face[face_size - 1];
+                unsigned int prev_index = last_index;
+                
+                for (size_t i = 0; i < face_size; ++i) {
+                    const unsigned int current_index = face[i];
+                    
+                    // Создание упорядоченной пары
+                    const auto edge = (prev_index < current_index) 
+                        ? qMakePair(prev_index, current_index)
+                        : qMakePair(current_index, prev_index);
+                    
                     edges.insert(edge);
+                    prev_index = current_index;
                 }
+
+
+                // old variant
+                // for (int i = 0; i < face.size(); i++) {
+                //     // Получаем две соседние вершины
+                //     unsigned idx1 = face[i];
+                //     unsigned idx2 = face[(i + 1) % face.size()];
+
+                //     // Создаем упорядоченную пару (min, max) для избежания дубликатов
+                //     QPair<unsigned,unsigned> edge = (idx1 < idx2) ? qMakePair(idx1, idx2) : qMakePair(idx2, idx1);
+                //     // Добавляем ребро в множество (автоматическое удаление дубликатов)
+                //     edges.insert(edge);
+                // }
             }
             
             ptr = SkipToNextLine(ptr, end);
@@ -385,7 +494,7 @@ int MainWidget::LoadModelData(const QString& file_path) {
             ptr = SkipToNextLine(ptr, end);
         }
         // Переход к следующему символу
-        if (ptr < end) ptr++;
+        if (ptr < end) ++ptr;
     }
     // Замер времени выполнения
     qint64 elapsed_ns = timer.nsecsElapsed();
@@ -399,13 +508,6 @@ int MainWidget::LoadModelData(const QString& file_path) {
                                   .arg(elapsed_ms, 0, 'f', 3)
                                   .arg(vertices.size()));
     m_edge_count_label->setText(QString("%1").arg(edges.size()));
-    
-    QVector<QPair<unsigned, unsigned>> vec;
-    vec.reserve(edges.size()); // Оптимизация: резервируем память заранее
-
-    for (const auto& edge : edges) {
-        vec.append({edge.first, edge.second}); // Создаём QPair из std::pair
-    }
 
     QVector<QPair<unsigned, unsigned>> edgeVec;
     edgeVec.reserve(edges.size());
@@ -422,7 +524,7 @@ int MainWidget::LoadModelData(const QString& file_path) {
 // Пропуск до следующей строки
 const char* MainWidget::SkipToNextLine(const char* ptr, const char* end) {
     while (ptr < end && *ptr != '\n') {
-        ptr++;
+        ++ptr;
     }
     return ptr;
 }
@@ -438,4 +540,24 @@ void MainWidget::ResetTransform() {
     m_rotate_z->setValue(0.0);
 
     m_scale->setValue(1.0);
+
+    OnTransformChanged();
+}
+
+void MainWidget::OnTransformChanged() {
+    QVector3D translation(
+        m_move_x->value(),
+        m_move_y->value(),
+        m_move_z->value()
+    );
+    
+    QVector3D rotation(
+        m_rotate_x->value(),
+        m_rotate_y->value(),
+        m_rotate_z->value()
+    );
+    
+    float scale = m_scale->value();
+    
+    m_gl_widget->setTransformations(translation, rotation, scale);
 }
