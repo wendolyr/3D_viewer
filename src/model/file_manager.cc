@@ -27,17 +27,19 @@ const char *SkipToTheNextLine(const char *ptr, const char *end) {
 
 void FileManager::SaveModel(std::string &file_name, FigureModel &model) {
   std::ofstream file(file_name);
-  if (file.is_open()) {
-    for (const Vertex &v : model.GetVertices()) {
-      file << "v  " << v.x << ' ' << v.y << ' ' << v.z << std::endl;
-    }
-
-    for (const auto &f : model.GetPolygons()) {
-      file << "f " << f.first << ' ' << f.second << std::endl;
-    }
-
-    file.close();
+  if (!file.is_open()) {
+    return;
   }
+
+  for (const Vertex &v : model.GetVertices()) {
+    file << "v  " << v.x << ' ' << v.y << ' ' << v.z << std::endl;
+  }
+
+  for (const auto &f : model.GetPolygons()) {
+    file << "f " << f.first << ' ' << f.second << std::endl;
+  }
+
+  file.close();
 
   std::string settings_file_name = ".last_settings.txt";
   SaveSettings(settings_file_name, model);

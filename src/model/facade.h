@@ -8,11 +8,23 @@ namespace s21 {
 
 class Facade {
  public:
-  void ParseFile(std::string &file);
+  int ParseFile(std::string& file);
+  void SaveModel(std::string& file_name);
+  void LoadLastState();
+
+  std::vector<Vertex>& GetVertices();
+  std::set<std::pair<unsigned, unsigned>>& GetPolygons();
+  Params GetCurrentSettings();
+
+  void MoveFigure(Vertex shift);
+  void ScaleFigure(double scale);
+  void RotateFigure(Vertex angle);
+
+  void ResetSettings();
 
  private:
   FigureModel model_;
-  FileManager parser_data_;
+  FileManager data_;
 };
 
 }  // namespace s21
