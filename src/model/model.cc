@@ -3,7 +3,7 @@
 namespace s21 {
 
 FigureModel::FigureModel()
-    : shift_{0.0f, 0.0f, 0.0f}, rotation_{0.0f, 0.0f, 0.0f}, scale_{1} {}
+    : shift_{0.0, 0.0, 0.0}, rotation_{0.0, 0.0, 0.0}, scale_{1} {}
 
 void FigureModel::MoveFigure(Vertex shift) {
   MoveStrategy *temp = new MoveStrategy();
@@ -30,7 +30,30 @@ void FigureModel::RotateFigure(Vertex angle) {
   delete temp;
 }
 
-void FigureModel::ResetParams() {
+void FigureModel::SetVertices(std::vector<Vertex> &v) { vertices_ = v; }
+
+void FigureModel::SetPolygons(std::set<std::pair<unsigned, unsigned>> &p) {
+  polygons_ = p;
+}
+
+std::vector<Vertex> &FigureModel::GetVertices() { return vertices_; }
+
+std::set<std::pair<unsigned, unsigned>> &FigureModel::GetPolygons() {
+  return polygons_;
+}
+
+Params FigureModel::GetCurrentSettings() { return {shift_, rotation_, scale_}; }
+
+void FigureModel::SetSettings(Params &params) {
+  shift_ = params.shift;
+  rotation_ = params.rotation;
+  scale_ = params.scale;
+}
+
+void FigureModel::ResetSettings() {
+  /**
+   * not right logic
+   */
   MoveFigure({-shift_.x, -shift_.y, -shift_.z});
   RotateFigure({-rotation_.x, -rotation_.y, -rotation_.z});
   ScaleFigure(-scale_);

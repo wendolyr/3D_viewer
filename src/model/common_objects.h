@@ -7,7 +7,11 @@ struct Vertex {
   double x, y, z;
 };
 
-enum class Parameter { kScale, kX, kY, kZ };
+struct Params {
+  Vertex shift;
+  Vertex rotation;
+  double scale;
+};
 
 }  // namespace s21
 
