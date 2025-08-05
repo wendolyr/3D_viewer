@@ -12,17 +12,21 @@ void Facade::SaveModel(std::string& file_name) {
 
 void Facade::LoadLastState() { data_.LoadLastState(model_); }
 
-std::vector<Vertex>& Facade::GetVertices() { return model_.GetVertices(); }
+const std::vector<Vertex>& Facade::GetVertices() const {
+  return model_.GetVertices();
+}
 
-std::set<std::pair<unsigned, unsigned>>& Facade::GetPolygons() {
+const std::set<std::pair<unsigned, unsigned>>& Facade::GetPolygons() const {
   return model_.GetPolygons();
 }
 
-Params Facade::GetCurrentSettings() { return model_.GetCurrentSettings(); }
+const Params& Facade::GetCurrentSettings() const {
+  return model_.GetCurrentSettings();
+}
 
 void Facade::MoveFigure(Vertex shift) { model_.MoveFigure(shift); }
 
-void Facade::ScaleFigure(double scale) { model_.ScaleFigure(scale); }
+void Facade::ScaleFigure(float scale) { model_.ScaleFigure(scale); }
 
 void Facade::RotateFigure(Vertex angle) { model_.RotateFigure(angle); }
 

@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "common_objects.h"
+#include "factory.h"
 #include "strategy.h"
 
 namespace s21 {
@@ -15,12 +16,13 @@ class FigureModel {
   void SetVertices(std::vector<Vertex>& v);
   void SetPolygons(std::set<std::pair<unsigned, unsigned>>& p);
   void SetSettings(Params& params);
-  std::vector<Vertex>& GetVertices();
-  std::set<std::pair<unsigned, unsigned>>& GetPolygons();
-  Params GetCurrentSettings();
+
+  const std::vector<Vertex>& GetVertices() const;
+  const std::set<std::pair<unsigned, unsigned>>& GetPolygons() const;
+  const Params& GetCurrentSettings() const;
 
   void MoveFigure(Vertex shift);
-  void ScaleFigure(double scale);
+  void ScaleFigure(float scale);
   void RotateFigure(Vertex angle);
 
   void ResetSettings();
@@ -34,7 +36,7 @@ class FigureModel {
 
   Vertex shift_;
   Vertex rotation_;
-  double scale_;
+  float scale_;
 };
 
 }  // namespace s21

@@ -8,16 +8,19 @@ namespace s21 {
 
 class Facade {
  public:
+  Facade() = default;
+  ~Facade() = default;
+
   int ParseFile(std::string& file);
   void SaveModel(std::string& file_name);
   void LoadLastState();
 
-  std::vector<Vertex>& GetVertices();
-  std::set<std::pair<unsigned, unsigned>>& GetPolygons();
-  Params GetCurrentSettings();
+  const std::vector<Vertex>& GetVertices() const;
+  const std::set<std::pair<unsigned, unsigned>>& GetPolygons() const;
+  const Params& GetCurrentSettings() const;
 
   void MoveFigure(Vertex shift);
-  void ScaleFigure(double scale);
+  void ScaleFigure(float scale);
   void RotateFigure(Vertex angle);
 
   void ResetSettings();

@@ -4,13 +4,13 @@
 namespace s21 {
 
 struct Vertex {
-  double x, y, z;
+  float x, y, z;
 };
 
 struct Params {
   Vertex shift;
   Vertex rotation;
-  double scale;
+  float scale;
 };
 
 }  // namespace s21

@@ -6,15 +6,17 @@ FigureModel::FigureModel()
     : shift_{0.0, 0.0, 0.0}, rotation_{0.0, 0.0, 0.0}, scale_{1} {}
 
 void FigureModel::MoveFigure(Vertex shift) {
-  MoveStrategy *temp = new MoveStrategy();
+  auto temp =
+      StrategyFactory::CreateStrategy(StrategyFactory::StrategyType::kMove);
   strategy_->SetStrategy(temp);
   strategy_->Transform(vertices_, shift);
 
   delete temp;
 }
 
-void FigureModel::ScaleFigure(double scale) {
-  ScaleStrategy *temp = new ScaleStrategy();
+void FigureModel::ScaleFigure(float scale) {
+  auto temp =
+      StrategyFactory::CreateStrategy(StrategyFactory::StrategyType::kScale);
   strategy_->SetStrategy(temp);
   strategy_->Transform(vertices_, {scale, 0.0, 0.0});
 
@@ -22,8 +24,8 @@ void FigureModel::ScaleFigure(double scale) {
 }
 
 void FigureModel::RotateFigure(Vertex angle) {
-  RotateStrategy *temp = new RotateStrategy();
-
+  auto temp =
+      StrategyFactory::CreateStrategy(StrategyFactory::StrategyType::kRotate);
   strategy_->SetStrategy(temp);
   strategy_->Transform(vertices_, angle);
 
@@ -36,13 +38,18 @@ void FigureModel::SetPolygons(std::set<std::pair<unsigned, unsigned>> &p) {
   polygons_ = p;
 }
 
-std::vector<Vertex> &FigureModel::GetVertices() { return vertices_; }
+const std::vector<Vertex> &FigureModel::GetVertices() const {
+  return vertices_;
+}
 
-std::set<std::pair<unsigned, unsigned>> &FigureModel::GetPolygons() {
+const std::set<std::pair<unsigned, unsigned>> &FigureModel::GetPolygons()
+    const {
   return polygons_;
 }
 
-Params FigureModel::GetCurrentSettings() { return {shift_, rotation_, scale_}; }
+const Params &FigureModel::GetCurrentSettings() const {
+  return {shift_, rotation_, scale_};
+}
 
 void FigureModel::SetSettings(Params &params) {
   shift_ = params.shift;

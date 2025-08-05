@@ -21,18 +21,18 @@ void MoveStrategy::Transform(std::vector<Vertex> &vertices, const Vertex axis) {
 
 void RotateStrategy::Transform(std::vector<Vertex> &vertices,
                                const Vertex axis) {
-  double rad_angle_x = axis.x * M_PI / 180;
-  double rad_angle_y = axis.y * M_PI / 180;
-  double rad_angle_z = axis.z * M_PI / 180;
+  float rad_angle_x = axis.x * M_PI / 180;
+  float rad_angle_y = axis.y * M_PI / 180;
+  float rad_angle_z = axis.z * M_PI / 180;
 
-  double calc_sin_x = sin(rad_angle_x);
-  double calc_cos_x = cos(rad_angle_x);
+  float calc_sin_x = sin(rad_angle_x);
+  float calc_cos_x = cos(rad_angle_x);
 
-  double calc_sin_y = sin(rad_angle_y);
-  double calc_cos_y = cos(rad_angle_y);
+  float calc_sin_y = sin(rad_angle_y);
+  float calc_cos_y = cos(rad_angle_y);
 
-  double calc_sin_z = sin(rad_angle_z);
-  double calc_cos_z = cos(rad_angle_z);
+  float calc_sin_z = sin(rad_angle_z);
+  float calc_cos_z = cos(rad_angle_z);
 
   for (Vertex i : vertices) {
     if (rad_angle_x > 1e-7) {
