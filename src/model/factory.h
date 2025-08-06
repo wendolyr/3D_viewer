@@ -19,6 +19,8 @@ class StrategyFactory {
     } else if (type == StrategyType::kScale) {
       ScaleStrategy *strategy = new ScaleStrategy();
       return strategy;
+    } else {
+      return nullptr;
     }
   }
 };

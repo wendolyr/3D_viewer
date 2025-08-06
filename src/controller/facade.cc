@@ -20,7 +20,7 @@ const std::set<std::pair<unsigned, unsigned>>& Facade::GetPolygons() const {
   return model_.GetPolygons();
 }
 
-const Params& Facade::GetCurrentSettings() const {
+const Params Facade::GetCurrentSettings() const {
   return model_.GetCurrentSettings();
 }
 

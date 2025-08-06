@@ -19,7 +19,7 @@ class FigureModel {
 
   const std::vector<Vertex>& GetVertices() const;
   const std::set<std::pair<unsigned, unsigned>>& GetPolygons() const;
-  const Params& GetCurrentSettings() const;
+  const Params GetCurrentSettings() const;
 
   void MoveFigure(Vertex shift);
   void ScaleFigure(float scale);

@@ -1,14 +1,221 @@
 #include "file_manager.h"
 
+#include <iostream>
+
 namespace s21 {
 
 int FileManager::ParseFile(std::string &file_name, FigureModel &model) {
-  /**
-   * обычное чтение через fstream
-   * делегировать методам ParseVertices и ParsePolygons для декомпозиции
-   * коды ошибок возвращать для вывода ошибок во фронте
-   */
+  std::ifstream file(file_name);
+  if (!file.is_open()) {
+    return 1;
+  }
+
+  std::string line;
+  std::vector<Vertex> vertices;
+  std::set<std::pair<unsigned, unsigned>> polygons;
+
+  while (std::getline(file, line)) {
+    std::istringstream iss(line);
+    std::string prefix;
+    iss >> prefix;
+
+    if (prefix == "v") {
+      Vertex v;
+      if (!(iss >> v.x >> v.y >> v.z)) {
+        return 2;
+      }
+      vertices.push_back(v);
+
+    } else if (prefix == "f") {
+      std::vector<unsigned> face;
+      std::string st;
+      while (iss >> st) {
+        char *temp = &st[0];
+        while (temp) {
+          std::cout << "HERE\n";
+          bool negative = false;
+          while (*temp == ' ' || *temp == '/') {  // wrong
+            ++temp;
+          }
+
+          if (*temp == '-') {
+            negative = true;
+            ++temp;
+          }
+          unsigned num = 0;
+          while (*temp >= '0' && *temp <= '9') {
+            num = num * 10 + (*temp - '0');
+            ++temp;
+          }
+
+          num = negative ? vertices.size() - num : num - 1;
+
+          if (num < vertices.size()) {
+            face.push_back(num);
+          } else {
+            return 2;
+          }
+        }
+      }
+      break;
+      for (size_t i = 0; i < face.size(); ++i) {
+        std::pair<unsigned, unsigned> pair;
+        size_t prev_ind = i > 0 ? i - 1 : face.size() - 1;
+        pair = face[i] > face[prev_ind]
+                   ? std::make_pair(face[prev_ind], face[i])
+                   : std::make_pair(face[i], face[prev_ind]);
+        polygons.insert(pair);
+      }
+      // std::pair<unsigned, unsigned> temp;
+      // if (!(iss >> temp.first >> temp.second)) {
+      //   return 2;
+      // }
+      // if (temp.first > temp.second) {
+      //   std::swap(temp.first, temp.second);
+      // }
+      // polygons.insert(temp);
+    }
+  }
+
+  model.SetVertices(vertices);
+  model.SetPolygons(polygons);
+
+  return 0;
 }
+
+// int MainWidget::LoadModelData(const QString &file_path) {
+//   while (ptr < end) {
+//     // Пропуск пробелов и управляющих символов
+//     while (ptr < end &&
+//            (*ptr == ' ' || *ptr == '\t' || *ptr == '\r' || *ptr == '\n')) {
+//       ++ptr;
+//     }
+//     if (ptr >= end) break;
+//     // Обработка вершин (строки начинающиеся с "v ")
+//     if (*ptr == 'v' && (ptr + 1 < end) &&
+//         (*(ptr + 1) == ' ' || *(ptr + 1) == '\t')) {
+//       if (ptr + 2 >= end) break;
+//       const char *line_start = ptr + 2;
+//       float x, y, z;
+//       char *next;  // Указатель на следующую позицию
+//       // Парсинг координаты X
+//       const char *before_x = line_start;
+//       x = std::strtof(line_start, &next);
+//       y = std::strtof(next, &next);
+//       z = std::strtof(next, &next);
+
+//       if (next == line_start) {
+//         QMessageBox::warning(this, "Ошибка", "Некорректный файл");
+//         return 1;
+//       }
+//       // Добавление вершины
+//       vertices.append(QVector3D(x, y, z));
+//       ptr = SkipToNextLine(ptr, end);
+//       continue;
+//     }
+//     // New Обработка граней (f)
+//     else if (*ptr == 'f' && (ptr + 1 < end) &&
+//              (*(ptr + 1) == ' ' || *(ptr + 1) == '\t')) {
+//       if (ptr + 2 >= end) break;
+
+//       const char *line_start = ptr + 2;
+//       face.clear();
+
+//       // Парсинг каждого значения в строке грани
+//       const char *token_start = line_start;
+//       // while (token_start < end && *token_start != '\n' && *token_start !=
+//       // '\r') {
+//       while (token_start < end) {
+//         // Пропуск пробелов в начале токена
+//         while (token_start < end &&
+//                (*token_start == ' ' || *token_start == '\t')) {
+//           ++token_start;
+//         }
+//         if (token_start >= end || *token_start == '\n' || *token_start ==
+//         '\r')
+//           break;
+//         // new variant
+//         int idx = 0;
+//         bool negative = false;
+//         const char *num_start = token_start;
+
+//         // Обработка знака
+//         if (*num_start == '-') {
+//           negative = true;
+//           ++num_start;
+//         } else if (*num_start == '+') {
+//           ++num_start;
+//         }
+
+//         // Парсинг числа
+//         if (num_start < end && *num_start >= '0' && *num_start <= '9') {
+//           while (num_start < end && *num_start >= '0' && *num_start <= '9') {
+//             idx = idx * 10 + (*num_start++ - '0');
+//           }
+
+//           // Преобразование индекса
+//           unsigned vertex_index;
+//           if (negative) {
+//             vertex_index = static_cast<unsigned>(vertices.size() - idx);
+//           } else {
+//             vertex_index = static_cast<unsigned>(idx - 1);
+//           }
+
+//           // Проверка и добавление индекса
+//           if (vertex_index < static_cast<unsigned>(vertices.size())) {
+//             face.push_back(vertex_index);
+//           }
+//         }
+
+//         while (token_start < end && *token_start != ' ' &&
+//                *token_start != '\t' && *token_start != '\n' &&
+//                *token_start != '\r') {
+//           ++token_start;
+//         }
+//       }
+
+//       // Сохраняем грань если есть хотя бы 3 вершины
+//       const size_t face_size = face.size();
+//       // if (face.size() >= 2) {
+//       if (face_size >= 2) {
+//         // Для каждой вершины в грани
+//         // new variant
+//         const unsigned int last_index = face[face_size - 1];
+//         unsigned int prev_index = last_index;
+
+//         for (size_t i = 0; i < face_size; ++i) {
+//           const unsigned int current_index = face[i];
+
+//           // Создание упорядоченной пары
+//           const auto edge = (prev_index < current_index)
+//                                 ? qMakePair(prev_index, current_index)
+//                                 : qMakePair(current_index, prev_index);
+
+//           edges.insert(edge);
+//           prev_index = current_index;
+//         }
+//       }
+
+//       ptr = SkipToNextLine(ptr, end);
+//       continue;
+//     }
+//     // Пропуск остальных строк
+//     else {
+//       ptr = SkipToNextLine(ptr, end);
+//     }
+//     // Переход к следующему символу
+//     if (ptr < end) ++ptr;
+//   }
+
+//   QVector<QPair<unsigned, unsigned>> edgeVec;
+//   edgeVec.reserve(edges.size());
+//   for (const auto &edge : edges) {
+//     edgeVec.append(edge);
+//   }
+
+//   return 0;
+// }
+// //============
 
 void FileManager::LoadLastState(FigureModel &model) {
   std::string last_object_file = ".last_object.obj";
@@ -113,6 +320,8 @@ bool FileManager::LoadSettings(FigureModel &model) {
   }
 
   model.SetSettings(temp);
+
+  return true;
 }
 
 }  // namespace s21

@@ -1,8 +1,8 @@
 #ifndef CPP4_3DVIEWER_V2_0_MODEL_FACADE_H
 #define CPP4_3DVIEWER_V2_0_MODEL_FACADE_H
 
-#include "file_manager.h"
-#include "model.h"
+#include "../model/file_manager.h"
+#include "../model/model.h"
 
 namespace s21 {
 
@@ -17,7 +17,7 @@ class Facade {
 
   const std::vector<Vertex>& GetVertices() const;
   const std::set<std::pair<unsigned, unsigned>>& GetPolygons() const;
-  const Params& GetCurrentSettings() const;
+  const Params GetCurrentSettings() const;
 
   void MoveFigure(Vertex shift);
   void ScaleFigure(float scale);

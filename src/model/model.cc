@@ -47,7 +47,7 @@ const std::set<std::pair<unsigned, unsigned>> &FigureModel::GetPolygons()
   return polygons_;
 }
 
-const Params &FigureModel::GetCurrentSettings() const {
+const Params FigureModel::GetCurrentSettings() const {
   return {shift_, rotation_, scale_};
 }
 
