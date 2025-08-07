@@ -30,40 +30,31 @@ int FileManager::ParseFile(std::string &file_name, FigureModel &model) {
       std::vector<unsigned> face;
       std::string st;
       while (iss >> st) {
-        bool negative = false;
-        unsigned num = 0;
-        for (size_t i = 0; i < st.size(); ++i) {
-          if (st[i] == ' ') {
-            continue;
-          }
+        int num;
+        auto [ptr, ec] = std::from_chars(st.data(), st.data() + st.size(), num);
 
-          if (!negative && st[i] == '-') {
-            negative = true;
-          } else if (st[i] >= '0' && st[i] <= '9') {
-            num = num * 10 + (st[i] - '0');
-          } else if (st[i] == '/') {
-            break;
-          } else {
-            return 2;
-          }
-        }
-
-        num = negative ? vertices.size() - num : num - 1;
-
-        if (num < vertices.size()) {
-          face.push_back(num);
-        } else {
+        if (ec != std::errc()) {
           return 2;
         }
+
+        bool negative = !st.empty() && st[0] == '-';
+        num = negative ? static_cast<int>(vertices.size()) - num : num - 1;
+
+        if (num < 0 || num >= static_cast<int>(vertices.size())) {
+          return 2;
+        }
+        face.push_back(num);
       }
 
-      for (size_t i = 0; i < face.size(); ++i) {
-        std::pair<unsigned, unsigned> pair;
-        size_t prev_ind = i > 0 ? i - 1 : face.size() - 1;
-        pair = face[i] > face[prev_ind]
-                   ? std::make_pair(face[prev_ind], face[i])
-                   : std::make_pair(face[i], face[prev_ind]);
-        polygons.insert(pair);
+      if (face.size() >= 2) {
+        for (size_t i = 0; i < face.size(); ++i) {
+          std::pair<unsigned, unsigned> pair;
+          size_t prev_ind = i > 0 ? i - 1 : face.size() - 1;
+          pair = face[i] > face[prev_ind]
+                     ? std::make_pair(face[prev_ind], face[i])
+                     : std::make_pair(face[i], face[prev_ind]);
+          polygons.insert(pair);
+        }
       }
     }
   }

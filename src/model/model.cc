@@ -3,7 +3,11 @@
 namespace s21 {
 
 FigureModel::FigureModel()
-    : shift_{0.0, 0.0, 0.0}, rotation_{0.0, 0.0, 0.0}, scale_{1} {}
+    : shift_{0.0, 0.0, 0.0}, rotation_{0.0, 0.0, 0.0}, scale_{1} {
+  strategy_ = new Context();
+}
+
+FigureModel::~FigureModel() { delete strategy_; }
 
 void FigureModel::MoveFigure(Vertex shift) {
   auto temp =

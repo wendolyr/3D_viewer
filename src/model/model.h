@@ -13,6 +13,7 @@ namespace s21 {
 class FigureModel {
  public:
   FigureModel();
+  ~FigureModel();
   void SetVertices(std::vector<Vertex>& v);
   void SetPolygons(std::set<std::pair<unsigned, unsigned>>& p);
   void SetSettings(Params& params);

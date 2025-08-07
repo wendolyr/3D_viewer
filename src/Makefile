@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -Wall -Werror -Wextra -Wpedantic -Wshadow -std=c++20
+CXXFLAGS = -Wall -Wextra -Wpedantic -Wshadow -std=c++20
 
 OBJ_DIR = ./obj
 SRC_DIRS = controller model
@@ -8,10 +8,6 @@ BACK_OBJ = $(patsubst %.cc, $(OBJ_DIR)/%.o, $(BACK_SRC))
 
 
 all: install
-
-$(OBJ_DIR)/%.o: %.cc
-		@mkdir -p $(dir $@)
-		@$(CXX) $(CXXFLAGS) -c $< -o $@
 
 install: uninstall
 	mkdir -p build
@@ -24,10 +20,21 @@ test: clean $(BACK_OBJ)
 		./test
 
 uninstall: 
-	rm -rf build
+		rm -rf build
 
 run:
-	./build/viewer
+		./build/viewer
+
+leaks: test
+		leaks -atExit -- ./test
+
+valgrind: test
+		valgrind --tool=memcheck --leak-check=yes ./test
 
 clean:
-	rm -rf $(OBJ_DIR) test
+		rm -rf $(OBJ_DIR) test
+
+
+$(OBJ_DIR)/%.o: %.cc
+		@mkdir -p $(dir $@)
+		@$(CXX) $(CXXFLAGS) -c $< -o $@
