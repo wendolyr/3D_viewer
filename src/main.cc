@@ -8,9 +8,9 @@ int main(int argc, char* argv[]) {
 
     // Настройка OpenGL
     QSurfaceFormat format;
-    // format.setVersion(3, 3);
-    format.setVersion(4, 1);
     // format.setProfile(QSurfaceFormat::CoreProfile);
+    format.setVersion(3, 3);
+    // format.setVersion(4, 1);
     format.setDepthBufferSize(24);
     format.setSamples(4);
     format.setSwapInterval(1);
@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
     // Создание и отображение главного окна
     MainWidget window;
     window.setWindowTitle("3D_Viewer");
-    window.resize(1200, 800);
+    window.resize(1350, 1000);
     window.show();
 
     return app.exec();

@@ -8,6 +8,7 @@
 #include <QDoubleSpinBox>
 #include <QLabel>
 #include <QVector3D>
+#include <QScrollArea>
 
 class MainWidget : public QWidget {
 public:
@@ -40,6 +41,24 @@ private:
     QLabel* m_vertex_count_label;
     QLabel* m_edge_count_label;
 
+    // Для цвета ребер
+    QSpinBox* m_edgeR;
+    QSpinBox* m_edgeG;
+    QSpinBox* m_edgeB;
+    QLabel* m_edgeColorPreview;
+
+    // Для цвета вершин
+    QSpinBox* m_vertexR;
+    QSpinBox* m_vertexG;
+    QSpinBox* m_vertexB;
+    QLabel* m_vertexColorPreview;
+
+    // Для цвета фона
+    QSpinBox* m_bgR;
+    QSpinBox* m_bgG;
+    QSpinBox* m_bgB;
+    QLabel* m_bgColorPreview;
+
     QVector<QVector3D> vertices;    // Вершины
     QSet<QPair<unsigned, unsigned>> edges;  // Ребра
 
@@ -58,6 +77,12 @@ private:
     int LoadModelData(const QString& file_path);
     // Пропуск не нужных строк в парсере
     inline const char* SkipToNextLine(const char* ptr, const char* end);
+    
+    // возможно стоит убрать
+    QWidget* CreateColorWidget(
+    QSpinBox*& r, QSpinBox*& g, QSpinBox*& b, 
+    QLabel*& preview, const QString& labelText
+);
 
 private slots:
     // Сброс преобразований

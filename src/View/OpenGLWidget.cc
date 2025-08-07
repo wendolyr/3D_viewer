@@ -8,6 +8,16 @@ OpenGLWidget::OpenGLWidget(QWidget *parent)
       m_rotation(0.0f, 0.0f, 0.0f),
       m_scale(1.0f)
 {
+    m_projectionType = Perspective;
+    m_edgeType = Solid;
+    m_edgeColor = QVector3D(0.8f, 0.8f, 1.0f);
+    m_edgeThickness = 1.0f;
+    
+    m_vertexDisplay = Circle;
+    m_vertexColor = QVector3D(1.0f, 0.0f, 0.0f);
+    m_vertexSize = 2.0f;
+    
+    m_bgColor = QVector3D(0.0f, 0.0f, 0.0f);
 }
 
 OpenGLWidget::~OpenGLWidget() {
@@ -45,19 +55,28 @@ void OpenGLWidget::initializeGL() {
 
     m_indexCount = 0;
     m_vertexCount = 0;
+    resizeGL(width(), height());
 }
 
 void OpenGLWidget::resizeGL(int w, int h) {
     projection.setToIdentity();
-    projection.perspective(
-        45.0f,
-        static_cast<float>(w) / h,
-        0.1f,
-        100000.0f
-    );
+    float aspect = static_cast<float>(w) / h;
+    
+    if (m_projectionType == Perspective) {
+        projection.perspective(45.0f, aspect, 0.1f, 100000.0f);
+    } else { // Orthographic
+        float viewSize = 5.0f;
+        projection.ortho(-viewSize * aspect, 
+                         viewSize * aspect,
+                         -viewSize, 
+                         viewSize,
+                         0.1f, 100000.0f);
+    }
 }
 
 void OpenGLWidget::paintGL() {
+    // Устанавливаем цвет фона
+    glClearColor(m_bgColor.x(), m_bgColor.y(), m_bgColor.z(), 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     program->bind();
@@ -84,13 +103,16 @@ void OpenGLWidget::paintGL() {
         program->setAttributeBuffer("vertexPosition", GL_FLOAT, 0, 3);
 
         // Рисуем ребра
-        program->setUniformValue("color", QVector3D(0.8f, 0.8f, 1.0f));
+        glLineWidth(m_edgeThickness);
+        program->setUniformValue("color", m_edgeColor);
         glDrawElements(GL_LINES, m_indexCount, GL_UNSIGNED_INT, nullptr);
         
         // Рисуем вершины
-        program->setUniformValue("color", QVector3D(1.0f, 0.0f, 0.0f));
-        glPointSize(2.0f);
-        glDrawArrays(GL_POINTS, 0, m_vertexCount);
+        if (m_vertexDisplay != None) {
+            glPointSize(m_vertexSize);
+            program->setUniformValue("color", m_vertexColor);
+            glDrawArrays(GL_POINTS, 0, m_vertexCount);
+        }
 
         vbo.release();
         ibo.release();
@@ -170,5 +192,30 @@ void OpenGLWidget::setTransformations(const QVector3D& translation, const QVecto
     m_translation = translation;
     m_rotation = rotation;
     m_scale = scale;
+    update();
+}
+
+void OpenGLWidget::setProjectionType(ProjectionType type) {
+    m_projectionType = type;
+    resizeGL(width(), height()); // Пересчитываем проекцию
+    update();
+}
+
+void OpenGLWidget::setEdgeSettings(EdgeType type, const QVector3D& color, float thickness) {
+    m_edgeType = type;
+    m_edgeColor = color;
+    m_edgeThickness = thickness;
+    update();
+}
+
+void OpenGLWidget::setVertexSettings(VertexDisplay display, const QVector3D& color, float size) {
+    m_vertexDisplay = display;
+    m_vertexColor = color;
+    m_vertexSize = size;
+    update();
+}
+
+void OpenGLWidget::setBackgroundColor(const QVector3D& color) {
+    m_bgColor = color;
     update();
 }
