@@ -30,34 +30,33 @@ int FileManager::ParseFile(std::string &file_name, FigureModel &model) {
       std::vector<unsigned> face;
       std::string st;
       while (iss >> st) {
-        char *temp = &st[0];
-        while (temp) {
-          std::cout << "HERE\n";
-          bool negative = false;
-          while (*temp == ' ' || *temp == '/') {  // wrong
-            ++temp;
+        bool negative = false;
+        unsigned num = 0;
+        for (size_t i = 0; i < st.size(); ++i) {
+          if (st[i] == ' ') {
+            continue;
           }
 
-          if (*temp == '-') {
+          if (!negative && st[i] == '-') {
             negative = true;
-            ++temp;
-          }
-          unsigned num = 0;
-          while (*temp >= '0' && *temp <= '9') {
-            num = num * 10 + (*temp - '0');
-            ++temp;
-          }
-
-          num = negative ? vertices.size() - num : num - 1;
-
-          if (num < vertices.size()) {
-            face.push_back(num);
+          } else if (st[i] >= '0' && st[i] <= '9') {
+            num = num * 10 + (st[i] - '0');
+          } else if (st[i] == '/') {
+            break;
           } else {
             return 2;
           }
         }
+
+        num = negative ? vertices.size() - num : num - 1;
+
+        if (num < vertices.size()) {
+          face.push_back(num);
+        } else {
+          return 2;
+        }
       }
-      break;
+
       for (size_t i = 0; i < face.size(); ++i) {
         std::pair<unsigned, unsigned> pair;
         size_t prev_ind = i > 0 ? i - 1 : face.size() - 1;
@@ -66,14 +65,6 @@ int FileManager::ParseFile(std::string &file_name, FigureModel &model) {
                    : std::make_pair(face[i], face[prev_ind]);
         polygons.insert(pair);
       }
-      // std::pair<unsigned, unsigned> temp;
-      // if (!(iss >> temp.first >> temp.second)) {
-      //   return 2;
-      // }
-      // if (temp.first > temp.second) {
-      //   std::swap(temp.first, temp.second);
-      // }
-      // polygons.insert(temp);
     }
   }
 

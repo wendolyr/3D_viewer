@@ -5,7 +5,7 @@
 
 int main() {
   s21::Facade facade;
-  std::string name = "cube.obj";
+  std::string name = "bugatti.obj";
 
   facade.ParseFile(name);
 
