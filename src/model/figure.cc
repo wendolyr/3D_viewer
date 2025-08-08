@@ -1,4 +1,4 @@
-#include "model.h"
+#include "figure.h"
 
 namespace s21 {
 

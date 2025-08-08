@@ -3,8 +3,6 @@
 
 #include <cmath>
 #include <thread>
-// #include <algorithm>
-// #include <execution>
 #include <vector>
 
 #include "common_objects.h"

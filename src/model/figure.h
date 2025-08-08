@@ -1,5 +1,5 @@
-#ifndef CPP4_3DVIEWER_V2_0_MODEL_MODEL_H
-#define CPP4_3DVIEWER_V2_0_MODEL_MODEL_H
+#ifndef CPP4_3DVIEWER_V2_0_MODEL_FIGURE_H
+#define CPP4_3DVIEWER_V2_0_MODEL_FIGURE_H
 
 #include <unordered_set>
 #include <vector>

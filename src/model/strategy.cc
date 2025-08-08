@@ -7,11 +7,6 @@ namespace s21 {
 void ScaleStrategy::Transform(std::vector<Vertex> &vertices,
                               const Vertex scale) {
   std::cout << "Scale\n";
-  // for (Vertex i : vertices) {
-  //   i.x *= scale.x;
-  //   i.y *= scale.x;
-  //   i.z *= scale.x;
-  // }
 
   auto worker = [&](size_t start, size_t end) {
     for (size_t j = start; j < end; ++j) {
@@ -39,11 +34,6 @@ void ScaleStrategy::Transform(std::vector<Vertex> &vertices,
 
 void MoveStrategy::Transform(std::vector<Vertex> &vertices, const Vertex axis) {
   std::cout << "Move\n";
-  // for (Vertex i : vertices) {
-  //   i.x += axis.x;
-  //   i.y += axis.y;
-  //   i.z += axis.z;
-  // }
 
   auto worker = [&](size_t start, size_t end) {
     for (size_t j = start; j < end; ++j) {
@@ -88,15 +78,21 @@ void RotateStrategy::Transform(std::vector<Vertex> &vertices,
   auto worker = [&](size_t start, size_t end) {
     for (size_t j = start; j < end; ++j) {
       Vertex &i = vertices[j];
-      if (rad_angle_x > 1e-7) {
-        i.y = i.y * calc_cos_x - i.z * calc_sin_x;
-        i.z = i.y * calc_sin_x + i.z * calc_cos_x;
-      } else if (rad_angle_y > 1e-7) {
-        i.x = i.x * calc_cos_y + i.z * calc_sin_y;
-        i.z = -i.x * calc_sin_y + i.z * calc_cos_y;
+      if (fabs(rad_angle_x) > 1e-7) {
+        float old_y = i.y;
+        float old_z = i.z;
+        i.y = old_y * calc_cos_x - old_z * calc_sin_x;
+        i.z = old_y * calc_sin_x + old_z * calc_cos_x;
+      } else if (fabs(rad_angle_y) > 1e-7) {
+        float old_x = i.x;
+        float old_z = i.z;
+        i.x = old_x * calc_cos_y + old_z * calc_sin_y;
+        i.z = -old_x * calc_sin_y + old_z * calc_cos_y;
       } else {
-        i.x = i.x * calc_cos_z - i.y * calc_sin_z;
-        i.y = i.x * calc_sin_z + i.y * calc_cos_z;
+        float old_x = i.x;
+        float old_y = i.y;
+        i.x = old_x * calc_cos_z - old_y * calc_sin_z;
+        i.y = old_x * calc_sin_z + old_y * calc_cos_z;
       }
     }
   };

@@ -5,8 +5,8 @@
 
 int main() {
   s21::Facade facade;
-  std::string name = "bugatti.obj";
-  // std::string name = "cube.obj";
+  // std::string name = "bugatti.obj";
+  std::string name = "cube.obj";
 
   auto start = std::chrono::steady_clock::now();
   facade.ParseFile(name);
@@ -16,22 +16,38 @@ int main() {
 
   std::cout << "Time " << duration.count() << " ms" << std::endl;
 
-  s21::Vertex a = {1, 1, 1};
-  // for (int i = 0; i < 120; ++i) {
-  facade.MoveFigure(a);
+  auto v = facade.GetVertices();
+  // auto p = facade.GetPolygons();
+
+  for (auto i : v) {
+    // std::cout << i.first + 1 << ' ' << i.second + 1 << '\n';
+    std::cout << i.x << ' ' << i.y << ' ' << i.z << '\n';
+  }
+
+  s21::Vertex a = {90, 0, 0};
+  // facade.MoveFigure(a);
   facade.RotateFigure(a);
-  facade.ScaleFigure(2);
-  // }
+
+  a = {0, 90, 0};
+  facade.RotateFigure(a);
+
+  a = {0, -90, 0};
+  facade.RotateFigure(a);
+  a = {-90, 0, 0};
+  facade.RotateFigure(a);
+
+  // facade.ScaleFigure(2);
 
   // std::cout << facade.GetVertices().size() << std::endl;
   // std::cout << facade.GetPolygons().size() << std::endl;
 
-  // auto v = facade.GetVertices();
+  v = facade.GetVertices();
   // auto p = facade.GetPolygons();
 
-  // for (auto i : p) {
-  //   std::cout << i.first + 1 << ' ' << i.second + 1 << '\n';
-  // }
+  for (auto i : v) {
+    // std::cout << i.first + 1 << ' ' << i.second + 1 << '\n';
+    std::cout << i.x << ' ' << i.y << ' ' << i.z << '\n';
+  }
 
   return 0;
 }

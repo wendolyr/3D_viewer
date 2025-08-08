@@ -1,8 +1,8 @@
 #ifndef CPP4_3DVIEWER_V2_0_MODEL_FACADE_H
 #define CPP4_3DVIEWER_V2_0_MODEL_FACADE_H
 
+#include "../model/figure.h"
 #include "../model/file_manager.h"
-#include "../model/model.h"
 
 namespace s21 {
 
