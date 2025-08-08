@@ -12,7 +12,7 @@ int FileManager::ParseFile(std::string &file_name, FigureModel &model) {
 
   std::string line;
   std::vector<Vertex> vertices;
-  std::set<std::pair<unsigned, unsigned>> polygons;
+  std::unordered_set<std::pair<unsigned, unsigned>, PairHash> polygons;
 
   while (std::getline(file, line)) {
     const char *ptr = &line[0];

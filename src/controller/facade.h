@@ -16,7 +16,8 @@ class Facade {
   void LoadLastState();
 
   const std::vector<Vertex>& GetVertices() const;
-  const std::set<std::pair<unsigned, unsigned>>& GetPolygons() const;
+  const std::unordered_set<std::pair<unsigned, unsigned>, PairHash>&
+  GetPolygons() const;
   const Params GetCurrentSettings() const;
 
   void MoveFigure(Vertex shift);

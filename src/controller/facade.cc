@@ -16,7 +16,8 @@ const std::vector<Vertex>& Facade::GetVertices() const {
   return model_.GetVertices();
 }
 
-const std::set<std::pair<unsigned, unsigned>>& Facade::GetPolygons() const {
+const std::unordered_set<std::pair<unsigned, unsigned>, PairHash>&
+Facade::GetPolygons() const {
   return model_.GetPolygons();
 }
 

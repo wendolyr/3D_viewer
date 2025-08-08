@@ -32,7 +32,8 @@ void FigureModel::RotateFigure(Vertex angle) {
 
 void FigureModel::SetVertices(std::vector<Vertex> &v) { vertices_ = v; }
 
-void FigureModel::SetPolygons(std::set<std::pair<unsigned, unsigned>> &p) {
+void FigureModel::SetPolygons(
+    std::unordered_set<std::pair<unsigned, unsigned>, PairHash> &p) {
   polygons_ = p;
 }
 
@@ -40,8 +41,8 @@ const std::vector<Vertex> &FigureModel::GetVertices() const {
   return vertices_;
 }
 
-const std::set<std::pair<unsigned, unsigned>> &FigureModel::GetPolygons()
-    const {
+const std::unordered_set<std::pair<unsigned, unsigned>, PairHash> &
+FigureModel::GetPolygons() const {
   return polygons_;
 }
 
