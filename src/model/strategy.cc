@@ -6,6 +6,7 @@ namespace s21 {
 
 void ScaleStrategy::Transform(std::vector<Vertex> &vertices,
                               const Vertex scale) {
+  std::cout << "Scale\n";
   // for (Vertex i : vertices) {
   //   i.x *= scale.x;
   //   i.y *= scale.x;
@@ -37,6 +38,7 @@ void ScaleStrategy::Transform(std::vector<Vertex> &vertices,
 }
 
 void MoveStrategy::Transform(std::vector<Vertex> &vertices, const Vertex axis) {
+  std::cout << "Move\n";
   // for (Vertex i : vertices) {
   //   i.x += axis.x;
   //   i.y += axis.y;
@@ -69,6 +71,7 @@ void MoveStrategy::Transform(std::vector<Vertex> &vertices, const Vertex axis) {
 
 void RotateStrategy::Transform(std::vector<Vertex> &vertices,
                                const Vertex axis) {
+  std::cout << "Rotate\n";
   float rad_angle_x = axis.x * M_PI / 180;
   float rad_angle_y = axis.y * M_PI / 180;
   float rad_angle_z = axis.z * M_PI / 180;

@@ -7,22 +7,22 @@ namespace s21 {
 
 class StrategyFactory {
  public:
-  enum class StrategyType { kMove, kRotate, kScale };
+  virtual TransformStrategy *CreateStrategy() = 0;
+};
 
-  static TransformStrategy *CreateStrategy(StrategyType type) {
-    if (type == StrategyType::kMove) {
-      MoveStrategy *strategy = new MoveStrategy();
-      return strategy;
-    } else if (type == StrategyType::kRotate) {
-      RotateStrategy *strategy = new RotateStrategy();
-      return strategy;
-    } else if (type == StrategyType::kScale) {
-      ScaleStrategy *strategy = new ScaleStrategy();
-      return strategy;
-    } else {
-      return nullptr;
-    }
-  }
+class MoveStrategyCreator : public StrategyFactory {
+ public:
+  TransformStrategy *CreateStrategy() override { return new MoveStrategy; }
+};
+
+class RotateStrategyCreator : public StrategyFactory {
+ public:
+  TransformStrategy *CreateStrategy() override { return new RotateStrategy; }
+};
+
+class ScaleStrategyCreator : public StrategyFactory {
+ public:
+  TransformStrategy *CreateStrategy() override { return new ScaleStrategy; }
 };
 
 }  // namespace s21

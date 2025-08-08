@@ -10,8 +10,8 @@ FigureModel::FigureModel()
 FigureModel::~FigureModel() { delete strategy_; }
 
 void FigureModel::MoveFigure(Vertex shift) {
-  auto temp =
-      StrategyFactory::CreateStrategy(StrategyFactory::StrategyType::kMove);
+  MoveStrategyCreator creator;
+  auto temp = creator.CreateStrategy();
   strategy_->SetStrategy(temp);
   strategy_->Transform(vertices_, shift);
 
@@ -19,8 +19,8 @@ void FigureModel::MoveFigure(Vertex shift) {
 }
 
 void FigureModel::ScaleFigure(float scale) {
-  auto temp =
-      StrategyFactory::CreateStrategy(StrategyFactory::StrategyType::kScale);
+  ScaleStrategyCreator creator;
+  auto temp = creator.CreateStrategy();
   strategy_->SetStrategy(temp);
   strategy_->Transform(vertices_, {scale, 0.0, 0.0});
 
@@ -28,8 +28,8 @@ void FigureModel::ScaleFigure(float scale) {
 }
 
 void FigureModel::RotateFigure(Vertex angle) {
-  auto temp =
-      StrategyFactory::CreateStrategy(StrategyFactory::StrategyType::kRotate);
+  RotateStrategyCreator creator;
+  auto temp = creator.CreateStrategy();
   strategy_->SetStrategy(temp);
   strategy_->Transform(vertices_, angle);
 
