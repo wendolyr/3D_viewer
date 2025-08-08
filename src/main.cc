@@ -8,9 +8,8 @@ int main(int argc, char* argv[]) {
 
     // Настройка OpenGL
     QSurfaceFormat format;
-    // format.setProfile(QSurfaceFormat::CoreProfile);
-    format.setVersion(3, 3);
-    // format.setVersion(4, 1);
+    format.setVersion(4, 1);
+    format.setProfile(QSurfaceFormat::CoreProfile);
     format.setDepthBufferSize(24);
     format.setSamples(4);
     format.setSwapInterval(1);

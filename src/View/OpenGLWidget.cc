@@ -8,7 +8,7 @@ OpenGLWidget::OpenGLWidget(QWidget *parent)
       m_rotation(0.0f, 0.0f, 0.0f),
       m_scale(1.0f)
 {
-    m_projectionType = Perspective;
+    m_projectionType = Central;
     m_edgeType = Solid;
     m_edgeColor = QVector3D(0.8f, 0.8f, 1.0f);
     m_edgeThickness = 1.0f;
@@ -24,6 +24,7 @@ OpenGLWidget::~OpenGLWidget() {
     makeCurrent();
     vbo.destroy();
     ibo.destroy();
+    vao.destroy();
     m_indexCount = 0;
     delete program;
     doneCurrent();
@@ -31,21 +32,42 @@ OpenGLWidget::~OpenGLWidget() {
 
 void OpenGLWidget::initializeGL() {
     initializeOpenGLFunctions();
+    qDebug() << "OpenGL version:" << (const char*)glGetString(GL_VERSION);
+    qDebug() << "GLSL version:" << (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
+
+    vao.create();
+    vao.bind();
+
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glEnable(GL_DEPTH_TEST);
 
     program = new QOpenGLShaderProgram(this);
     program->addShaderFromSourceCode(QOpenGLShader::Vertex,
-        "attribute vec4 vertexPosition;"
+        "#version 410 core\n"
+        "layout(location = 0) in vec3 vertexPosition;"
         "uniform mat4 mvpMatrix;"
         "void main() {"
-        "   gl_Position = mvpMatrix * vertexPosition;"
+        "   gl_Position = mvpMatrix * vec4(vertexPosition, 1.0);"
         "}");
+    
     program->addShaderFromSourceCode(QOpenGLShader::Fragment,
+        "#version 410 core\n"
         "uniform vec3 color;"
+        "out vec4 fragColor;"
         "void main() {"
-        "   gl_FragColor = vec4(color, 1.0);"
+        "   fragColor = vec4(color, 1.0);"
         "}");
+    // program->addShaderFromSourceCode(QOpenGLShader::Vertex,
+    //     "attribute vec4 vertexPosition;"
+    //     "uniform mat4 mvpMatrix;"
+    //     "void main() {"
+    //     "   gl_Position = mvpMatrix * vertexPosition;"
+    //     "}");
+    // program->addShaderFromSourceCode(QOpenGLShader::Fragment,
+    //     "uniform vec3 color;"
+    //     "void main() {"
+    //     "   gl_FragColor = vec4(color, 1.0);"
+    //     "}");
     program->link();
     program->bind();
 
@@ -62,7 +84,7 @@ void OpenGLWidget::resizeGL(int w, int h) {
     projection.setToIdentity();
     float aspect = static_cast<float>(w) / h;
     
-    if (m_projectionType == Perspective) {
+    if (m_projectionType == Central) {
         projection.perspective(45.0f, aspect, 0.1f, 100000.0f);
     } else { // Orthographic
         float viewSize = 5.0f;
@@ -75,6 +97,7 @@ void OpenGLWidget::resizeGL(int w, int h) {
 }
 
 void OpenGLWidget::paintGL() {
+    vao.bind();
     // Устанавливаем цвет фона
     glClearColor(m_bgColor.x(), m_bgColor.y(), m_bgColor.z(), 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -99,8 +122,11 @@ void OpenGLWidget::paintGL() {
     if (m_vertexCount > 0) {
         vbo.bind();
         ibo.bind();
-        program->enableAttributeArray("vertexPosition");
-        program->setAttributeBuffer("vertexPosition", GL_FLOAT, 0, 3);
+        // program->enableAttributeArray("vertexPosition");
+        // program->setAttributeBuffer("vertexPosition", GL_FLOAT, 0, 3);
+
+        program->enableAttributeArray(0);
+        program->setAttributeBuffer(0, GL_FLOAT, 0, 3);
 
         // Рисуем ребра
         glLineWidth(m_edgeThickness);
@@ -118,23 +144,14 @@ void OpenGLWidget::paintGL() {
         ibo.release();
     }
 
-    // // Статичный куб вариант
-    // // Рисуем каркас куба (линии)
-    // program->setUniformValue("color", QVector3D(0.8f, 0.8f, 1.0f)); // Цвет линий
-    // glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, nullptr);
-
-    // // Рисуем вершины (точки)
-    // program->setUniformValue("color", QVector3D(0.8f, 0.8f, 1.0f)); // Красный цвет точек
-    // glPointSize(80.0f); // Размер точек
-    // glDrawArrays(GL_POINTS, 0, 8); // 8 вершин
-
     program->release();
+    vao.release();
 }
 
 void OpenGLWidget::setModelData(const QVector<QVector3D>& vertices, const QVector<QPair<unsigned, unsigned>>& edges) {
-    if (!isValid()) return; // Проверка инициализации OpenGL
     
     makeCurrent();
+    vao.bind();
     
     // Очищаем старые буферы
     vbo.destroy();
@@ -169,8 +186,10 @@ void OpenGLWidget::setModelData(const QVector<QVector3D>& vertices, const QVecto
     // Настраиваем атрибуты
     program->bind();
     vbo.bind();
-    program->enableAttributeArray("vertexPosition");
-    program->setAttributeBuffer("vertexPosition", GL_FLOAT, 0, 3);
+    // program->enableAttributeArray("vertexPosition");
+    // program->setAttributeBuffer("vertexPosition", GL_FLOAT, 0, 3);
+    program->enableAttributeArray(0);
+    program->setAttributeBuffer(0, GL_FLOAT, 0, 3);
     vbo.release();
     program->release();
     

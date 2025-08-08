@@ -6,12 +6,13 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLBuffer>
 #include <QMatrix4x4>
+#include <QOpenGLVertexArrayObject>
 
 class OpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {
     Q_OBJECT
 public:
-    enum ProjectionType { Perspective, Orthographic };
+    enum ProjectionType { Central, Parallel };
     enum EdgeType { Solid, Dashed };
     enum VertexDisplay { None, Circle, Square };
 
@@ -22,6 +23,7 @@ public:
     void setTransformations(const QVector3D& translation, const QVector3D& rotation, float scale);
 
     void setProjectionType(ProjectionType type);
+    // void setEdgeSettings(EdgeType type, const QVector3D& color, float thickness, float dash_size = 10.0f, float gap_size = 5.0f);
     void setEdgeSettings(EdgeType type, const QVector3D& color, float thickness);
     void setVertexSettings(VertexDisplay display, const QVector3D& color, float size);
     void setBackgroundColor(const QVector3D& color);
@@ -31,11 +33,10 @@ protected:
     void resizeGL(int w, int h) override;   //Обработка изменения размера
     void paintGL() override;    // Отрисовка кадра
 private:
-    // QOpenGLShaderProgram *m_program_edge;     // Для линий
-    // QOpenGLShaderProgram *m_program_points; // Для точек
     QOpenGLShaderProgram *program;
     QOpenGLBuffer vbo;              // Буфер вершин (Vertex Buffer)
     QOpenGLBuffer ibo;              // Буфер индексов (Index Buffer)
+    QOpenGLVertexArrayObject vao;
     QMatrix4x4 projection;          // Матрица проекции
 
     int m_indexCount = 0;   // Количество индексов для отрисовки
@@ -49,12 +50,16 @@ private:
     EdgeType m_edgeType;
     QVector3D m_edgeColor;
     float m_edgeThickness;
+    float m_dashSize;  // Длина штриха в пикселях
+    float m_gapSize;   // Длина пропуска в пикселях
     
     VertexDisplay m_vertexDisplay;
     QVector3D m_vertexColor;
     float m_vertexSize;
     
     QVector3D m_bgColor;
+
+    bool m_initialized = false;
 };
 
 #endif  // CPP4_3DVIEWER_V2_0_VIEW_OPENGLWIDGET_H

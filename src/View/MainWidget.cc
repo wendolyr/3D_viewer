@@ -130,10 +130,10 @@ void MainWidget::SetupUI() {
     QGroupBox* projectionGroup = new QGroupBox("Проекция");
     QVBoxLayout* projectionLayout = new QVBoxLayout;
     QRadioButton* parallelBtn = new QRadioButton("Параллельная");
-    QRadioButton* perspectiveBtn = new QRadioButton("Перспективная");
-    parallelBtn->setChecked(true); // По умолчанию параллельная проекция
+    QRadioButton* centralBtn = new QRadioButton("Центральная");
+    centralBtn->setChecked(true); // По умолчанию параллельная проекция
     projectionLayout->addWidget(parallelBtn);
-    projectionLayout->addWidget(perspectiveBtn);
+    projectionLayout->addWidget(centralBtn);
     projectionGroup->setLayout(projectionLayout);
     scroll_layout->addWidget(projectionGroup);
 
@@ -251,7 +251,7 @@ void MainWidget::SetupUI() {
     sidebar_layout->addWidget(scroll_area);
     sidebar_layout->addWidget(reset_group);
     main_layout->addWidget(sidebar, 3);
-    
+
     connect(m_move_x, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
         this, &MainWidget::OnTransformChanged);
     connect(m_move_y, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
@@ -271,10 +271,10 @@ void MainWidget::SetupUI() {
 
     // Проекция
     connect(parallelBtn, &QRadioButton::toggled, [this](bool checked) {
-        if (checked) m_gl_widget->setProjectionType(OpenGLWidget::Orthographic);
+        if (checked) m_gl_widget->setProjectionType(OpenGLWidget::Parallel);
     });
-    connect(perspectiveBtn, &QRadioButton::toggled, [this](bool checked) {
-        if (checked) m_gl_widget->setProjectionType(OpenGLWidget::Perspective);
+    connect(centralBtn, &QRadioButton::toggled, [this](bool checked) {
+        if (checked) m_gl_widget->setProjectionType(OpenGLWidget::Central);
     });
 
     // Настройки ребер
@@ -738,9 +738,7 @@ int MainWidget::LoadModelData(const QString& file_path) {
     qDebug() << "Парсинг выполнен за:" << elapsed_ms << "мс | Вершин:" << vertices.size() << "| Ребер:" << edges.size();
     // Обновление UI
     // m_vertex_count_label->setText(QString("Парсинг: %1 мс | Вершин: %2").arg(elapsed_ms).arg(vertices.size()));
-    m_vertex_count_label->setText(QString("Парсинг: %1 мс | Вершин: %2")
-                                  .arg(elapsed_ms, 0, 'f', 3)
-                                  .arg(vertices.size()));
+    m_vertex_count_label->setText(QString("%1").arg(vertices.size()));
     m_edge_count_label->setText(QString("%1").arg(edges.size()));
 
     QVector<QPair<unsigned, unsigned>> edgeVec;
