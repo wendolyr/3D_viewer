@@ -10,29 +10,29 @@ BACK_OBJ = $(patsubst %.cc, $(OBJ_DIR)/%.o, $(BACK_SRC))
 all: install
 
 install: uninstall
-	mkdir -p build
-	cd build && cmake ..
-	$(MAKE) -C build
+	@mkdir -p build
+	@cd build && cmake ..
+	@$(MAKE) -C build
 
 test: clean $(BACK_OBJ)
-		$(CXX) $(CXXFLAGS) $(BACK_OBJ) test.cc -o test
-		clear
-		./test
+		@$(CXX) $(CXXFLAGS) $(BACK_OBJ) test.cc -o test
+		@clear
+		@./test
 
 uninstall: 
-		rm -rf build
+		@rm -rf build
 
 run:
-		./build/viewer
+		@./build/viewer
 
 leaks: test
-		leaks -atExit -- ./test
+		@leaks -atExit -- ./test
 
 valgrind: test
-		valgrind --tool=memcheck --leak-check=yes ./test
+		@valgrind --tool=memcheck --leak-check=yes ./test
 
 clean:
-		rm -rf $(OBJ_DIR) test
+		@rm -rf $(OBJ_DIR) test
 
 
 $(OBJ_DIR)/%.o: %.cc

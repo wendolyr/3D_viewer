@@ -16,11 +16,11 @@ int main() {
 
   std::cout << "Time " << duration.count() << " ms" << std::endl;
 
-  // s21::Vertex a = {1, 1, 1};
+  s21::Vertex a = {1, 1, 1};
   // for (int i = 0; i < 120; ++i) {
-  //   // facade.MoveFigure(a);
-  //   // facade.RotateFigure(a);
-  //   facade.ScaleFigure(2);
+  facade.MoveFigure(a);
+  facade.RotateFigure(a);
+  facade.ScaleFigure(2);
   // }
 
   // std::cout << facade.GetVertices().size() << std::endl;

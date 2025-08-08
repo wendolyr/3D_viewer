@@ -4,36 +4,30 @@ namespace s21 {
 
 FigureModel::FigureModel()
     : shift_{0.0, 0.0, 0.0}, rotation_{0.0, 0.0, 0.0}, scale_{1} {
-  strategy_ = new Context();
+  strategy_ = std::make_unique<Context>();
 }
 
-FigureModel::~FigureModel() { delete strategy_; }
+FigureModel::~FigureModel() {}
 
 void FigureModel::MoveFigure(Vertex shift) {
   MoveStrategyCreator creator;
   auto temp = creator.CreateStrategy();
-  strategy_->SetStrategy(temp);
+  strategy_->SetStrategy(std::move(temp));
   strategy_->Transform(vertices_, shift);
-
-  delete temp;
 }
 
 void FigureModel::ScaleFigure(float scale) {
   ScaleStrategyCreator creator;
   auto temp = creator.CreateStrategy();
-  strategy_->SetStrategy(temp);
+  strategy_->SetStrategy(std::move(temp));
   strategy_->Transform(vertices_, {scale, 0.0, 0.0});
-
-  delete temp;
 }
 
 void FigureModel::RotateFigure(Vertex angle) {
   RotateStrategyCreator creator;
   auto temp = creator.CreateStrategy();
-  strategy_->SetStrategy(temp);
+  strategy_->SetStrategy(std::move(temp));
   strategy_->Transform(vertices_, angle);
-
-  delete temp;
 }
 
 void FigureModel::SetVertices(std::vector<Vertex> &v) { vertices_ = v; }

@@ -33,7 +33,7 @@ class FigureModel {
   std::vector<Vertex> vertices_;
   std::set<std::pair<unsigned, unsigned>> polygons_;
 
-  Context* strategy_;
+  std::unique_ptr<Context> strategy_;
 
   Vertex shift_;
   Vertex rotation_;

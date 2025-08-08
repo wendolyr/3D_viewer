@@ -35,7 +35,9 @@ class MoveStrategy : public TransformStrategy {
 class Context {
  public:
   Context() {};
-  void SetStrategy(TransformStrategy *s) { strategy_ = s; }
+  void SetStrategy(std::unique_ptr<TransformStrategy> &&s) {
+    strategy_ = std::move(s);
+  }
 
   void Transform(std::vector<Vertex> &vertices, const Vertex param) {
     if (strategy_) {
@@ -44,7 +46,7 @@ class Context {
   }
 
  private:
-  TransformStrategy *strategy_;
+  std::unique_ptr<TransformStrategy> strategy_;
 };
 
 }  // namespace s21

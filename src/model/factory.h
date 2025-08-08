@@ -7,22 +7,28 @@ namespace s21 {
 
 class StrategyFactory {
  public:
-  virtual TransformStrategy *CreateStrategy() = 0;
+  virtual std::unique_ptr<TransformStrategy> CreateStrategy() = 0;
 };
 
 class MoveStrategyCreator : public StrategyFactory {
  public:
-  TransformStrategy *CreateStrategy() override { return new MoveStrategy; }
+  std::unique_ptr<TransformStrategy> CreateStrategy() override {
+    return std::make_unique<MoveStrategy>();
+  }
 };
 
 class RotateStrategyCreator : public StrategyFactory {
  public:
-  TransformStrategy *CreateStrategy() override { return new RotateStrategy; }
+  std::unique_ptr<TransformStrategy> CreateStrategy() override {
+    return std::make_unique<RotateStrategy>();
+  }
 };
 
 class ScaleStrategyCreator : public StrategyFactory {
  public:
-  TransformStrategy *CreateStrategy() override { return new ScaleStrategy; }
+  std::unique_ptr<TransformStrategy> CreateStrategy() override {
+    return std::make_unique<ScaleStrategy>();
+  }
 };
 
 }  // namespace s21
