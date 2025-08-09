@@ -35,45 +35,57 @@ OpenGLWidget::~OpenGLWidget() {
 
 void OpenGLWidget::initializeGL() {
     initializeOpenGLFunctions();
-    qDebug() << "OpenGL version:" << (const char*)glGetString(GL_VERSION);
-    qDebug() << "GLSL version:" << (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
-
+    glEnable(GL_PROGRAM_POINT_SIZE); // Для использования gl_PointSize из шейдера
+    
     vao.create();
     vao.bind();
-
+    
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glEnable(GL_DEPTH_TEST);
 
-    // Единая шейдерная программа с поддержкой пунктирных линий
+    // Удаляем старую программу
+    delete program;
+    
+    // Создаем новую шейдерную программу
     program = new QOpenGLShaderProgram(this);
     
     // Вершинный шейдер
     program->addShaderFromSourceCode(QOpenGLShader::Vertex,
         "#version 410 core\n"
-        "layout(location = 0) in vec3 vertexPosition;"
-        "uniform mat4 mvpMatrix;"
-        "void main() {"
-        "   gl_Position = mvpMatrix * vec4(vertexPosition, 1.0);"
+        "layout(location = 0) in vec3 a_position;\n"
+        "flat out vec3 start_pos;\n"
+        "out vec3 vert_pos;\n"
+        "uniform mat4 u_mvp;\n"
+        "uniform float u_vertex_size;\n"
+        "void main() {\n"
+        "    vec4 pos = u_mvp * vec4(a_position, 1.0);\n"
+        "    vert_pos = pos.xyz / pos.w;\n"
+        "    start_pos = vert_pos;\n"
+        "    gl_PointSize = u_vertex_size;\n"
+        "    gl_Position = pos;\n"
         "}");
     
-    // Фрагментный шейдер с поддержкой пунктирных линий
+    // Фрагментный шейдер
     program->addShaderFromSourceCode(QOpenGLShader::Fragment,
         "#version 410 core\n"
-        "uniform vec3 color;"
-        "uniform float dashSize;"
-        "uniform float gapSize;"
-        "uniform bool isDashed;"
-        "out vec4 fragColor;"
-        ""
-        "void main() {"
-        "   if (isDashed) {"
-        "       float position = gl_FragCoord.x / (dashSize + gapSize);"
-        "       float fraction = fract(position);"
-        "       if (fraction > dashSize / (dashSize + gapSize)) {"
-        "           discard;"
-        "       }"
-        "   }"
-        "   fragColor = vec4(color, 1.0);"
+        "flat in vec3 start_pos;\n"
+        "in vec3 vert_pos;\n"
+        "uniform vec2 u_resolution;\n"
+        "uniform vec3 u_color;\n"
+        "uniform float u_dash_size;\n"
+        "uniform float u_gap_size;\n"
+        "uniform bool use_dashing;\n"
+        "out vec4 fragColor;\n"
+        "void main() {\n"
+        "    if (use_dashing) {\n"
+        "        vec2 dir = (vert_pos.xy - start_pos.xy) * u_resolution/2.0;\n"
+        "        float dist = length(dir);\n"
+        "        float cycle = u_dash_size + u_gap_size;\n"
+        "        if (fract(dist / cycle) > u_dash_size/cycle) {\n"
+        "            discard;\n"
+        "        }\n"
+        "    }\n"
+        "    fragColor = vec4(u_color, 1.0);\n"
         "}");
     
     program->link();
@@ -86,7 +98,6 @@ void OpenGLWidget::initializeGL() {
     m_vertexCount = 0;
     resizeGL(width(), height());
 }
-
 void OpenGLWidget::resizeGL(int w, int h) {
     projection.setToIdentity();
     float aspect = static_cast<float>(w) / h;
@@ -120,29 +131,29 @@ void OpenGLWidget::paintGL() {
     model.scale(m_scale);
     QMatrix4x4 mvp = projection * view * model;
 
-    program->setUniformValue("mvpMatrix", mvp);
+    // Передаем параметры в шейдеры
+    program->setUniformValue("u_mvp", mvp);
+    program->setUniformValue("u_resolution", QVector2D(width(), height()));
+    program->setUniformValue("u_vertex_size", m_vertexSize);
 
     if (m_vertexCount > 0) {
         vbo.bind();
         ibo.bind();
         program->enableAttributeArray(0);
-        program->setAttributeBuffer(0, GL_FLOAT, 0, 3);
+        program->setAttributeBuffer(0, GL_FLOAT, 0, 3, sizeof(QVector3D));
 
-        // Настройка параметров линий
-        program->setUniformValue("isDashed", m_edgeType == Dashed);
-        program->setUniformValue("dashSize", m_dashSize);
-        program->setUniformValue("gapSize", m_gapSize);
-        program->setUniformValue("color", m_edgeColor);
-        
-        // Рисуем ребра
+        // Отрисовка ребер
+        program->setUniformValue("use_dashing", m_edgeType == Dashed);
+        program->setUniformValue("u_dash_size", m_dashSize);
+        program->setUniformValue("u_gap_size", m_gapSize);
+        program->setUniformValue("u_color", m_edgeColor);
         glLineWidth(m_edgeThickness);
         glDrawElements(GL_LINES, m_indexCount, GL_UNSIGNED_INT, nullptr);
-        
-        // Рисуем вершины
+
+        // Отрисовка вершин
         if (m_vertexDisplay != None) {
-            program->setUniformValue("isDashed", false); // Отключаем пунктир для точек
-            program->setUniformValue("color", m_vertexColor);
-            glPointSize(m_vertexSize);
+            program->setUniformValue("use_dashing", false); // Отключаем пунктир
+            program->setUniformValue("u_color", m_vertexColor);
             glDrawArrays(GL_POINTS, 0, m_vertexCount);
         }
 
@@ -218,7 +229,8 @@ void OpenGLWidget::setProjectionType(ProjectionType type) {
     update();
 }
 
-void OpenGLWidget::setEdgeSettings(EdgeType type, const QVector3D& color, float thickness, float dash_size, float gap_size) {
+void OpenGLWidget::setEdgeSettings(EdgeType type, const QVector3D& color, 
+                                  float thickness, float dash_size, float gap_size) {
     m_edgeType = type;
     m_edgeColor = color;
     m_edgeThickness = thickness;
@@ -233,7 +245,6 @@ void OpenGLWidget::setVertexSettings(VertexDisplay display, const QVector3D& col
     m_vertexSize = size;
     update();
 }
-
 void OpenGLWidget::setBackgroundColor(const QVector3D& color) {
     m_bgColor = color;
     update();
