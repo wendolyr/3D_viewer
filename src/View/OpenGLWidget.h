@@ -18,28 +18,26 @@ public:
 
     explicit OpenGLWidget(QWidget *parent = nullptr);
     ~OpenGLWidget();
-    void setModelData(const QVector<QVector3D>& vertices, const QVector<QPair<unsigned, unsigned>>& edges); // Получение данных
+    void setModelData(const QVector<QVector3D>& vertices, const QVector<QPair<unsigned, unsigned>>& edges);
     void clearModel();
     void setTransformations(const QVector3D& translation, const QVector3D& rotation, float scale);
 
     void setProjectionType(ProjectionType type);
-    // void setEdgeSettings(EdgeType type, const QVector3D& color, float thickness, float dash_size = 10.0f, float gap_size = 5.0f);
-    void setEdgeSettings(EdgeType type, const QVector3D& color, float thickness);
+    void setEdgeSettings(EdgeType type, const QVector3D& color, float thickness, float dash_size = 10.0f, float gap_size = 5.0f);
     void setVertexSettings(VertexDisplay display, const QVector3D& color, float size);
     void setBackgroundColor(const QVector3D& color);
 protected:
-    // Переопределенные методы QOpenGLWidget
-    void initializeGL() override;   // Инициализация OpenGL
-    void resizeGL(int w, int h) override;   //Обработка изменения размера
-    void paintGL() override;    // Отрисовка кадра
+    void initializeGL() override;
+    void resizeGL(int w, int h) override;
+    void paintGL() override;
 private:
     QOpenGLShaderProgram *program;
-    QOpenGLBuffer vbo;              // Буфер вершин (Vertex Buffer)
-    QOpenGLBuffer ibo;              // Буфер индексов (Index Buffer)
+    QOpenGLBuffer vbo;
+    QOpenGLBuffer ibo;
     QOpenGLVertexArrayObject vao;
-    QMatrix4x4 projection;          // Матрица проекции
+    QMatrix4x4 projection;
 
-    int m_indexCount = 0;   // Количество индексов для отрисовки
+    int m_indexCount = 0;
     int m_vertexCount = 0;
 
     QVector3D m_translation;
@@ -50,16 +48,14 @@ private:
     EdgeType m_edgeType;
     QVector3D m_edgeColor;
     float m_edgeThickness;
-    float m_dashSize;  // Длина штриха в пикселях
-    float m_gapSize;   // Длина пропуска в пикселях
+    float m_dashSize;
+    float m_gapSize;
     
     VertexDisplay m_vertexDisplay;
     QVector3D m_vertexColor;
     float m_vertexSize;
     
     QVector3D m_bgColor;
-
-    bool m_initialized = false;
 };
 
 #endif  // CPP4_3DVIEWER_V2_0_VIEW_OPENGLWIDGET_H

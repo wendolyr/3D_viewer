@@ -1,4 +1,5 @@
 #include "OpenGLWidget.h"
+#include <QDebug>
 
 OpenGLWidget::OpenGLWidget(QWidget *parent)
     : QOpenGLWidget(parent),
@@ -12,6 +13,8 @@ OpenGLWidget::OpenGLWidget(QWidget *parent)
     m_edgeType = Solid;
     m_edgeColor = QVector3D(0.8f, 0.8f, 1.0f);
     m_edgeThickness = 1.0f;
+    m_dashSize = 10.0f;
+    m_gapSize = 5.0f;
     
     m_vertexDisplay = Circle;
     m_vertexColor = QVector3D(1.0f, 0.0f, 0.0f);
@@ -41,7 +44,10 @@ void OpenGLWidget::initializeGL() {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glEnable(GL_DEPTH_TEST);
 
+    // Единая шейдерная программа с поддержкой пунктирных линий
     program = new QOpenGLShaderProgram(this);
+    
+    // Вершинный шейдер
     program->addShaderFromSourceCode(QOpenGLShader::Vertex,
         "#version 410 core\n"
         "layout(location = 0) in vec3 vertexPosition;"
@@ -50,29 +56,30 @@ void OpenGLWidget::initializeGL() {
         "   gl_Position = mvpMatrix * vec4(vertexPosition, 1.0);"
         "}");
     
+    // Фрагментный шейдер с поддержкой пунктирных линий
     program->addShaderFromSourceCode(QOpenGLShader::Fragment,
         "#version 410 core\n"
         "uniform vec3 color;"
+        "uniform float dashSize;"
+        "uniform float gapSize;"
+        "uniform bool isDashed;"
         "out vec4 fragColor;"
+        ""
         "void main() {"
+        "   if (isDashed) {"
+        "       float position = gl_FragCoord.x / (dashSize + gapSize);"
+        "       float fraction = fract(position);"
+        "       if (fraction > dashSize / (dashSize + gapSize)) {"
+        "           discard;"
+        "       }"
+        "   }"
         "   fragColor = vec4(color, 1.0);"
         "}");
-    // program->addShaderFromSourceCode(QOpenGLShader::Vertex,
-    //     "attribute vec4 vertexPosition;"
-    //     "uniform mat4 mvpMatrix;"
-    //     "void main() {"
-    //     "   gl_Position = mvpMatrix * vertexPosition;"
-    //     "}");
-    // program->addShaderFromSourceCode(QOpenGLShader::Fragment,
-    //     "uniform vec3 color;"
-    //     "void main() {"
-    //     "   gl_FragColor = vec4(color, 1.0);"
-    //     "}");
+    
     program->link();
     program->bind();
 
     vbo.create();
-
     ibo.create();
 
     m_indexCount = 0;
@@ -86,7 +93,7 @@ void OpenGLWidget::resizeGL(int w, int h) {
     
     if (m_projectionType == Central) {
         projection.perspective(45.0f, aspect, 0.1f, 100000.0f);
-    } else { // Orthographic
+    } else {
         float viewSize = 5.0f;
         projection.ortho(-viewSize * aspect, 
                          viewSize * aspect,
@@ -98,7 +105,6 @@ void OpenGLWidget::resizeGL(int w, int h) {
 
 void OpenGLWidget::paintGL() {
     vao.bind();
-    // Устанавливаем цвет фона
     glClearColor(m_bgColor.x(), m_bgColor.y(), m_bgColor.z(), 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -107,36 +113,36 @@ void OpenGLWidget::paintGL() {
     QMatrix4x4 view;
     view.translate(0.0f, 0.0f, -15.0f);
     QMatrix4x4 model;
-
-    // Нужно будет перетащить в модель
     model.translate(m_translation);
     model.rotate(m_rotation.x(), 1.0f, 0.0f, 0.0f);
     model.rotate(m_rotation.y(), 0.0f, 1.0f, 0.0f);
     model.rotate(m_rotation.z(), 0.0f, 0.0f, 1.0f);
     model.scale(m_scale);
-
     QMatrix4x4 mvp = projection * view * model;
-    program->setUniformValue("mvpMatrix", mvp);
 
+    program->setUniformValue("mvpMatrix", mvp);
 
     if (m_vertexCount > 0) {
         vbo.bind();
         ibo.bind();
-        // program->enableAttributeArray("vertexPosition");
-        // program->setAttributeBuffer("vertexPosition", GL_FLOAT, 0, 3);
-
         program->enableAttributeArray(0);
         program->setAttributeBuffer(0, GL_FLOAT, 0, 3);
 
+        // Настройка параметров линий
+        program->setUniformValue("isDashed", m_edgeType == Dashed);
+        program->setUniformValue("dashSize", m_dashSize);
+        program->setUniformValue("gapSize", m_gapSize);
+        program->setUniformValue("color", m_edgeColor);
+        
         // Рисуем ребра
         glLineWidth(m_edgeThickness);
-        program->setUniformValue("color", m_edgeColor);
         glDrawElements(GL_LINES, m_indexCount, GL_UNSIGNED_INT, nullptr);
         
         // Рисуем вершины
         if (m_vertexDisplay != None) {
-            glPointSize(m_vertexSize);
+            program->setUniformValue("isDashed", false); // Отключаем пунктир для точек
             program->setUniformValue("color", m_vertexColor);
+            glPointSize(m_vertexSize);
             glDrawArrays(GL_POINTS, 0, m_vertexCount);
         }
 
@@ -149,26 +155,21 @@ void OpenGLWidget::paintGL() {
 }
 
 void OpenGLWidget::setModelData(const QVector<QVector3D>& vertices, const QVector<QPair<unsigned, unsigned>>& edges) {
-    
     makeCurrent();
     vao.bind();
     
-    // Очищаем старые буферы
     vbo.destroy();
     ibo.destroy();
     m_indexCount = 0;
     m_vertexCount = vertices.size();
 
-    // Создаем VBO
     vbo.create();
     vbo.bind();
     vbo.allocate(vertices.constData(), vertices.size() * sizeof(QVector3D));
     
-    // Создаем IBO
     QVector<GLuint> indices;
     indices.reserve(edges.size() * 2);
     for (const auto& edge : edges) {
-        // Проверка валидности индексов
         if (edge.first < static_cast<unsigned>(vertices.size()) && 
             edge.second < static_cast<unsigned>(vertices.size())) {
             indices.append(edge.first);
@@ -183,11 +184,8 @@ void OpenGLWidget::setModelData(const QVector<QVector3D>& vertices, const QVecto
     
     m_indexCount = indices.size();
     
-    // Настраиваем атрибуты
     program->bind();
     vbo.bind();
-    // program->enableAttributeArray("vertexPosition");
-    // program->setAttributeBuffer("vertexPosition", GL_FLOAT, 0, 3);
     program->enableAttributeArray(0);
     program->setAttributeBuffer(0, GL_FLOAT, 0, 3);
     vbo.release();
@@ -216,14 +214,16 @@ void OpenGLWidget::setTransformations(const QVector3D& translation, const QVecto
 
 void OpenGLWidget::setProjectionType(ProjectionType type) {
     m_projectionType = type;
-    resizeGL(width(), height()); // Пересчитываем проекцию
+    resizeGL(width(), height());
     update();
 }
 
-void OpenGLWidget::setEdgeSettings(EdgeType type, const QVector3D& color, float thickness) {
+void OpenGLWidget::setEdgeSettings(EdgeType type, const QVector3D& color, float thickness, float dash_size, float gap_size) {
     m_edgeType = type;
     m_edgeColor = color;
     m_edgeThickness = thickness;
+    m_dashSize = dash_size;
+    m_gapSize = gap_size;
     update();
 }
 

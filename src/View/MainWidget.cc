@@ -201,7 +201,8 @@ void MainWidget::SetupUI() {
     vertexSizeLayout->setContentsMargins(0, 0, 0, 0);
     vertexSizeLayout->addWidget(new QLabel("Размер:"));
     QDoubleSpinBox* vertexSize = new QDoubleSpinBox;
-    vertexSize->setRange(0.1, 10.0);
+    vertexSize->setDecimals(1);
+    vertexSize->setRange(0.1, 25.0);
     vertexSize->setSingleStep(0.1);
     vertexSizeLayout->addWidget(vertexSize);
     vertexLayout->addWidget(vertexSizeWidget);
@@ -362,7 +363,7 @@ void MainWidget::SetupUI() {
     m_vertexG->setValue(0);
     m_vertexB->setValue(0);
     vertexSize->setValue(2.0f);
-    vertexDisplayCombo->setCurrentIndex(1); // Круг
+    vertexDisplayCombo->setCurrentIndex(2); // 1 - Круг, 2 - Квадрат
     updateVertexSettings(); // Применить настройки
 
     // Начальные значения для фона
