@@ -31,7 +31,9 @@ protected:
     void resizeGL(int w, int h) override;
     void paintGL() override;
 private:
-    QOpenGLShaderProgram *program;
+    // QOpenGLShaderProgram *program;
+    QOpenGLShaderProgram *m_lineProgram;  // Шейдерная программа для линий
+    QOpenGLShaderProgram *m_pointProgram; // Шейдерная программа для точек
     QOpenGLBuffer vbo;
     QOpenGLBuffer ibo;
     QOpenGLVertexArrayObject vao;
