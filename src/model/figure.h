@@ -31,7 +31,7 @@ class FigureModel {
   void ResetSettings();
 
  private:
-  // std::vector<Vertex> start_;
+  std::vector<Vertex> original_;
   std::vector<Vertex> vertices_;
   std::unordered_set<std::pair<unsigned, unsigned>, PairHash> polygons_;
 

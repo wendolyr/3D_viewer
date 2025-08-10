@@ -11,8 +11,8 @@ class Facade {
   Facade() = default;
   ~Facade() = default;
 
-  int ParseFile(std::string& file);
-  void SaveModel(std::string& file_name);
+  FileError ParseFile(const std::string& file);
+  void SaveModel(const std::string& file_name);
   void LoadLastState();
 
   const std::vector<Vertex>& GetVertices() const;

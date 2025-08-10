@@ -6,6 +6,13 @@ SRC_DIRS = controller model
 BACK_SRC = $(wildcard $(addsuffix /*.cc, $(SRC_DIRS)))
 BACK_OBJ = $(patsubst %.cc, $(OBJ_DIR)/%.o, $(BACK_SRC))
 
+TEST_SRC = $(wildcard ./tests/*.cc)
+TEST_BIN = test
+LOGS_DIR = ./logs
+
+DIST_DIR = dist
+DIST_NAME = 3D_viewer_v2.0.tar.gz
+DIST_FILES = controller model view tests Makefile CmakeLists.txt Doxyfile *.cc
 
 all: install
 
@@ -14,26 +21,47 @@ install: uninstall
 	@cd build && cmake ..
 	@$(MAKE) -C build
 
-test: clean $(BACK_OBJ)
-		@$(CXX) $(CXXFLAGS) $(BACK_OBJ) test.cc -o test
-		@clear
-		@./test
-
 uninstall: 
 		@rm -rf build
 
 run:
 		@./build/viewer
 
+test: clean $(BACK_OBJ)
+		@$(CXX) $(CXXFLAGS) $(BACK_OBJ) $(TEST_SRC) -o $(TESTS_BIN) -lgtest
+		@clear
+		@./$(TESTS_BIN)
+
+gcov_report: CXXFLAGS += --coverage
+gcov_report: test
+		@mkdir -p $(LOGS_DIR)
+		@echo "Generating coverage report via gcovr..."
+		@gcovr -r . \
+		--exclude-unreachable-branches \
+		--exclude 'tests/' \
+		--html-details \
+		--html-theme green \
+		-o $(LOGS_DIR)/coverage_report.html
+		@echo "Report generated: coverage_report.html"
+		@open $(LOGS_DIR)/coverage_report.html
+
+dvi:
+		@doxygen && open doxygen/html/index.html
+
+dist:	clear
+		@echo "Creating archive..."
+		@mkdir -p $(DIST_DIR)
+		@tar -czf $(DIST_DIR)/$(DIST_NAME) $(DIST_FILES)
+		@echo "Archive created!"
+
 leaks: test
-		@leaks -atExit -- ./test
+		@leaks -atExit -- ./$(TESTS_BIN)
 
 valgrind: test
-		@valgrind --tool=memcheck --leak-check=yes ./test
+		@valgrind --tool=memcheck --leak-check=yes ./$(TESTS_BIN)
 
 clean:
-		@rm -rf $(OBJ_DIR) test
-
+		@rm -rf $(OBJ_DIR) $(TESTS_BIN) $(LOGS_DIR) *.gcno *.gcda
 
 $(OBJ_DIR)/%.o: %.cc
 		@mkdir -p $(dir $@)

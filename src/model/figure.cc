@@ -10,6 +10,7 @@ FigureModel::FigureModel()
 FigureModel::~FigureModel() {}
 
 void FigureModel::MoveFigure(Vertex shift) {
+  shift_ += shift;
   MoveStrategyCreator creator;
   auto temp = creator.CreateStrategy();
   strategy_->SetStrategy(std::move(temp));
@@ -17,20 +18,28 @@ void FigureModel::MoveFigure(Vertex shift) {
 }
 
 void FigureModel::ScaleFigure(float scale) {
+  scale_ = scale;
   ScaleStrategyCreator creator;
   auto temp = creator.CreateStrategy();
   strategy_->SetStrategy(std::move(temp));
-  strategy_->Transform(vertices_, {scale, 0.0, 0.0});
+
+  std::vector<Vertex> orig = original_;
+  strategy_->Transform(orig, {scale, 0.0, 0.0});
+  vertices_ = orig;
 }
 
 void FigureModel::RotateFigure(Vertex angle) {
+  rotation_ += angle;
   RotateStrategyCreator creator;
   auto temp = creator.CreateStrategy();
   strategy_->SetStrategy(std::move(temp));
   strategy_->Transform(vertices_, angle);
 }
 
-void FigureModel::SetVertices(std::vector<Vertex> &v) { vertices_ = v; }
+void FigureModel::SetVertices(std::vector<Vertex> &v) {
+  original_ = v;
+  vertices_ = v;
+}
 
 void FigureModel::SetPolygons(
     std::unordered_set<std::pair<unsigned, unsigned>, PairHash> &p) {
@@ -57,12 +66,7 @@ void FigureModel::SetSettings(Params &params) {
 }
 
 void FigureModel::ResetSettings() {
-  /**
-   * not right logic
-   */
-  MoveFigure({-shift_.x, -shift_.y, -shift_.z});
-  RotateFigure({-rotation_.x, -rotation_.y, -rotation_.z});
-  ScaleFigure(-scale_);
+  vertices_ = original_;
   scale_ = 0;
   shift_ = {0.0, 0.0, 0.0};
   rotation_ = {0.0, 0.0, 0.0};

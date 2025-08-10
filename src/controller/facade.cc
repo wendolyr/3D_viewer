@@ -2,11 +2,11 @@
 
 namespace s21 {
 
-int Facade::ParseFile(std::string& file) {
+FileError Facade::ParseFile(const std::string& file) {
   return data_.ParseFile(file, model_);
 }
 
-void Facade::SaveModel(std::string& file_name) {
+void Facade::SaveModel(const std::string& file_name) {
   data_.SaveModel(file_name, model_);
 }
 

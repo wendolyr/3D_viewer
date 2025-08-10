@@ -13,15 +13,16 @@ namespace s21 {
 class FileManager {
  public:
   void LoadLastState(FigureModel &model);
-  int ParseFile(std::string &file_name, FigureModel &model);
-  void SaveModel(std::string &file_name, FigureModel &model);
+  FileError ParseFile(const std::string &file_name, FigureModel &model);
+  void SaveModel(const std::string &file_name, FigureModel &model);
 
  private:
-  int ParseVertices();
-  int ParsePolygons();
-  const char *SkipToTheNextLine(const char *ptr, const char *end);
+  FileError ParseVertices(const char *ptr, std::vector<Vertex> &vertices);
+  FileError ParsePolygons(
+      const char *ptr, std::vector<Vertex> &vertices,
+      std::unordered_set<std::pair<unsigned, unsigned>, PairHash> &polygons);
 
-  void SaveSettings(std::string &file_name, FigureModel &model);
+  void SaveSettings(const std::string &file_name, FigureModel &model);
   bool LoadSettings(FigureModel &model);
 };
 

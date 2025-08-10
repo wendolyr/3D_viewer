@@ -4,115 +4,129 @@
 
 namespace s21 {
 
-int FileManager::ParseFile(std::string &file_name, FigureModel &model) {
+FileError FileManager::ParseFile(const std::string &file_name,
+                                 FigureModel &model) {
   std::ifstream file(file_name);
   if (!file.is_open()) {
-    return 1;
+    return FileError::kNotExist;
   }
 
   std::string line;
   std::vector<Vertex> vertices;
   std::unordered_set<std::pair<unsigned, unsigned>, PairHash> polygons;
-
+  auto start = std::chrono::steady_clock::now();
   while (std::getline(file, line)) {
     const char *ptr = &line[0];
 
     if (*ptr == 'v' && *(ptr + 1) == ' ') {
-      ++(++ptr);
-      std::vector<double> nums(3, 0.0);
-      char *end;
-      for (size_t i = 0; i < nums.size(); ++i) {
-        nums[i] = std::strtof(ptr, &end);
-        if (*end != ' ' && *end != '\0') {
-          return 2;
-        }
-
-        ptr = end;
+      if (ParseVertices(ptr, vertices) != FileError::kOk) {
+        return FileError::kInvalidFile;
       }
-
-      if (*end != '\0') {
-        return 2;
-      }
-
-      vertices.emplace_back(nums[0], nums[1], nums[2]);
-
     } else if (*ptr == 'f' && *(ptr + 1) == ' ') {
-      ++(++ptr);
-      std::vector<unsigned> face;
-
-      while (*ptr != '\0') {
-        if (*ptr == ' ' || *ptr == '\t') {
-          ++ptr;
-          continue;
-        }
-
-        unsigned num = 0;
-        bool negative = *ptr == '-';
-        if (negative) {
-          ++ptr;
-        }
-
-        if (*ptr >= '0' && *ptr <= '9') {
-          while (*ptr >= '0' && *ptr <= '9') {
-            num = num * 10 + (*ptr - '0');
-            ++ptr;
-          }
-        } else {
-          return 2;
-        }
-
-        while (*ptr == '/' || (*ptr >= '0' && *ptr <= '9')) {
-          ++ptr;
-        }
-
-        if (*ptr != ' ' && *ptr != '\0') {
-          return 2;
-        }
-
-        num = negative ? static_cast<unsigned>(vertices.size()) - num : num - 1;
-
-        if (num >= static_cast<unsigned>(vertices.size())) {
-          return 2;
-        }
-
-        face.push_back(num);
-      }
-
-      if (face.size() >= 2) {
-        for (size_t i = 0; i < face.size(); ++i) {
-          std::pair<unsigned, unsigned> pair;
-          size_t prev_ind = i > 0 ? i - 1 : face.size() - 1;
-          pair = face[i] > face[prev_ind]
-                     ? std::make_pair(face[prev_ind], face[i])
-                     : std::make_pair(face[i], face[prev_ind]);
-          polygons.insert(pair);
-        }
+      if (ParsePolygons(ptr, vertices, polygons) != FileError::kOk) {
+        return FileError::kInvalidFile;
       }
     }
   }
+  auto end = std::chrono::steady_clock::now();
+  auto duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+  std::cout << "Parsing time " << duration.count() << " ms" << std::endl;
 
   model.SetVertices(vertices);
   model.SetPolygons(polygons);
 
-  return 0;
+  return FileError::kOk;
+}
+
+FileError FileManager::ParseVertices(const char *ptr,
+                                     std::vector<Vertex> &vertices) {
+  ++(++ptr);
+  std::vector<double> nums(3, 0.0);
+  char *end;
+  for (size_t i = 0; i < nums.size(); ++i) {
+    nums[i] = std::strtof(ptr, &end);
+    if (*end != ' ' && *end != '\0') {
+      return FileError::kInvalidFile;
+    }
+
+    ptr = end;
+  }
+
+  if (*end != '\0') {
+    return FileError::kInvalidFile;
+  }
+
+  vertices.emplace_back(nums[0], nums[1], nums[2]);
+  return FileError::kOk;
+}
+
+FileError FileManager::ParsePolygons(
+    const char *ptr, std::vector<Vertex> &vertices,
+    std::unordered_set<std::pair<unsigned, unsigned>, PairHash> &polygons) {
+  ++(++ptr);
+  std::vector<unsigned> face;
+
+  while (*ptr != '\0') {
+    if (*ptr == ' ' || *ptr == '\t') {
+      ++ptr;
+      continue;
+    }
+
+    unsigned num = 0;
+    bool negative = *ptr == '-';
+    if (negative) {
+      ++ptr;
+    }
+
+    if (*ptr >= '0' && *ptr <= '9') {
+      while (*ptr >= '0' && *ptr <= '9') {
+        num = num * 10 + (*ptr - '0');
+        ++ptr;
+      }
+    } else {
+      return FileError::kInvalidFile;
+    }
+
+    while (*ptr == '/' || (*ptr >= '0' && *ptr <= '9')) {
+      ++ptr;
+    }
+
+    if (*ptr != ' ' && *ptr != '\0') {
+      return FileError::kInvalidFile;
+    }
+
+    num = negative ? static_cast<unsigned>(vertices.size()) - num : num - 1;
+
+    if (num >= static_cast<unsigned>(vertices.size())) {
+      return FileError::kInvalidFile;
+    }
+
+    face.push_back(num);
+  }
+
+  if (face.size() >= 2) {
+    for (size_t i = 0; i < face.size(); ++i) {
+      std::pair<unsigned, unsigned> pair;
+      size_t prev_ind = i > 0 ? i - 1 : face.size() - 1;
+      pair = face[i] > face[prev_ind] ? std::make_pair(face[prev_ind], face[i])
+                                      : std::make_pair(face[i], face[prev_ind]);
+      polygons.insert(pair);
+    }
+  }
+
+  return FileError::kOk;
 }
 
 void FileManager::LoadLastState(FigureModel &model) {
   std::string last_object_file = ".last_object.obj";
-  if (!ParseFile(last_object_file, model)) {
+  if (ParseFile(last_object_file, model) == FileError::kOk) {
     LoadSettings(model);
   }
 }
 
-const char *SkipToTheNextLine(const char *ptr, const char *end) {
-  while (ptr < end && *ptr != '\n') {
-    ++ptr;
-  }
-
-  return ptr;
-}
-
-void FileManager::SaveModel(std::string &file_name, FigureModel &model) {
+void FileManager::SaveModel(const std::string &file_name, FigureModel &model) {
   std::ofstream file(file_name);
   if (!file.is_open()) {
     return;
@@ -136,7 +150,8 @@ void FileManager::SaveModel(std::string &file_name, FigureModel &model) {
  * настройки также должны будут сохранять и загружать толщину, цвет и тд линий
  * и вершин! позже доделать этот момент
  */
-void FileManager::SaveSettings(std::string &file_name, FigureModel &model) {
+void FileManager::SaveSettings(const std::string &file_name,
+                               FigureModel &model) {
   std::ofstream file(file_name);
   if (file.is_open()) {
     Params par = model.GetCurrentSettings();

@@ -6,15 +6,10 @@
 int main() {
   s21::Facade facade;
   // std::string name = "bugatti.obj";
-  std::string name = "cube.obj";
+  // std::string name = "cube.obj";
+  std::string name = "dragon.obj";
 
-  auto start = std::chrono::steady_clock::now();
   facade.ParseFile(name);
-  auto end = std::chrono::steady_clock::now();
-  auto duration =
-      std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-
-  std::cout << "Time " << duration.count() << " ms" << std::endl;
 
   auto v = facade.GetVertices();
   // auto p = facade.GetPolygons();

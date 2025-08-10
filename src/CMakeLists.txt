@@ -13,7 +13,7 @@ add_executable(viewer
     mainwidget.cc
 )
 
-add_compile_options(-Wall -Wextra)
+add_compile_options(-Wall -Wextra -Werror)
 
 target_include_directories(viewer PRIVATE ${CURSES_INCLUDE_DIR})
 # Линковка всех библиотек и зависимостей

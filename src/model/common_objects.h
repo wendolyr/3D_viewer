@@ -5,8 +5,40 @@
 
 namespace s21 {
 
+enum class FileError { kOk, kNotExist, kInvalidFile };
+
 struct Vertex {
   float x, y, z;
+
+  Vertex& operator+=(const Vertex& other) {
+    x += other.x;
+    y += other.y;
+    z += other.z;
+
+    return *this;
+  }
+
+  Vertex& operator-=(const Vertex& other) {
+    y -= other.y;
+    x -= other.x;
+    z -= other.z;
+
+    return *this;
+  }
+
+  Vertex& operator+(const Vertex& other) {
+    *this += other;
+
+    return *this;
+  }
+
+  Vertex& operator-(const Vertex& other) {
+    *this -= other;
+
+    return *this;
+  }
+
+  // Vertex(float a, float b, float c) : x(a), y(b), z(c) {}
 };
 
 struct Params {
