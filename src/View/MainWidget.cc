@@ -20,10 +20,17 @@
 #include "OpenGLWidget.h"
 
 // public
-MainWidget::MainWidget(QWidget* parent)
-    : QWidget(parent), full_file_name_("") {
+MainWidget::MainWidget(QWidget* parent) : QWidget(parent), full_file_name_("") {
   MainWidget::SetupUI();
-  // gl_widget_->ClearModel();   // Возможно стоит убрать полностью
+  // TODO Добавить загрузку настроек иначе загрузка базового профиля
+  //   if (есть настройки) {
+  //     LoadModel();
+  //     SetTransformSettings()  // типо метод для загрузки параметров модели,
+  //     пока
+  //                             // не существует
+  //   } else {
+  MainWidget::ResetDisplay();
+  //   }
 }
 
 // public slots
@@ -53,6 +60,7 @@ void MainWidget::resizeEvent(QResizeEvent* event) {
 }
 
 // private
+// Следует разделить на блоки: ---, ---, сборка боковой панели, подключение, ---
 void MainWidget::SetupUI() {
   // Главная горизонтальная разметка
   QHBoxLayout* main_layout = new QHBoxLayout(this);
@@ -78,14 +86,10 @@ void MainWidget::SetupUI() {
   file_name_label_->setFrameStyle(QFrame::Panel | QFrame::Sunken);
   file_name_label_->setStyleSheet(
       "padding: 3px; background-color: #F0F0F0; color: #0d0c0c;");
-  file_name_label_->setSizePolicy(QSizePolicy::Ignored,
-                                   QSizePolicy::Preferred);
-
+  file_name_label_->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
   load_layout->addWidget(file_name_label_);
   load_layout->addWidget(load_btn);
   load_group->setLayout(load_layout);
-
-  connect(load_btn, &QPushButton::clicked, this, &MainWidget::LoadModel);
 
   // Группа информации о модели
   QGroupBox* info_group = new QGroupBox("Информация о модели");
@@ -95,6 +99,17 @@ void MainWidget::SetupUI() {
   info_layout->addRow("Вершин:", vertex_count_label_);
   info_layout->addRow("Ребер:", edge_count_label_);
   info_group->setLayout(info_layout);
+
+  // Группа записи
+  QGroupBox* record_group = new QGroupBox("Запись");
+  QHBoxLayout* record_layout = new QHBoxLayout;
+  QPushButton* record_gif_btn = new QPushButton("GIF");
+  QPushButton* record_screen_btn = new QPushButton("Изображение");
+
+  record_layout->addWidget(record_gif_btn);
+  record_layout->addWidget(record_screen_btn);
+
+  record_group->setLayout(record_layout);
 
   // Создание области скрола
   QScrollArea* scroll_area = new QScrollArea;
@@ -114,7 +129,6 @@ void MainWidget::SetupUI() {
                                    move_y_, TransformType::Move, Axis::Y));
   move_layout->addRow("По Z:", CreateAxisWidgetsMoveAndScale(
                                    move_z_, TransformType::Move, Axis::Z));
-  scroll_layout->addWidget(move_group);
 
   // Группа поворота
   QGroupBox* rotate_group = new QGroupBox("Поворот");
@@ -125,7 +139,6 @@ void MainWidget::SetupUI() {
                         CreateAxisWidgetsRotate(rotate_y_, Axis::Y));
   rotate_layout->addRow("По Z (°):",
                         CreateAxisWidgetsRotate(rotate_z_, Axis::Z));
-  scroll_layout->addWidget(rotate_group);
 
   // Группа масштабирования
   QGroupBox* scale_group = new QGroupBox("Масштабирование");
@@ -133,7 +146,6 @@ void MainWidget::SetupUI() {
   scale_layout->addRow(
       "Коэффицент:",
       CreateAxisWidgetsMoveAndScale(scale_, TransformType::Scale, Axis::None));
-  scroll_layout->addWidget(scale_group);
 
   // Группа: Настройки проекции
   QGroupBox* projection_group = new QGroupBox("Проекция");
@@ -144,7 +156,6 @@ void MainWidget::SetupUI() {
   projection_layout->addWidget(parallel_btn);
   projection_layout->addWidget(central_btn);
   projection_group->setLayout(projection_layout);
-  scroll_layout->addWidget(projection_group);
 
   // Группа: Настройки рёбер
   QGroupBox* edge_settings_group = new QGroupBox("Настройки рёбер");
@@ -155,15 +166,16 @@ void MainWidget::SetupUI() {
   QHBoxLayout* edge_type_layout = new QHBoxLayout(edge_type_widget);
   edge_type_layout->setContentsMargins(0, 0, 0, 0);
   edge_type_layout->addWidget(new QLabel("Тип линии:"));
-  QComboBox* edge_type_combo = new QComboBox;
-  edge_type_combo->addItem("Сплошная");
-  edge_type_combo->addItem("Пунктирная");
-  edge_type_layout->addWidget(edge_type_combo);
+  //   QComboBox* edge_type_combo_ = new QComboBox;
+  edge_type_combo_ = new QComboBox;
+  edge_type_combo_->addItem("Сплошная");
+  edge_type_combo_->addItem("Пунктирная");
+  edge_type_layout->addWidget(edge_type_combo_);
   edge_layout->addWidget(edge_type_widget);
 
   // Цвет ребра
-  QWidget* edge_color_widget =
-      CreateColorWidget(edge_r_color, edge_g_color, edge_b_color, edge_color_preview_, "Цвет:");
+  QWidget* edge_color_widget = CreateColorWidget(
+      edge_r_color, edge_g_color, edge_b_color, edge_color_preview_, "Цвет:");
   edge_layout->addWidget(edge_color_widget);
 
   // Толщина ребра
@@ -171,13 +183,12 @@ void MainWidget::SetupUI() {
   QHBoxLayout* edge_thickness_layout = new QHBoxLayout(edge_thickness_widget);
   edge_thickness_layout->setContentsMargins(0, 0, 0, 0);
   edge_thickness_layout->addWidget(new QLabel("Толщина:"));
-  QDoubleSpinBox* edge_thickness = new QDoubleSpinBox;
-  edge_thickness->setRange(0.1, 10.0);
-  edge_thickness->setSingleStep(0.1);
-  edge_thickness_layout->addWidget(edge_thickness);
+  //   QDoubleSpinBox* edge_thickness = new QDoubleSpinBox;
+  edge_thickness_ = new QDoubleSpinBox;
+  edge_thickness_->setRange(0.1, 10.0);
+  edge_thickness_->setSingleStep(0.1);
+  edge_thickness_layout->addWidget(edge_thickness_);
   edge_layout->addWidget(edge_thickness_widget);
-
-  scroll_layout->addWidget(edge_settings_group);
 
   // Группа: Настройки вершин
   QGroupBox* vertex_settings_group = new QGroupBox("Настройки вершин");
@@ -188,16 +199,18 @@ void MainWidget::SetupUI() {
   QHBoxLayout* vertex_display_layout = new QHBoxLayout(vertex_display_widget);
   vertex_display_layout->setContentsMargins(0, 0, 0, 0);
   vertex_display_layout->addWidget(new QLabel("Отображение:"));
-  QComboBox* vertex_display_combo = new QComboBox;
-  vertex_display_combo->addItem("Отсутствует");
-  vertex_display_combo->addItem("Круг");
-  vertex_display_combo->addItem("Квадрат");
-  vertex_display_layout->addWidget(vertex_display_combo);
+  //   QComboBox* vertex_display_combo = new QComboBox;
+  vertex_display_combo_ = new QComboBox;
+  vertex_display_combo_->addItem("Отсутствует");
+  vertex_display_combo_->addItem("Круг");
+  vertex_display_combo_->addItem("Квадрат");
+  vertex_display_layout->addWidget(vertex_display_combo_);
   vertex_layout->addWidget(vertex_display_widget);
 
   // Цвет вершин
-  QWidget* vertex_color_widget = CreateColorWidget(
-      vertex_r_color_, vertex_g_color_, vertex_b_color_, vertex_color_preview_, "Цвет:");
+  QWidget* vertex_color_widget =
+      CreateColorWidget(vertex_r_color_, vertex_g_color_, vertex_b_color_,
+                        vertex_color_preview_, "Цвет:");
   vertex_layout->addWidget(vertex_color_widget);
 
   // Размер вершин
@@ -205,24 +218,30 @@ void MainWidget::SetupUI() {
   QHBoxLayout* vertex_size_layout = new QHBoxLayout(vertex_size_widget);
   vertex_size_layout->setContentsMargins(0, 0, 0, 0);
   vertex_size_layout->addWidget(new QLabel("Размер:"));
-  QDoubleSpinBox* vertex_size = new QDoubleSpinBox;
-  vertex_size->setDecimals(1);
-  vertex_size->setRange(0.1, 25.0);
-  vertex_size->setSingleStep(0.1);
-  vertex_size_layout->addWidget(vertex_size);
+  //   QDoubleSpinBox* vertex_size = new QDoubleSpinBox;
+  vertex_size_ = new QDoubleSpinBox;
+  vertex_size_->setDecimals(1);
+  vertex_size_->setRange(0.1, 25.0);
+  vertex_size_->setSingleStep(0.1);
+  vertex_size_layout->addWidget(vertex_size_);
   vertex_layout->addWidget(vertex_size_widget);
-
-  scroll_layout->addWidget(vertex_settings_group);
 
   // Группа: Настройки фона
   QGroupBox* bg_settings_group = new QGroupBox("Настройки фона");
   QVBoxLayout* bg_layout = new QVBoxLayout(bg_settings_group);
 
   // Цвет фона
-  QWidget* bg_color_widget =
-      CreateColorWidget(background_color_r_, background_color_g_, background_color_b_, background_color_preview_, "Цвет фона:");
+  QWidget* bg_color_widget = CreateColorWidget(
+      background_color_r_, background_color_g_, background_color_b_,
+      background_color_preview_, "Цвет фона:");
   bg_layout->addWidget(bg_color_widget);
 
+  scroll_layout->addWidget(move_group);
+  scroll_layout->addWidget(rotate_group);
+  scroll_layout->addWidget(scale_group);
+  scroll_layout->addWidget(projection_group);
+  scroll_layout->addWidget(edge_settings_group);
+  scroll_layout->addWidget(vertex_settings_group);
   scroll_layout->addWidget(bg_settings_group);
 
   scroll_area->setWidget(scroll_content);
@@ -234,9 +253,9 @@ void MainWidget::SetupUI() {
   QPushButton* reset_view_btn = new QPushButton("Сброс\nотображения");
 
   QFontMetrics font_metrics(reset_model_btn->font());
-  int minHeight = font_metrics.lineSpacing() * 2;
-  reset_model_btn->setMinimumHeight(minHeight);
-  reset_view_btn->setMinimumHeight(minHeight);
+  int min_height = font_metrics.lineSpacing() * 2;
+  reset_model_btn->setMinimumHeight(min_height);
+  reset_view_btn->setMinimumHeight(min_height);
   reset_model_btn->setStyleSheet("text-align: center;");
   reset_view_btn->setStyleSheet("text-align: center;");
   reset_model_btn->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
@@ -247,33 +266,38 @@ void MainWidget::SetupUI() {
 
   reset_group->setLayout(reset_layout);
 
+  // Сбор боковой панели
   sidebar->setMinimumWidth(360);
   scroll_content->setMinimumWidth(340);
 
   sidebar_layout->addWidget(load_group);
   sidebar_layout->addWidget(info_group);
+  sidebar_layout->addWidget(record_group);
   sidebar_layout->addWidget(scroll_area);
   sidebar_layout->addWidget(reset_group);
   main_layout->addWidget(sidebar, 3);
 
+  // Подключение сигналов и слотов
+  connect(load_btn, &QPushButton::clicked, this,
+          &MainWidget::LoadModel);  // Загрузка модели
+  // TODO Подключение к кнопке гиф и скриншота
+  // Перемещение модели
   connect(move_x_, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
           &MainWidget::OnTransformChanged);
   connect(move_y_, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
           &MainWidget::OnTransformChanged);
   connect(move_z_, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
           &MainWidget::OnTransformChanged);
+  // Поворот модели
   connect(rotate_x_, QOverload<double>::of(&CyclicDoubleSpinBox::valueChanged),
           this, &MainWidget::OnTransformChanged);
   connect(rotate_y_, QOverload<double>::of(&CyclicDoubleSpinBox::valueChanged),
           this, &MainWidget::OnTransformChanged);
   connect(rotate_z_, QOverload<double>::of(&CyclicDoubleSpinBox::valueChanged),
           this, &MainWidget::OnTransformChanged);
+  // Масштаб модели
   connect(scale_, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
           &MainWidget::OnTransformChanged);
-
-  connect(reset_model_btn, &QPushButton::clicked, this,
-          &MainWidget::ResetTransform);
-
   // Проекция
   connect(parallel_btn, &QRadioButton::toggled, [this](bool checked) {
     if (checked) gl_widget_->SetProjectionType(OpenGLWidget::Parallel);
@@ -283,122 +307,52 @@ void MainWidget::SetupUI() {
   });
 
   // Настройки ребер
-  auto UpdateEdgeSettings = [this, edge_type_combo, edge_thickness]() {
-    OpenGLWidget::EdgeType type =
-        static_cast<OpenGLWidget::EdgeType>(edge_type_combo->currentIndex());
-    QVector3D color(edge_r_color->value() / 255.0f, edge_g_color->value() / 255.0f,
-                    edge_b_color->value() / 255.0f);
-    gl_widget_->SetEdgeSettings(type, color, edge_thickness->value());
-
-    // Обновление превью цвета
-    edge_color_preview_->setStyleSheet(
-        QString("background-color: rgb(%1,%2,%3); border: 1px solid gray;")
-            .arg(edge_r_color->value())
-            .arg(edge_g_color->value())
-            .arg(edge_b_color->value()));
-  };
-
-  connect(edge_type_combo, QOverload<int>::of(&QComboBox::currentIndexChanged),
-          UpdateEdgeSettings);
-  connect(edge_thickness, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-          UpdateEdgeSettings);
-  connect(edge_r_color, QOverload<int>::of(&QSpinBox::valueChanged),
-          UpdateEdgeSettings);
-  connect(edge_g_color, QOverload<int>::of(&QSpinBox::valueChanged),
-          UpdateEdgeSettings);
-  connect(edge_b_color, QOverload<int>::of(&QSpinBox::valueChanged),
-          UpdateEdgeSettings);
+  // Отображение ребер
+  connect(edge_type_combo_, QOverload<int>::of(&QComboBox::currentIndexChanged),
+          this,
+          &MainWidget::UpdateEdgeSettings);  // Тип отображения
+  connect(edge_thickness_, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+          this,
+          &MainWidget::UpdateEdgeSettings);  // Толщина ребра
+  // Настройка цвета ребер с помощью RGB
+  connect(edge_r_color, QOverload<int>::of(&QSpinBox::valueChanged), this,
+          &MainWidget::UpdateEdgeSettings);
+  connect(edge_g_color, QOverload<int>::of(&QSpinBox::valueChanged), this,
+          &MainWidget::UpdateEdgeSettings);
+  connect(edge_b_color, QOverload<int>::of(&QSpinBox::valueChanged), this,
+          &MainWidget::UpdateEdgeSettings);
 
   // Настройки вершин
-  auto UpdateVertexSettings = [this, vertex_display_combo, vertex_size]() {
-    OpenGLWidget::VertexDisplay display =
-        static_cast<OpenGLWidget::VertexDisplay>(
-            vertex_display_combo->currentIndex());
-    QVector3D color(vertex_r_color_->value() / 255.0f, vertex_g_color_->value() / 255.0f,
-                    vertex_b_color_->value() / 255.0f);
-    gl_widget_->SetVertexSettings(display, color, vertex_size->value());
-
-    // Обновление превью цвета
-    vertex_color_preview_->setStyleSheet(
-        QString("background-color: rgb(%1,%2,%3); border: 1px solid gray;")
-            .arg(vertex_r_color_->value())
-            .arg(vertex_g_color_->value())
-            .arg(vertex_b_color_->value()));
-  };
-
-  connect(vertex_display_combo,
-          QOverload<int>::of(&QComboBox::currentIndexChanged),
-          UpdateVertexSettings);
-  connect(vertex_size, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-          UpdateVertexSettings);
-  connect(vertex_r_color_, QOverload<int>::of(&QSpinBox::valueChanged),
-          UpdateVertexSettings);
-  connect(vertex_g_color_, QOverload<int>::of(&QSpinBox::valueChanged),
-          UpdateVertexSettings);
-  connect(vertex_b_color_, QOverload<int>::of(&QSpinBox::valueChanged),
-          UpdateVertexSettings);
+  // Отображение вершин
+  connect(vertex_display_combo_,
+          QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+          &MainWidget::UpdateVertexSettings);  // Тип отображения
+  connect(vertex_size_, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+          this,
+          &MainWidget::UpdateVertexSettings);  // Размер вершин
+  // Настройка цвета вершин с помощью RGB
+  connect(vertex_r_color_, QOverload<int>::of(&QSpinBox::valueChanged), this,
+          &MainWidget::UpdateVertexSettings);
+  connect(vertex_g_color_, QOverload<int>::of(&QSpinBox::valueChanged), this,
+          &MainWidget::UpdateVertexSettings);
+  connect(vertex_b_color_, QOverload<int>::of(&QSpinBox::valueChanged), this,
+          &MainWidget::UpdateVertexSettings);
 
   // Настройки фона
-  auto UpdateBackground = [this]() {
-    QVector3D color(background_color_r_->value() / 255.0f, background_color_g_->value() / 255.0f,
-                    background_color_b_->value() / 255.0f);
-    gl_widget_->SetBackgroundColor(color);
+  // Настройка цвета вершин с помощью RGB
+  connect(background_color_r_, QOverload<int>::of(&QSpinBox::valueChanged),
+          this, &MainWidget::UpdateBackground);
+  connect(background_color_g_, QOverload<int>::of(&QSpinBox::valueChanged),
+          this, &MainWidget::UpdateBackground);
+  connect(background_color_b_, QOverload<int>::of(&QSpinBox::valueChanged),
+          this, &MainWidget::UpdateBackground);
 
-    // Обновление превью цвета
-    background_color_preview_->setStyleSheet(
-        QString("background-color: rgb(%1,%2,%3); border: 1px solid gray;")
-            .arg(background_color_r_->value())
-            .arg(background_color_g_->value())
-            .arg(background_color_b_->value()));
-  };
-
-  connect(background_color_r_, QOverload<int>::of(&QSpinBox::valueChanged), UpdateBackground);
-  connect(background_color_g_, QOverload<int>::of(&QSpinBox::valueChanged), UpdateBackground);
-  connect(background_color_b_, QOverload<int>::of(&QSpinBox::valueChanged), UpdateBackground);
-
-  // Начальные значения для ребер
-  edge_r_color->setValue(204);  // ~0.8f * 255
-  edge_g_color->setValue(204);
-  edge_b_color->setValue(255);
-  edge_thickness->setValue(1.0f);
-  edge_type_combo->setCurrentIndex(0);  // Сплошная
-  UpdateEdgeSettings();               // Применить настройки
-
-  // Начальные значения для вершин
-  vertex_r_color_->setValue(255);  // Красный
-  vertex_g_color_->setValue(0);
-  vertex_b_color_->setValue(0);
-  vertex_size->setValue(5.0f);
-  vertex_display_combo->setCurrentIndex(2);  // 1 - Круг, 2 - Квадрат
-  UpdateVertexSettings();  // Применить настройки
-
-  // Начальные значения для фона
-  background_color_r_->setValue(0);  // Черный
-  background_color_g_->setValue(0);
-  background_color_b_->setValue(0);
-  UpdateBackground();  // Применить настройки
-
-  // Начальное значение для сброса вида
-  connect(
-      reset_view_btn, &QPushButton::clicked,
-      [this, edge_thickness, edge_type_combo, vertex_size, vertex_display_combo]() {
-        // Сброс всех настроек отображения к значениям по умолчанию
-        edge_r_color->setValue(204);
-        edge_g_color->setValue(204);
-        edge_b_color->setValue(255);
-        edge_thickness->setValue(1.0f);
-        edge_type_combo->setCurrentIndex(0);
-
-        vertex_r_color_->setValue(255);
-        vertex_g_color_->setValue(0);
-        vertex_b_color_->setValue(0);
-        vertex_size->setValue(5.0f);
-        vertex_display_combo->setCurrentIndex(2);
-
-        background_color_r_->setValue(0);
-        background_color_g_->setValue(0);
-        background_color_b_->setValue(0);
-      });
+  // Cброс модели
+  connect(reset_model_btn, &QPushButton::clicked, this,
+          &MainWidget::ResetTransform);
+  // Сброс вида
+  connect(reset_view_btn, &QPushButton::clicked, this,
+          &MainWidget::ResetDisplay);
 }
 
 QWidget* MainWidget::CreateAxisWidgetsMoveAndScale(QDoubleSpinBox*& spin_box,
@@ -824,6 +778,53 @@ QWidget* MainWidget::CreateColorWidget(QSpinBox*& r, QSpinBox*& g, QSpinBox*& b,
   return container;
 }
 
+void MainWidget::UpdateEdgeSettings() {
+  OpenGLWidget::EdgeType type =
+      static_cast<OpenGLWidget::EdgeType>(edge_type_combo_->currentIndex());
+  QVector3D color(edge_r_color->value() / 255.0f,
+                  edge_g_color->value() / 255.0f,
+                  edge_b_color->value() / 255.0f);
+  gl_widget_->SetEdgeSettings(type, color, edge_thickness_->value());
+
+  // Обновление превью цвета
+  edge_color_preview_->setStyleSheet(
+      QString("background-color: rgb(%1,%2,%3); border: 1px solid gray;")
+          .arg(edge_r_color->value())
+          .arg(edge_g_color->value())
+          .arg(edge_b_color->value()));
+}
+
+void MainWidget::UpdateVertexSettings() {
+  OpenGLWidget::VertexDisplay display =
+      static_cast<OpenGLWidget::VertexDisplay>(
+          vertex_display_combo_->currentIndex());
+  QVector3D color(vertex_r_color_->value() / 255.0f,
+                  vertex_g_color_->value() / 255.0f,
+                  vertex_b_color_->value() / 255.0f);
+  gl_widget_->SetVertexSettings(display, color, vertex_size_->value());
+
+  // Обновление превью цвета
+  vertex_color_preview_->setStyleSheet(
+      QString("background-color: rgb(%1,%2,%3); border: 1px solid gray;")
+          .arg(vertex_r_color_->value())
+          .arg(vertex_g_color_->value())
+          .arg(vertex_b_color_->value()));
+}
+
+void MainWidget::UpdateBackground() {
+  QVector3D color(background_color_r_->value() / 255.0f,
+                  background_color_g_->value() / 255.0f,
+                  background_color_b_->value() / 255.0f);
+  gl_widget_->SetBackgroundColor(color);
+
+  // Обновление превью цвета
+  background_color_preview_->setStyleSheet(
+      QString("background-color: rgb(%1,%2,%3); border: 1px solid gray;")
+          .arg(background_color_r_->value())
+          .arg(background_color_g_->value())
+          .arg(background_color_b_->value()));
+}
+
 // private slots
 void MainWidget::ResetTransform() {
   move_x_->setValue(0.0);
@@ -839,9 +840,30 @@ void MainWidget::ResetTransform() {
   OnTransformChanged();
 }
 
+void MainWidget::ResetDisplay() {
+  // Установка отображения ребер: цвет RGB; толщина; тип отображения
+  edge_r_color->setValue(204);
+  edge_g_color->setValue(204);
+  edge_b_color->setValue(255);
+  edge_thickness_->setValue(1.0f);
+  edge_type_combo_->setCurrentIndex(0);
+  UpdateEdgeSettings();
+  // Установка отображения вершин: цвет RGB; размер; тип отображения
+  vertex_r_color_->setValue(255);
+  vertex_g_color_->setValue(0);
+  vertex_b_color_->setValue(0);
+  vertex_size_->setValue(5.0f);
+  vertex_display_combo_->setCurrentIndex(2);
+  UpdateVertexSettings();
+  // Установка цвета заднего фона RGB;
+  background_color_r_->setValue(0);
+  background_color_g_->setValue(0);
+  background_color_b_->setValue(0);
+  UpdateBackground();
+}
+
 void MainWidget::OnTransformChanged() {
-  QVector3D translation(move_x_->value(), move_y_->value(),
-                        move_z_->value());
+  QVector3D translation(move_x_->value(), move_y_->value(), move_z_->value());
 
   QVector3D rotation(rotate_x_->value(), rotate_y_->value(),
                      rotate_z_->value());

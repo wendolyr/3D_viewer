@@ -1,6 +1,7 @@
 #ifndef CPP4_3DVIEWER_V2_0_VIEW_MAINWIDGET_H
 #define CPP4_3DVIEWER_V2_0_VIEW_MAINWIDGET_H
 
+#include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QLabel>
 #include <QScrollArea>
@@ -29,12 +30,8 @@ class MainWidget : public QWidget {
 
   QString full_file_name_;
 
-  QDoubleSpinBox* move_x_;
-  QDoubleSpinBox* move_y_;
-  QDoubleSpinBox* move_z_;
-  CyclicDoubleSpinBox* rotate_x_;
-  CyclicDoubleSpinBox* rotate_y_;
-  CyclicDoubleSpinBox* rotate_z_;
+  QDoubleSpinBox *move_x_, *move_y_, *move_z_;
+  CyclicDoubleSpinBox *rotate_x_, *rotate_y_, *rotate_z_;
   QDoubleSpinBox* scale_;
 
   QLabel* file_name_label_;
@@ -42,21 +39,19 @@ class MainWidget : public QWidget {
   QLabel* edge_count_label_;
 
   // Для цвета ребер
-  QSpinBox* edge_r_color;
-  QSpinBox* edge_g_color;
-  QSpinBox* edge_b_color;
+  QSpinBox *edge_r_color, *edge_g_color, *edge_b_color;
   QLabel* edge_color_preview_;
+  QDoubleSpinBox* edge_thickness_;  // Добавлено
+  QComboBox* edge_type_combo_;      // Добавлено
 
   // Для цвета вершин
-  QSpinBox* vertex_r_color_;
-  QSpinBox* vertex_g_color_;
-  QSpinBox* vertex_b_color_;
+  QSpinBox *vertex_r_color_, *vertex_g_color_, *vertex_b_color_;
   QLabel* vertex_color_preview_;
+  QDoubleSpinBox* vertex_size_;      // Добавлено
+  QComboBox* vertex_display_combo_;  // Добавлено
 
   // Для цвета фона
-  QSpinBox* background_color_r_;
-  QSpinBox* background_color_g_;
-  QSpinBox* background_color_b_;
+  QSpinBox *background_color_r_, *background_color_g_, *background_color_b_;
   QLabel* background_color_preview_;
 
   QVector<QVector3D> vertices_;            // Вершины
@@ -82,10 +77,15 @@ class MainWidget : public QWidget {
   // возможно стоит убрать
   QWidget* CreateColorWidget(QSpinBox*& r, QSpinBox*& g, QSpinBox*& b,
                              QLabel*& preview, const QString& labelText);
+  // Методы обновления настроек граней, вершин и заднего фона
+  void UpdateEdgeSettings();
+  void UpdateVertexSettings();
+  void UpdateBackground();
 
  private slots:
   // Сброс преобразований
   void ResetTransform();
+  void ResetDisplay();
   // TODO Метод для применения преобразований к модели
   void OnTransformChanged();
 };
