@@ -1,62 +1,63 @@
 #include "CyclicDoubleSpinBox.h"
-#include <cmath>
+
 #include <QWheelEvent>
+#include <cmath>
 
 CyclicDoubleSpinBox::CyclicDoubleSpinBox(QWidget *parent)
     : QDoubleSpinBox(parent) {}
 
 void CyclicDoubleSpinBox::stepBy(int steps) {
-    const double minVal = minimum();
-    const double maxVal = maximum();
-    const double step = singleStep();
-    double newValue = value() + steps * step;
+  const double min_val = minimum();
+  const double max_val = maximum();
+  const double step = singleStep();
+  double new_value = value() + steps * step;
 
-    // Рассчитываем диапазон цикла
-    const double range = maxVal - minVal + step;
+  // Рассчитываем диапазон цикла
+  const double range = max_val - min_val + step;
 
-    if (range <= 0) {
-        setValue(newValue);
-        return;
-    }
+  if (range <= 0) {
+    setValue(new_value);
+    return;
+  }
 
-    // Корректируем значение с учётом циклического диапазона
-    if (newValue > maxVal) {
-        newValue = minVal + std::fmod(newValue - minVal, range);
-        if (newValue < minVal) newValue += range;
-    } else if (newValue < minVal) {
-        newValue = maxVal - std::fmod(minVal - newValue, range);
-        if (newValue > maxVal) newValue -= range;
-    }
+  // Корректируем значение с учётом циклического диапазона
+  if (new_value > max_val) {
+    new_value = min_val + std::fmod(new_value - min_val, range);
+    if (new_value < min_val) new_value += range;
+  } else if (new_value < min_val) {
+    new_value = max_val - std::fmod(min_val - new_value, range);
+    if (new_value > max_val) new_value -= range;
+  }
 
-    // Убедимся, что значение находится в пределах [minVal, maxVal]
-    if (newValue < minVal) newValue = minVal;
-    if (newValue > maxVal) newValue = maxVal;
-    
-    setValue(newValue);
+  // Убедимся, что значение находится в пределах [min_val, max_val]
+  if (new_value < min_val) new_value = min_val;
+  if (new_value > max_val) new_value = max_val;
+
+  setValue(new_value);
 }
 
 // Обработчик колесика мыши
 void CyclicDoubleSpinBox::wheelEvent(QWheelEvent *event) {
-    // Определяем направление прокрутки
-    int steps = (event->angleDelta().y() > 0) ? 1 : -1;
-    
-    // Вызываем stepBy с нужным количеством шагов
-    stepBy(steps);
-    
-    // Принимаем событие, чтобы предотвратить стандартную обработку
-    event->accept();
+  // Определяем направление прокрутки
+  int steps = (event->angleDelta().y() > 0) ? 1 : -1;
+
+  // Вызываем stepBy с нужным количеством шагов
+  stepBy(steps);
+
+  // Принимаем событие, чтобы предотвратить стандартную обработку
+  event->accept();
 }
 
 void CyclicDoubleSpinBox::keyPressEvent(QKeyEvent *event) {
-    // Обрабатываем стрелки вверх/вниз
-    if (event->key() == Qt::Key_Up) {
-        stepBy(1);
-        event->accept();
-    } else if (event->key() == Qt::Key_Down) {
-        stepBy(-1);
-        event->accept();
-    } else {
-        // Для остальных клавиш используем стандартную обработку
-        QDoubleSpinBox::keyPressEvent(event);
-    }
+  // Обрабатываем стрелки вверх/вниз
+  if (event->key() == Qt::Key_Up) {
+    stepBy(1);
+    event->accept();
+  } else if (event->key() == Qt::Key_Down) {
+    stepBy(-1);
+    event->accept();
+  } else {
+    // Для остальных клавиш используем стандартную обработку
+    QDoubleSpinBox::keyPressEvent(event);
+  }
 }

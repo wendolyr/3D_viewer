@@ -1,63 +1,69 @@
 #ifndef CPP4_3DVIEWER_V2_0_VIEW_OPENGLWIDGET_H
 #define CPP4_3DVIEWER_V2_0_VIEW_OPENGLWIDGET_H
 
-#include <QOpenGLWidget>
+#include <QMatrix4x4>
+#include <QOpenGLBuffer>
 #include <QOpenGLFunctions>
 #include <QOpenGLShaderProgram>
-#include <QOpenGLBuffer>
-#include <QMatrix4x4>
 #include <QOpenGLVertexArrayObject>
+#include <QOpenGLWidget>
 
-class OpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
-{
-    Q_OBJECT
-public:
-    enum ProjectionType { Central, Parallel };
-    enum EdgeType { Solid, Dashed };
-    enum VertexDisplay { None, Circle, Square };
+class OpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
+  Q_OBJECT
+ public:
+  enum ProjectionType { Central, Parallel };
+  enum EdgeType { Solid, Dashed };
+  enum VertexDisplay { None, Circle, Square };
 
-    explicit OpenGLWidget(QWidget *parent = nullptr);
-    ~OpenGLWidget();
-    void setModelData(const QVector<QVector3D>& vertices, const QVector<QPair<unsigned, unsigned>>& edges);
-    void clearModel();
-    void setTransformations(const QVector3D& translation, const QVector3D& rotation, float scale);
+  explicit OpenGLWidget(QWidget* parent = nullptr);
+  ~OpenGLWidget();
+  void SetModelData(const QVector<QVector3D>& vertices,
+                    const QVector<QPair<unsigned, unsigned>>& edges);
+  void ClearModel();
+  void SetTransformations(const QVector3D& translation,
+                          const QVector3D& rotation, float scale);
 
-    void setProjectionType(ProjectionType type);
-    void setEdgeSettings(EdgeType type, const QVector3D& color, float thickness, float dash_size = 10.0f, float gap_size = 5.0f);
-    void setVertexSettings(VertexDisplay display, const QVector3D& color, float size);
-    void setBackgroundColor(const QVector3D& color);
-protected:
-    void initializeGL() override;
-    void resizeGL(int w, int h) override;
-    void paintGL() override;
-private:
-    // QOpenGLShaderProgram *program;
-    QOpenGLShaderProgram *m_lineProgram;  // Шейдерная программа для линий
-    QOpenGLShaderProgram *m_pointProgram; // Шейдерная программа для точек
-    QOpenGLBuffer vbo;
-    QOpenGLBuffer ibo;
-    QOpenGLVertexArrayObject vao;
-    QMatrix4x4 projection;
+  void SetProjectionType(ProjectionType type);
+  void SetEdgeSettings(EdgeType type, const QVector3D& color, float thickness,
+                       float dash_size = 10.0f, float gap_size = 5.0f);
+  void SetVertexSettings(VertexDisplay display, const QVector3D& color,
+                         float size);
+  void SetBackgroundColor(const QVector3D& color);
 
-    int m_indexCount = 0;
-    int m_vertexCount = 0;
+ protected:
+  void initializeGL() override;
+  void resizeGL(int w, int h) override;
+  void paintGL() override;
 
-    QVector3D m_translation;
-    QVector3D m_rotation;
-    float m_scale;
+ private:
+  // Шейдерные программы и буфферы
+  QOpenGLShaderProgram* line_program_;  // Шейдерная программа для линий
+  QOpenGLShaderProgram* point_program_;  // Шейдерная программа для точек
+  QOpenGLBuffer vbo_;
+  QOpenGLBuffer ibo_;
+  QOpenGLVertexArrayObject vao_;
 
-    ProjectionType m_projectionType;
-    EdgeType m_edgeType;
-    QVector3D m_edgeColor;
-    float m_edgeThickness;
-    float m_dashSize;
-    float m_gapSize;
-    
-    VertexDisplay m_vertexDisplay;
-    QVector3D m_vertexColor;
-    float m_vertexSize;
-    
-    QVector3D m_bgColor;
+  QMatrix4x4 projection_;
+  QVector3D translation_;
+  QVector3D rotation_;
+  float scale_;
+
+  int index_count_ = 0;
+  int vertex_count_ = 0;
+
+  ProjectionType projection_type_;  // Тип проекции объекта
+  // Параметры отображения ребер
+  EdgeType edge_type_;
+  QVector3D edge_color_;
+  float edge_thickness_;
+  float dash_size_ = 10.0f;
+  float gap_size_ = 5.0f;
+  // Параметры отображения вершин
+  VertexDisplay vertex_display_;
+  QVector3D vertex_color_;
+  float vertex_size_;
+
+  QVector3D background_color_;  // Цвет заднего фона
 };
 
 #endif  // CPP4_3DVIEWER_V2_0_VIEW_OPENGLWIDGET_H
