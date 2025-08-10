@@ -7,7 +7,7 @@ BACK_SRC = $(wildcard $(addsuffix /*.cc, $(SRC_DIRS)))
 BACK_OBJ = $(patsubst %.cc, $(OBJ_DIR)/%.o, $(BACK_SRC))
 
 TEST_SRC = $(wildcard ./tests/*.cc)
-TEST_BIN = test
+TESTS_BIN = test
 LOGS_DIR = ./logs
 
 DIST_DIR = dist
@@ -17,9 +17,9 @@ DIST_FILES = controller model view tests Makefile CmakeLists.txt Doxyfile *.cc
 all: install
 
 install: uninstall
-	@mkdir -p build
-	@cd build && cmake ..
-	@$(MAKE) -C build
+		@mkdir -p build
+		@cd build && cmake ..
+		@$(MAKE) -C build
 
 uninstall: 
 		@rm -rf build
