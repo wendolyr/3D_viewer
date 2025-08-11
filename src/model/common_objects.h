@@ -2,13 +2,14 @@
 #define CPP4_3DVIEWER_V2_0_MODEL_COMMON_OBJECTS_H
 
 #include <functional>
+#include <string>
 
 namespace s21 {
 
 enum class FileError { kOk, kNotExist, kInvalidFile };
 
 struct Vertex {
-  float x, y, z;
+  float x = 0.0, y = 0.0, z = 0.0;
 
   Vertex& operator+=(const Vertex& other) {
     x += other.x;
@@ -37,14 +38,29 @@ struct Vertex {
 
     return *this;
   }
+};
 
-  // Vertex(float a, float b, float c) : x(a), y(b), z(c) {}
+struct ViewParams {
+  int projection_type;
+
+  int edge_type;
+  Vertex edge_color;
+  float edge_thickness;
+  // float dash_size;
+  // float gap_size;
+
+  int vertex_display;
+  Vertex vertex_color;
+  float vertex_size;
+
+  Vertex background_color;
+  std::string file_name;
 };
 
 struct Params {
   Vertex shift;
   Vertex rotation;
-  float scale;
+  float scale = 0.0;
 };
 
 struct PairHash {

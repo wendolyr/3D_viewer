@@ -14,6 +14,8 @@ class FigureModel {
  public:
   FigureModel();
   ~FigureModel();
+  FigureModel& operator=(FigureModel&& other);
+
   void SetVertices(std::vector<Vertex>& v);
   void SetPolygons(
       std::unordered_set<std::pair<unsigned, unsigned>, PairHash>& p);
@@ -24,9 +26,9 @@ class FigureModel {
   GetPolygons() const;
   const Params GetCurrentSettings() const;
 
-  void MoveFigure(Vertex shift);
+  void MoveFigure(Vertex&& shift);
   void ScaleFigure(float scale);
-  void RotateFigure(Vertex angle);
+  void RotateFigure(Vertex&& angle);
 
   void ResetSettings();
 

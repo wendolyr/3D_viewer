@@ -119,40 +119,25 @@ FileError FileManager::ParsePolygons(
   return FileError::kOk;
 }
 
-void FileManager::LoadLastState(FigureModel &model) {
-  std::string last_object_file = ".last_object.obj";
-  if (ParseFile(last_object_file, model) == FileError::kOk) {
-    LoadSettings(model);
-  }
-}
-
-void FileManager::SaveModel(const std::string &file_name, FigureModel &model) {
-  std::ofstream file(file_name);
+void FileManager::SaveModel(FigureModel &model, ViewParams &view_params) {
+  std::ofstream file(".last_object.obj");
   if (!file.is_open()) {
     return;
   }
 
   for (const Vertex &v : model.GetVertices()) {
-    file << "v  " << v.x << ' ' << v.y << ' ' << v.z << std::endl;
+    file << "v " << v.x << ' ' << v.y << ' ' << v.z << std::endl;
   }
 
   for (const auto &f : model.GetPolygons()) {
     file << "f " << f.first << ' ' << f.second << std::endl;
   }
 
-  file.close();
-
-  std::string settings_file_name = ".last_settings.txt";
-  SaveSettings(settings_file_name, model);
+  SaveSettings(model, view_params);
 }
 
-/**
- * настройки также должны будут сохранять и загружать толщину, цвет и тд линий
- * и вершин! позже доделать этот момент
- */
-void FileManager::SaveSettings(const std::string &file_name,
-                               FigureModel &model) {
-  std::ofstream file(file_name);
+void FileManager::SaveSettings(FigureModel &model, ViewParams &view_params) {
+  std::ofstream file(".last_settings.txt");
   if (file.is_open()) {
     Params par = model.GetCurrentSettings();
     file << par.shift.x << ' ' << par.shift.y << ' ' << par.shift.z
@@ -160,63 +145,109 @@ void FileManager::SaveSettings(const std::string &file_name,
     file << par.rotation.x << ' ' << par.rotation.y << ' ' << par.rotation.z
          << std::endl;
     file << par.scale << std::endl;
-    file.close();
+
+    file << view_params.edge_color.x << ' ' << view_params.edge_color.y << ' '
+         << view_params.edge_color.z << ' ' << std::endl;
+    file << view_params.vertex_color.x << ' ' << view_params.vertex_color.y
+         << ' ' << view_params.vertex_color.z << std::endl;
+    file << view_params.background_color.x << ' '
+         << view_params.background_color.y << ' '
+         << view_params.background_color.z << std::endl;
+
+    file << view_params.projection_type << std::endl;
+    file << view_params.edge_type << std::endl;
+    file << view_params.edge_thickness << std::endl;
+    file << view_params.vertex_display << std::endl;
+    file << view_params.vertex_size << std::endl;
+    file << view_params.file_name << std::endl;
   }
 }
 
-bool FileManager::LoadSettings(FigureModel &model) {
+bool FileManager::LoadLastState(FigureModel &model, ViewParams &view_params) {
+  bool is_loaded = true;
+  FigureModel temp_m;
+  ViewParams temp_v;
+  if (ParseFile(".last_object.obj", temp_m) == FileError::kOk) {
+    if (LoadSettings(temp_m, temp_v)) {
+      model = std::move(temp_m);
+      view_params = std::move(temp_v);
+    } else {
+      is_loaded = false;
+    }
+  } else {
+    if (LoadSettings(temp_m, temp_v)) {
+      view_params = std::move(temp_v);
+    } else {
+      is_loaded = false;
+    }
+  }
+
+  return is_loaded;
+}
+
+bool FileManager::LoadSettings(FigureModel &model, ViewParams &view_params) {
   std::ifstream file(".last_settings.txt");
   if (!file.is_open()) {
     return false;
   }
 
-  Params temp;
+  bool is_loaded = true;
+
+  Params temp_p;
+  ViewParams temp_vp;
+
+  is_loaded = LoadTripleSetting(temp_p.shift, file) &&
+              LoadTripleSetting(temp_p.rotation, file) &&
+              LoadSingleSetting(temp_p.scale, file) &&
+              LoadTripleSetting(temp_vp.edge_color, file) &&
+              LoadTripleSetting(temp_vp.vertex_color, file) &&
+              LoadTripleSetting(temp_vp.background_color, file) &&
+              LoadSingleSetting(temp_vp.projection_type, file) &&
+              LoadSingleSetting(temp_vp.edge_type, file) &&
+              LoadSingleSetting(temp_vp.edge_thickness, file) &&
+              LoadSingleSetting(temp_vp.vertex_display, file) &&
+              LoadSingleSetting(temp_vp.vertex_size, file) &&
+              LoadSingleSetting(temp_vp.file_name, file);
+
+  if (is_loaded) {
+    model.SetSettings(temp_p);
+    view_params = std::move(temp_vp);
+  }
+
+  return is_loaded;
+}
+
+bool FileManager::LoadTripleSetting(Vertex &p, std::ifstream &file) {
   std::string extra;
   std::string line;
 
-  // сдвиг
   if (!std::getline(file, line)) {
     return false;
   }
-  std::istringstream input1(line);
-  if (!(input1 >> temp.shift.x >> temp.shift.y >> temp.shift.z)) {
-    return false;
-  }
-  if (input1 >> extra) {
-    return false;
+
+  std::istringstream input(line);
+  if ((input >> p.x >> p.y >> p.z) && !(input >> extra)) {
+    return true;
   }
 
-  // вращение
+  return false;
+}
+
+template <typename T>
+bool FileManager::LoadSingleSetting(T &p, std::ifstream &file) {
+  std::string extra;
+  std::string line;
+
   if (!std::getline(file, line)) {
     return false;
   }
-  std::istringstream input2(line);
-  if (!(input2 >> temp.rotation.x >> temp.rotation.y >> temp.rotation.z)) {
-    return false;
-  }
-  if (input2 >> extra) {
-    return false;
+
+  std::istringstream input(line);
+  if ((input >> p) && !(input >> extra)) {
+    return true;
   }
 
-  // масштаб
-  if (!std::getline(file, line)) {
-    return false;
-  }
-  std::istringstream input3(line);
-  if (!(input3 >> temp.scale)) {
-    return false;
-  }
-  if (input2 >> extra) {
-    return false;
-  }
-
-  if (std::getline(file, line)) {
-    return false;
-  }
-
-  model.SetSettings(temp);
-
-  return true;
+  return false;
 }
 
 }  // namespace s21

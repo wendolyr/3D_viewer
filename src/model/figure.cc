@@ -9,7 +9,19 @@ FigureModel::FigureModel()
 
 FigureModel::~FigureModel() {}
 
-void FigureModel::MoveFigure(Vertex shift) {
+FigureModel &FigureModel::operator=(FigureModel &&other) {
+  original_ = std::move(other.original_);
+  vertices_ = std::move(other.vertices_);
+  polygons_ = std::move(other.polygons_);
+  strategy_ = std::move(other.strategy_);
+  shift_ = std::move(other.shift_);
+  rotation_ = std::move(other.rotation_);
+  scale_ = std::move(other.scale_);
+
+  return *this;
+}
+
+void FigureModel::MoveFigure(Vertex &&shift) {
   shift_ += shift;
   MoveStrategyCreator creator;
   auto temp = creator.CreateStrategy();
@@ -28,7 +40,7 @@ void FigureModel::ScaleFigure(float scale) {
   vertices_ = orig;
 }
 
-void FigureModel::RotateFigure(Vertex angle) {
+void FigureModel::RotateFigure(Vertex &&angle) {
   rotation_ += angle;
   RotateStrategyCreator creator;
   auto temp = creator.CreateStrategy();

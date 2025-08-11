@@ -12,17 +12,17 @@ class Facade {
   ~Facade() = default;
 
   FileError ParseFile(const std::string& file);
-  void SaveModel(const std::string& file_name);
-  void LoadLastState();
+  void SaveModel(ViewParams& view_params);
+  void LoadLastState(ViewParams& view_params);
 
   const std::vector<Vertex>& GetVertices() const;
   const std::unordered_set<std::pair<unsigned, unsigned>, PairHash>&
   GetPolygons() const;
   const Params GetCurrentSettings() const;
 
-  void MoveFigure(Vertex shift);
+  void MoveFigure(Vertex&& shift);
   void ScaleFigure(float scale);
-  void RotateFigure(Vertex angle);
+  void RotateFigure(Vertex&& angle);
 
   void ResetSettings();
 

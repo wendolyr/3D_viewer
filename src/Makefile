@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -Wall -Wextra -Wpedantic -Wshadow -std=c++20
+CXXFLAGS = -Wall -Wextra -Werror -Wpedantic -Wshadow -std=c++20
 
 OBJ_DIR = ./obj
 SRC_DIRS = controller model

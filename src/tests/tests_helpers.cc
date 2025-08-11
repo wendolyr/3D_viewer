@@ -10,12 +10,14 @@ void CreateCorrectFile() {
   file << "v  1.0 -1.0  1.0\n";
   file << "v  1.0  1.0  1.0\n";
   file << "v -1.0  1.0  1.0\n";
+  file << "vn -1.0  2.2  3.3\n";
   file << "f 1 2 3 4\n";
   file << "f 5 6 7 8\n";
   file << "f 1//23 2 6 5\n";
   file << "f 2 3 7 6\n";
   file << "f 3 4 8 -1\n";
   file << "f 4 1 5 8\n";
+  file << "fp 3 2 3 1\n";
 }
 
 void CreateInvalidVerticesOneFile() {

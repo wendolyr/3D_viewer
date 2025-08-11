@@ -6,11 +6,13 @@ FileError Facade::ParseFile(const std::string& file) {
   return data_.ParseFile(file, model_);
 }
 
-void Facade::SaveModel(const std::string& file_name) {
-  data_.SaveModel(file_name, model_);
+void Facade::SaveModel(ViewParams& view_params) {
+  data_.SaveModel(model_, view_params);
 }
 
-void Facade::LoadLastState() { data_.LoadLastState(model_); }
+void Facade::LoadLastState(ViewParams& view_params) {
+  data_.LoadLastState(model_, view_params);
+}
 
 const std::vector<Vertex>& Facade::GetVertices() const {
   return model_.GetVertices();
@@ -25,11 +27,13 @@ const Params Facade::GetCurrentSettings() const {
   return model_.GetCurrentSettings();
 }
 
-void Facade::MoveFigure(Vertex shift) { model_.MoveFigure(shift); }
+void Facade::MoveFigure(Vertex&& shift) { model_.MoveFigure(std::move(shift)); }
 
 void Facade::ScaleFigure(float scale) { model_.ScaleFigure(scale); }
 
-void Facade::RotateFigure(Vertex angle) { model_.RotateFigure(angle); }
+void Facade::RotateFigure(Vertex&& angle) {
+  model_.RotateFigure(std::move(angle));
+}
 
 void Facade::ResetSettings() { model_.ResetSettings(); }
 

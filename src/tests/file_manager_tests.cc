@@ -37,3 +37,10 @@ TEST(FileManagerTester, ParseFileTest4) {
   CreateInvalidPolygonsFourFile();
   EXPECT_EQ(controller.ParseFile("cube.obj"), s21::FileError::kInvalidFile);
 }
+
+TEST(FileManagerTester, SaveLoadSettings) {
+  s21::Facade controller;
+  CreateCorrectFile();
+  controller.RotateFigure({90.0, 0, 0});
+  controller.MoveFigure({0.0, 24.0, 0});
+}
