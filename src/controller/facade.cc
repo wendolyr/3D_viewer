@@ -10,8 +10,8 @@ void Facade::SaveModel(ViewParams& view_params) {
   data_.SaveModel(model_, view_params);
 }
 
-void Facade::LoadLastState(ViewParams& view_params) {
-  data_.LoadLastState(model_, view_params);
+bool Facade::LoadLastState(ViewParams& view_params) {
+  return data_.LoadLastState(model_, view_params);
 }
 
 const std::vector<Vertex>& Facade::GetVertices() const {

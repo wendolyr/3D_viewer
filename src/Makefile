@@ -14,12 +14,15 @@ DIST_DIR = dist
 DIST_NAME = 3D_viewer_v2.0.tar.gz
 DIST_FILES = controller model view tests Makefile CmakeLists.txt Doxyfile *.cc
 
-all: install
+all: clean lib.a
 
 install: uninstall
 		@mkdir -p build
 		@cd build && cmake ..
 		@$(MAKE) -C build
+
+lib.a: $(BACK_OBJ)
+		ar rcs $@ $^
 
 uninstall: 
 		@rm -rf build
@@ -61,7 +64,7 @@ valgrind: test
 		@valgrind --tool=memcheck --leak-check=yes ./$(TESTS_BIN)
 
 clean:
-		@rm -rf $(OBJ_DIR) $(TESTS_BIN) $(LOGS_DIR) *.gcno *.gcda
+		@rm -rf $(OBJ_DIR) $(TESTS_BIN) $(LOGS_DIR) *.gcno *.gcda .last_object.obj .last_settings.txt doxygen *.a
 
 $(OBJ_DIR)/%.o: %.cc
 		@mkdir -p $(dir $@)

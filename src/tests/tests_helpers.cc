@@ -74,3 +74,13 @@ void CreateInvalidPolygonsFourFile() {
 
   file << "f 1 2 3 5\n";
 }
+
+void CreateIncorrectLastSettingsFile() {
+  std::ofstream file(".last_settings.txt");
+  file << "12\n";
+}
+
+void CreateIncorrectLastObjectFile() {
+  std::ofstream file(".last_object.txt");
+  file << "v g";
+}

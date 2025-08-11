@@ -6,63 +6,63 @@
 
 namespace s21 {
 
-enum class FileError { kOk, kNotExist, kInvalidFile };
+/**
+ * @enum FileError
+ * @brief File operation status codes
+ */
+enum class FileError {
+  kOk,          ///< Correct file
+  kNotExist,    ///< File doesn't exist
+  kInvalidFile  ///< Incorrect file content
+};
 
+/**
+ * @struct Vertex
+ * @brief Represents a 3D point in space.
+ */
 struct Vertex {
   float x = 0.0, y = 0.0, z = 0.0;
 
-  Vertex& operator+=(const Vertex& other) {
-    x += other.x;
-    y += other.y;
-    z += other.z;
-
-    return *this;
-  }
-
-  Vertex& operator-=(const Vertex& other) {
-    y -= other.y;
-    x -= other.x;
-    z -= other.z;
-
-    return *this;
-  }
-
-  Vertex& operator+(const Vertex& other) {
-    *this += other;
-
-    return *this;
-  }
-
-  Vertex& operator-(const Vertex& other) {
-    *this -= other;
-
-    return *this;
-  }
+  // Arithmetic operations for transformations
+  Vertex& operator+=(const Vertex& other);
+  Vertex& operator-=(const Vertex& other);
+  Vertex& operator+(const Vertex& other);
+  Vertex& operator-(const Vertex& other);
 };
 
+/**
+ * @struct ViewParams
+ * @brief Stores visualization settings for rendering.
+ */
 struct ViewParams {
-  int projection_type;
+  int projection_type = 0;  ///< Projection mode (orthogonal/perspective)
 
-  int edge_type;
-  Vertex edge_color;
-  float edge_thickness;
-  // float dash_size;
-  // float gap_size;
+  int edge_type = 0;           ///< Edge rendering style (solid/dashed)
+  Vertex edge_color;           ///< RGB color for edges
+  float edge_thickness = 0.0;  ///< Edge line width
 
-  int vertex_display;
-  Vertex vertex_color;
-  float vertex_size;
+  int vertex_display = 0.0;  ///< Vertex rendering mode (none/circle/square)
+  Vertex vertex_color;       ///< RGB color for vertices
+  float vertex_size = 0.0;   ///< Vertex point size
 
-  Vertex background_color;
-  std::string file_name;
+  Vertex background_color;         ///< RGB background color
+  std::string file_name = ".obj";  ///< Default file name
 };
 
+/**
+ * @struct Params
+ * @brief Aggregates transformation state parameters.
+ */
 struct Params {
-  Vertex shift;
-  Vertex rotation;
-  float scale = 0.0;
+  Vertex shift;       ///< Translation offsets
+  Vertex rotation;    ///< Rotation angles (degrees)
+  float scale = 0.0;  ///< Current scaling factor
 };
 
+/**
+ * @struct PairHash
+ * @brief Custom hash function for polygon edge pairs.
+ */
 struct PairHash {
   std::size_t operator()(const std::pair<unsigned, unsigned>& p) const {
     return p.first * 2654435761 + p.second;

@@ -1,3 +1,8 @@
+/**
+ * @file figure.h
+ * @brief Header file for FigureModel description
+ */
+
 #ifndef CPP4_3DVIEWER_V2_0_MODEL_FIGURE_H
 #define CPP4_3DVIEWER_V2_0_MODEL_FIGURE_H
 
@@ -10,38 +15,62 @@
 
 namespace s21 {
 
+/**
+ * @class FigureModel
+ * @brief Manages 3D model data and geometric transformations.
+ *
+ * This class stores vertex/polygon data and applies transformations
+ * using the Strategy pattern for move/rotate/scale operations.
+ */
 class FigureModel {
  public:
   FigureModel();
   ~FigureModel();
   FigureModel& operator=(FigureModel&& other);
 
+  /// Setter for model vertices
   void SetVertices(std::vector<Vertex>& v);
+
+  /// Setter for model polygons
   void SetPolygons(
       std::unordered_set<std::pair<unsigned, unsigned>, PairHash>& p);
+
+  /// Setter for model settings (shift, rotate, scale)
   void SetSettings(Params& params);
 
+  /// Getter for model vertices
   const std::vector<Vertex>& GetVertices() const;
+
+  /// Getter for model polygons
   const std::unordered_set<std::pair<unsigned, unsigned>, PairHash>&
   GetPolygons() const;
+
+  /// Getter for model settings
   const Params GetCurrentSettings() const;
 
+  /// Rotate figure method
   void MoveFigure(Vertex&& shift);
+
+  /// Scale figure method
   void ScaleFigure(float scale);
+
+  /// Rotate figure method
   void RotateFigure(Vertex&& angle);
 
+  /// Resets all transformations to identity
   void ResetSettings();
 
  private:
-  std::vector<Vertex> original_;
-  std::vector<Vertex> vertices_;
-  std::unordered_set<std::pair<unsigned, unsigned>, PairHash> polygons_;
+  std::vector<Vertex> original_;  ///< Untransformed vertices
+  std::vector<Vertex> vertices_;  ///< Transformed vertices
+  std::unordered_set<std::pair<unsigned, unsigned>, PairHash>
+      polygons_;  ///< Edges
 
-  std::unique_ptr<Context> strategy_;
+  std::unique_ptr<Context> strategy_;  ///< Transformation strategy context
 
-  Vertex shift_;
-  Vertex rotation_;
-  float scale_;
+  Vertex shift_;     ///< Shift along three axes
+  Vertex rotation_;  ///< Rotation along three axes
+  float scale_;      ///< Current scale
 };
 
 }  // namespace s21

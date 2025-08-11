@@ -16,4 +16,7 @@ void CreateInvalidPolygonsTwoFile();
 void CreateInvalidPolygonsThreeFile();
 void CreateInvalidPolygonsFourFile();
 
+void CreateIncorrectLastSettingsFile();
+void CreateIncorrectLastObjectFile();
+
 #endif

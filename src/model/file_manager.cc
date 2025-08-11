@@ -28,6 +28,11 @@ FileError FileManager::ParseFile(const std::string &file_name,
       }
     }
   }
+
+  if (vertices.size() == 0) {
+    return FileError::kInvalidFile;
+  }
+
   auto end = std::chrono::steady_clock::now();
   auto duration =
       std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
@@ -36,7 +41,6 @@ FileError FileManager::ParseFile(const std::string &file_name,
 
   model.SetVertices(vertices);
   model.SetPolygons(polygons);
-
   return FileError::kOk;
 }
 
@@ -130,7 +134,7 @@ void FileManager::SaveModel(FigureModel &model, ViewParams &view_params) {
   }
 
   for (const auto &f : model.GetPolygons()) {
-    file << "f " << f.first << ' ' << f.second << std::endl;
+    file << "f " << f.first + 1 << ' ' << f.second + 1 << std::endl;
   }
 
   SaveSettings(model, view_params);

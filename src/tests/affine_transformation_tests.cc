@@ -43,8 +43,7 @@ TEST(AffineTransformationTester, MoveTest) {
   EXPECT_EQ(controller.ParseFile("cube.obj"), s21::FileError::kOk);
 
   auto before = controller.GetVertices();
-  s21::Vertex m = {1.0, 0.0, 0.0};
-  controller.MoveFigure(m);
+  controller.MoveFigure({1.0, 0.0, 0.0});
 
   auto after = controller.GetVertices();
 
@@ -54,8 +53,7 @@ TEST(AffineTransformationTester, MoveTest) {
     EXPECT_TRUE(after[i].z - before[i].z < 1e-6);
   }
 
-  m = {0.0, 1.0, 0.0};
-  controller.MoveFigure(m);
+  controller.MoveFigure({0.0, 1.0, 0.0});
   after = controller.GetVertices();
   for (size_t i = 0; i < before.size(); ++i) {
     EXPECT_TRUE(after[i].x - before[i].x - 1.0 < 1e-6);
@@ -63,8 +61,7 @@ TEST(AffineTransformationTester, MoveTest) {
     EXPECT_TRUE(after[i].z - before[i].z < 1e-6);
   }
 
-  m = {0.0, 0.0, -1.0};
-  controller.MoveFigure(m);
+  controller.MoveFigure({0.0, 0.0, -1.0});
   after = controller.GetVertices();
   for (size_t i = 0; i < before.size(); ++i) {
     EXPECT_TRUE(after[i].x - before[i].x - 1.0 < 1e-6);
@@ -80,20 +77,13 @@ TEST(AffineTransformationTester, RotateTest) {
 
   auto before = controller.GetVertices();
 
-  s21::Vertex m = {90.0, 0.0, 0.0};
+  controller.RotateFigure({90.0, 0.0, 0.0});
+  controller.RotateFigure({0.0, 90.0, 0.0});
+  controller.RotateFigure({0.0, 0.0, 90.0});
 
-  controller.RotateFigure(m);
-  m = {0.0, 90.0, 0.0};
-  controller.RotateFigure(m);
-  m = {0.0, 0.0, 90.0};
-  controller.RotateFigure(m);
-
-  m = {0.0, 0.0, -90.0};
-  controller.RotateFigure(m);
-  m = {0.0, -90.0, 0.0};
-  controller.RotateFigure(m);
-  m = {-90.0, 0.0, 0.0};
-  controller.RotateFigure(m);
+  controller.RotateFigure({0.0, 0.0, -90.0});
+  controller.RotateFigure({0.0, -90.0, 0.0});
+  controller.RotateFigure({-90.0, 0.0, 0.0});
 
   auto after = controller.GetVertices();
 

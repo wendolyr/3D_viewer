@@ -1,3 +1,8 @@
+/**
+ * @file factory.h
+ * @brief Header file for factory pattern members
+ */
+
 #ifndef CPP4_3DVIEWER_V2_0_MODEL_FACTORY_H
 #define CPP4_3DVIEWER_V2_0_MODEL_FACTORY_H
 
@@ -5,11 +10,16 @@
 
 namespace s21 {
 
+/**
+ * @class StrategyFactory
+ * @brief Abstract base class for transformation strategy factories.
+ */
 class StrategyFactory {
  public:
   virtual std::unique_ptr<TransformStrategy> CreateStrategy() = 0;
 };
 
+/// Creates MoveStrategy instances for translation operations.
 class MoveStrategyCreator : public StrategyFactory {
  public:
   std::unique_ptr<TransformStrategy> CreateStrategy() override {
@@ -17,6 +27,7 @@ class MoveStrategyCreator : public StrategyFactory {
   }
 };
 
+/// Creates RotateStrategy instances for rotation operations.
 class RotateStrategyCreator : public StrategyFactory {
  public:
   std::unique_ptr<TransformStrategy> CreateStrategy() override {
@@ -24,6 +35,7 @@ class RotateStrategyCreator : public StrategyFactory {
   }
 };
 
+/// Creates ScaleStrategy instances for scaling operations.
 class ScaleStrategyCreator : public StrategyFactory {
  public:
   std::unique_ptr<TransformStrategy> CreateStrategy() override {
