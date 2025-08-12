@@ -3,7 +3,7 @@
 TEST(AffineTransformationTester, ScaleTest) {
   s21::Facade controller;
   CreateCorrectFile();
-  EXPECT_EQ(controller.ParseFile("cube.obj"), s21::FileError::kOk);
+  EXPECT_EQ(controller.ParseFile("test.obj"), s21::FileError::kOk);
 
   auto before = controller.GetVertices();
   controller.ScaleFigure(2.0);
@@ -40,7 +40,7 @@ TEST(AffineTransformationTester, ScaleTest) {
 TEST(AffineTransformationTester, MoveTest) {
   s21::Facade controller;
   CreateCorrectFile();
-  EXPECT_EQ(controller.ParseFile("cube.obj"), s21::FileError::kOk);
+  EXPECT_EQ(controller.ParseFile("test.obj"), s21::FileError::kOk);
 
   auto before = controller.GetVertices();
   controller.MoveFigure({1.0, 0.0, 0.0});
@@ -73,7 +73,7 @@ TEST(AffineTransformationTester, MoveTest) {
 TEST(AffineTransformationTester, RotateTest) {
   s21::Facade controller;
   CreateCorrectFile();
-  EXPECT_EQ(controller.ParseFile("cube.obj"), s21::FileError::kOk);
+  EXPECT_EQ(controller.ParseFile("test.obj"), s21::FileError::kOk);
 
   auto before = controller.GetVertices();
 

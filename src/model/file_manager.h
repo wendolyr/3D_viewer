@@ -38,16 +38,41 @@ class FileManager {
   bool LoadLastState(FigureModel &model, ViewParams &view_params);
 
  private:
-  // Helper methods for parsing OBJ file components
+  /**
+   * @brief Helper for parsing line with vertices
+   * @returns FileError status.
+   */
   FileError ParseVertices(const char *ptr, std::vector<Vertex> &vertices);
-  FileError ParsePolygons(
-      const char *ptr, std::vector<Vertex> &vertices,
-      std::unordered_set<std::pair<unsigned, unsigned>, PairHash> &polygons);
 
-  // Settings persistence
+  /**
+   * @brief Helper for parsing line with edges
+   * @returns FileError status.
+   */
+  FileError ParseEdges(
+      const char *ptr, std::vector<Vertex> &vertices,
+      std::unordered_set<std::pair<unsigned, unsigned>, PairHash> &edges);
+
+  /**
+   * @brief Save current settings to file
+   */
   void SaveSettings(FigureModel &model, ViewParams &view_params);
+
+  /**
+   * @brief Loading settings from file
+   * @returns True if loading completed successfully and false otherwise
+   */
   bool LoadSettings(FigureModel &model, ViewParams &view_params);
+
+  /**
+   * @brief Parse line with three parameters
+   * @returns True if parsed successfully and false otherwise
+   */
   bool LoadTripleSetting(Vertex &p, std::ifstream &file);
+
+  /**
+   * @brief Parse line with one parameter
+   * @returns True if parsed successfully and false otherwise
+   */
   template <typename T>
   bool LoadSingleSetting(T &p, std::ifstream &file);
 };

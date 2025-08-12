@@ -13,7 +13,7 @@ FileError FileManager::ParseFile(const std::string &file_name,
 
   std::string line;
   std::vector<Vertex> vertices;
-  std::unordered_set<std::pair<unsigned, unsigned>, PairHash> polygons;
+  std::unordered_set<std::pair<unsigned, unsigned>, PairHash> edges;
   auto start = std::chrono::steady_clock::now();
   while (std::getline(file, line)) {
     const char *ptr = &line[0];
@@ -23,7 +23,7 @@ FileError FileManager::ParseFile(const std::string &file_name,
         return FileError::kInvalidFile;
       }
     } else if (*ptr == 'f' && *(ptr + 1) == ' ') {
-      if (ParsePolygons(ptr, vertices, polygons) != FileError::kOk) {
+      if (ParseEdges(ptr, vertices, edges) != FileError::kOk) {
         return FileError::kInvalidFile;
       }
     }
@@ -40,7 +40,7 @@ FileError FileManager::ParseFile(const std::string &file_name,
   std::cout << "Parsing time " << duration.count() << " ms" << std::endl;
 
   model.SetVertices(vertices);
-  model.SetPolygons(polygons);
+  model.SetEdges(edges);
   return FileError::kOk;
 }
 
@@ -66,9 +66,9 @@ FileError FileManager::ParseVertices(const char *ptr,
   return FileError::kOk;
 }
 
-FileError FileManager::ParsePolygons(
+FileError FileManager::ParseEdges(
     const char *ptr, std::vector<Vertex> &vertices,
-    std::unordered_set<std::pair<unsigned, unsigned>, PairHash> &polygons) {
+    std::unordered_set<std::pair<unsigned, unsigned>, PairHash> &edges) {
   ++(++ptr);
   std::vector<unsigned> face;
 
@@ -116,7 +116,7 @@ FileError FileManager::ParsePolygons(
       size_t prev_ind = i > 0 ? i - 1 : face.size() - 1;
       pair = face[i] > face[prev_ind] ? std::make_pair(face[prev_ind], face[i])
                                       : std::make_pair(face[i], face[prev_ind]);
-      polygons.insert(pair);
+      edges.insert(pair);
     }
   }
 
@@ -133,7 +133,7 @@ void FileManager::SaveModel(FigureModel &model, ViewParams &view_params) {
     file << "v " << v.x << ' ' << v.y << ' ' << v.z << std::endl;
   }
 
-  for (const auto &f : model.GetPolygons()) {
+  for (const auto &f : model.GetEdges()) {
     file << "f " << f.first + 1 << ' ' << f.second + 1 << std::endl;
   }
 
@@ -142,29 +142,30 @@ void FileManager::SaveModel(FigureModel &model, ViewParams &view_params) {
 
 void FileManager::SaveSettings(FigureModel &model, ViewParams &view_params) {
   std::ofstream file(".last_settings.txt");
-  if (file.is_open()) {
-    Params par = model.GetCurrentSettings();
-    file << par.shift.x << ' ' << par.shift.y << ' ' << par.shift.z
-         << std::endl;
-    file << par.rotation.x << ' ' << par.rotation.y << ' ' << par.rotation.z
-         << std::endl;
-    file << par.scale << std::endl;
-
-    file << view_params.edge_color.x << ' ' << view_params.edge_color.y << ' '
-         << view_params.edge_color.z << ' ' << std::endl;
-    file << view_params.vertex_color.x << ' ' << view_params.vertex_color.y
-         << ' ' << view_params.vertex_color.z << std::endl;
-    file << view_params.background_color.x << ' '
-         << view_params.background_color.y << ' '
-         << view_params.background_color.z << std::endl;
-
-    file << view_params.projection_type << std::endl;
-    file << view_params.edge_type << std::endl;
-    file << view_params.edge_thickness << std::endl;
-    file << view_params.vertex_display << std::endl;
-    file << view_params.vertex_size << std::endl;
-    file << view_params.file_name << std::endl;
+  if (!file.is_open()) {
+    return;
   }
+
+  Params par = model.GetCurrentSettings();
+  file << par.shift.x << ' ' << par.shift.y << ' ' << par.shift.z << std::endl;
+  file << par.rotation.x << ' ' << par.rotation.y << ' ' << par.rotation.z
+       << std::endl;
+  file << par.scale << std::endl;
+
+  file << view_params.edge_color.x << ' ' << view_params.edge_color.y << ' '
+       << view_params.edge_color.z << ' ' << std::endl;
+  file << view_params.vertex_color.x << ' ' << view_params.vertex_color.y << ' '
+       << view_params.vertex_color.z << std::endl;
+  file << view_params.background_color.x << ' '
+       << view_params.background_color.y << ' '
+       << view_params.background_color.z << std::endl;
+
+  file << view_params.projection_type << std::endl;
+  file << view_params.edge_type << std::endl;
+  file << view_params.edge_thickness << std::endl;
+  file << view_params.vertex_display << std::endl;
+  file << view_params.vertex_size << std::endl;
+  file << view_params.file_name << std::endl;
 }
 
 bool FileManager::LoadLastState(FigureModel &model, ViewParams &view_params) {

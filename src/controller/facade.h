@@ -39,7 +39,7 @@ class Facade {
 
   /// Returns a reference to the model's polygon edge indices.
   const std::unordered_set<std::pair<unsigned, unsigned>, PairHash>&
-  GetPolygons() const;
+  GetEdges() const;
 
   /// Returns current transformation parameters (shift, rotation, scale).
   const Params GetCurrentSettings() const;

@@ -24,21 +24,41 @@ class TransformStrategy {
 
   /// Applies transformation to vertices using the parameter value
   virtual void Transform(std::vector<Vertex> &vertices, const Vertex value) = 0;
+
+  /**
+   * @brief Applies a transformation function to a vector of vertices in
+   * parallel using multiple threads
+   *
+   * @param vertices - Reference to a vector of vertices to be transformed
+   * @param worker - Lambda that implements the actual transformation
+   *
+   * @note For small vector, the overhead of thread creation might outweigh
+   * parallelization benefits
+   */
+
+  void ParallelTransform(std::vector<Vertex> &vertices,
+                         const std::function<void(size_t, size_t)> &worker);
 };
 
-/// Strategy for rotation transformations
+/**
+ * @brief Strategy for rotation transformations
+ */
 class RotateStrategy : public TransformStrategy {
  public:
   void Transform(std::vector<Vertex> &vertices, const Vertex angles) override;
 };
 
-/// Strategy for uniform scaling transformations
+/**
+ * @brief Strategy for uniform scaling transformations
+ */
 class ScaleStrategy : public TransformStrategy {
  public:
   void Transform(std::vector<Vertex> &vertices, const Vertex scale) override;
 };
 
-/// Strategy for translation transformations
+/**
+ * @brief Strategy for translation transformations
+ */
 class MoveStrategy : public TransformStrategy {
  public:
   void Transform(std::vector<Vertex> &vertices, const Vertex shift) override;
@@ -55,12 +75,16 @@ class Context {
  public:
   Context() {};
 
-  /// Sets the active transformation strategy
+  /**
+   * @brief Sets the active transformation strategy
+   */
   void SetStrategy(std::unique_ptr<TransformStrategy> &&s) {
     strategy_ = std::move(s);
   }
 
-  /// Applies transformation using the current strategy
+  /**
+   * @brief Applies transformation using the current strategy
+   */
   void Transform(std::vector<Vertex> &vertices, const Vertex param) {
     if (strategy_) {
       strategy_->Transform(vertices, param);
@@ -68,7 +92,7 @@ class Context {
   }
 
  private:
-  std::unique_ptr<TransformStrategy> strategy_;
+  std::unique_ptr<TransformStrategy> strategy_;  ///< current strategy
 };
 
 }  // namespace s21

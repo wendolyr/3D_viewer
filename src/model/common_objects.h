@@ -23,10 +23,16 @@ enum class FileError {
 struct Vertex {
   float x = 0.0, y = 0.0, z = 0.0;
 
-  // Arithmetic operations for transformations
+  /// Overloaded operator += for Vertex
   Vertex& operator+=(const Vertex& other);
+
+  /// Overloaded operator -= for Vertex
   Vertex& operator-=(const Vertex& other);
+
+  /// Overloaded operator + for Vertex
   Vertex& operator+(const Vertex& other);
+
+  /// Overloaded operator += for Vertex
   Vertex& operator-(const Vertex& other);
 };
 
@@ -61,7 +67,7 @@ struct Params {
 
 /**
  * @struct PairHash
- * @brief Custom hash function for polygon edge pairs.
+ * @brief Custom hash function for edge pairs.
  */
 struct PairHash {
   std::size_t operator()(const std::pair<unsigned, unsigned>& p) const {

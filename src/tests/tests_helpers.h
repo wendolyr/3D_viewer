@@ -6,17 +6,24 @@
 #include "../controller/facade.h"
 
 void CreateCorrectFile();
+void CreateFileWithoutVerticesEdges();
 
 void CreateInvalidVerticesOneFile();
 void CreateInvalidVerticesTwoFile();
 void CreateInvalidVerticesThreeFile();
 
-void CreateInvalidPolygonsOneFile();
-void CreateInvalidPolygonsTwoFile();
-void CreateInvalidPolygonsThreeFile();
-void CreateInvalidPolygonsFourFile();
+void CreateInvalidEdgesOneFile();
+void CreateInvalidEdgesTwoFile();
+void CreateInvalidEdgesThreeFile();
+void CreateInvalidEdgesFourFile();
 
-void CreateIncorrectLastSettingsFile();
+void CreateIncorrectLastSettingsFileOne();
+void CreateIncorrectLastSettingsFileTwo();
+void CreateIncorrectLastSettingsFileThree();
+
+void CreateEmptyLastSettingsFile();
+
 void CreateIncorrectLastObjectFile();
+void CreateEmptyLastObjectFile();
 
 #endif

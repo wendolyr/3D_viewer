@@ -12,7 +12,7 @@ FigureModel::~FigureModel() {}
 FigureModel &FigureModel::operator=(FigureModel &&other) {
   original_ = std::move(other.original_);
   vertices_ = std::move(other.vertices_);
-  polygons_ = std::move(other.polygons_);
+  edges_ = std::move(other.edges_);
   strategy_ = std::move(other.strategy_);
   shift_ = std::move(other.shift_);
   rotation_ = std::move(other.rotation_);
@@ -53,9 +53,9 @@ void FigureModel::SetVertices(std::vector<Vertex> &v) {
   vertices_ = v;
 }
 
-void FigureModel::SetPolygons(
+void FigureModel::SetEdges(
     std::unordered_set<std::pair<unsigned, unsigned>, PairHash> &p) {
-  polygons_ = p;
+  edges_ = p;
 }
 
 const std::vector<Vertex> &FigureModel::GetVertices() const {
@@ -63,8 +63,8 @@ const std::vector<Vertex> &FigureModel::GetVertices() const {
 }
 
 const std::unordered_set<std::pair<unsigned, unsigned>, PairHash> &
-FigureModel::GetPolygons() const {
-  return polygons_;
+FigureModel::GetEdges() const {
+  return edges_;
 }
 
 const Params FigureModel::GetCurrentSettings() const {

@@ -31,8 +31,8 @@ class FigureModel {
   /// Setter for model vertices
   void SetVertices(std::vector<Vertex>& v);
 
-  /// Setter for model polygons
-  void SetPolygons(
+  /// Setter for model edges
+  void SetEdges(
       std::unordered_set<std::pair<unsigned, unsigned>, PairHash>& p);
 
   /// Setter for model settings (shift, rotate, scale)
@@ -41,9 +41,9 @@ class FigureModel {
   /// Getter for model vertices
   const std::vector<Vertex>& GetVertices() const;
 
-  /// Getter for model polygons
+  /// Getter for model edges
   const std::unordered_set<std::pair<unsigned, unsigned>, PairHash>&
-  GetPolygons() const;
+  GetEdges() const;
 
   /// Getter for model settings
   const Params GetCurrentSettings() const;
@@ -64,7 +64,7 @@ class FigureModel {
   std::vector<Vertex> original_;  ///< Untransformed vertices
   std::vector<Vertex> vertices_;  ///< Transformed vertices
   std::unordered_set<std::pair<unsigned, unsigned>, PairHash>
-      polygons_;  ///< Edges
+      edges_;  ///< Edges
 
   std::unique_ptr<Context> strategy_;  ///< Transformation strategy context
 

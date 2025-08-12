@@ -22,7 +22,7 @@ install: uninstall
 		@$(MAKE) -C build
 
 lib.a: $(BACK_OBJ)
-		ar rcs $@ $^
+		@ar rcs $@ $^
 
 uninstall: 
 		@rm -rf build
@@ -42,6 +42,7 @@ gcov_report: test
 		@gcovr -r . \
 		--exclude-unreachable-branches \
 		--exclude 'tests/' \
+		--exclude 'controller/' \
 		--html-details \
 		--html-theme green \
 		-o $(LOGS_DIR)/coverage_report.html
@@ -64,7 +65,7 @@ valgrind: test
 		@valgrind --tool=memcheck --leak-check=yes ./$(TESTS_BIN)
 
 clean:
-		@rm -rf $(OBJ_DIR) $(TESTS_BIN) $(LOGS_DIR) *.gcno *.gcda .last_object.obj .last_settings.txt doxygen *.a
+		@rm -rf $(OBJ_DIR) $(TESTS_BIN) $(LOGS_DIR) *.gcno *.gcda .last_object.obj .last_settings.txt doxygen *.a *.out
 
 $(OBJ_DIR)/%.o: %.cc
 		@mkdir -p $(dir $@)

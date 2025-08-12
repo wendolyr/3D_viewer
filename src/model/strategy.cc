@@ -4,19 +4,9 @@
 
 namespace s21 {
 
-void ScaleStrategy::Transform(std::vector<Vertex> &vertices,
-                              const Vertex scale) {
-  std::cout << "Scale\n";
-
-  auto worker = [&](size_t start, size_t end) {
-    for (size_t j = start; j < end; ++j) {
-      Vertex &i = vertices[j];
-      i.x *= scale.x;
-      i.y *= scale.x;
-      i.z *= scale.x;
-    }
-  };
-
+void TransformStrategy::ParallelTransform(
+    std::vector<Vertex> &vertices,
+    const std::function<void(size_t, size_t)> &worker) {
   const size_t num_threads = std::thread::hardware_concurrency();
   const size_t chunk_size = vertices.size() / num_threads;
   std::vector<std::thread> threads;
@@ -32,6 +22,22 @@ void ScaleStrategy::Transform(std::vector<Vertex> &vertices,
   }
 }
 
+void ScaleStrategy::Transform(std::vector<Vertex> &vertices,
+                              const Vertex scale) {
+  std::cout << "Scale\n";
+
+  auto worker = [&](size_t start, size_t end) {
+    for (size_t j = start; j < end; ++j) {
+      Vertex &i = vertices[j];
+      i.x *= scale.x;
+      i.y *= scale.x;
+      i.z *= scale.x;
+    }
+  };
+
+  ParallelTransform(vertices, worker);
+}
+
 void MoveStrategy::Transform(std::vector<Vertex> &vertices, const Vertex axis) {
   std::cout << "Move\n";
 
@@ -44,19 +50,7 @@ void MoveStrategy::Transform(std::vector<Vertex> &vertices, const Vertex axis) {
     }
   };
 
-  const size_t num_threads = std::thread::hardware_concurrency();
-  const size_t chunk_size = vertices.size() / num_threads;
-  std::vector<std::thread> threads;
-
-  for (size_t i = 0; i < num_threads; ++i) {
-    size_t start = i * chunk_size;
-    size_t end = (i == num_threads - 1) ? vertices.size() : start + chunk_size;
-    threads.emplace_back(worker, start, end);
-  }
-
-  for (auto &thread : threads) {
-    thread.join();
-  }
+  ParallelTransform(vertices, worker);
 }
 
 void RotateStrategy::Transform(std::vector<Vertex> &vertices,
@@ -97,19 +91,7 @@ void RotateStrategy::Transform(std::vector<Vertex> &vertices,
     }
   };
 
-  const size_t num_threads = std::thread::hardware_concurrency();
-  const size_t chunk_size = vertices.size() / num_threads;
-  std::vector<std::thread> threads;
-
-  for (size_t i = 0; i < num_threads; ++i) {
-    size_t start = i * chunk_size;
-    size_t end = (i == num_threads - 1) ? vertices.size() : start + chunk_size;
-    threads.emplace_back(worker, start, end);
-  }
-
-  for (auto &thread : threads) {
-    thread.join();
-  }
+  ParallelTransform(vertices, worker);
 }
 
 }  // namespace s21
