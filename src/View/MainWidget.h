@@ -3,12 +3,16 @@
 
 #include <QComboBox>
 #include <QDoubleSpinBox>
+#include <QGroupBox>
 #include <QLabel>
+#include <QPushButton>
+#include <QRadioButton>
 #include <QScrollArea>
 #include <QVector3D>
 #include <QWidget>
 
 #include "CyclicDoubleSpinBox.h"
+#include "Enum.h"
 #include "OpenGLWidget.h"
 
 class MainWidget : public QWidget {
@@ -24,8 +28,6 @@ class MainWidget : public QWidget {
   void resizeEvent(QResizeEvent* event) override;
 
  private:
-  enum class TransformType { Move, Rotate, Scale };
-  enum class Axis { X, Y, Z, None };
   OpenGLWidget* gl_widget_;
 
   QString full_file_name_;
@@ -59,11 +61,17 @@ class MainWidget : public QWidget {
 
   // Создание пользовательского интерфейса
   void SetupUI();
+  // Создание групп интерфейса
+  QGroupBox* CreateLoadGroup(QPushButton*& load_btn, QLabel*& file_name_label);
+  QGroupBox* CreateInfoGroup(QLabel*& vertex_count, QLabel*& edge_count);
+  QGroupBox* CreateRecordGroup(QPushButton*& gif_btn, QPushButton*& screen_btn);
+  QGroupBox* CreateProjectionGroup(QRadioButton*& parallel_btn,
+                                   QRadioButton*& central_btn);
   // Создание виджета управления для оси
-  QWidget* CreateAxisWidgetsMoveAndScale(QDoubleSpinBox*& spin_box,
-                                         TransformType type, Axis axis);
-  QWidget* CreateAxisWidgetsRotate(CyclicDoubleSpinBox*& spin_box, Axis axis);
-  // Получение шага для изменения модели
+  // QWidget* CreateAxisWidgetsMoveAndScale(QDoubleSpinBox*& spin_box,
+  //                                        TransformType type, Axis axis);
+  // QWidget* CreateAxisWidgetsRotate(CyclicDoubleSpinBox*& spin_box, Axis
+  // axis); Получение шага для изменения модели
   double GetStepValue(TransformType type) const;
   // Выполнение шага изменения при нажатии
   double DoStep(double value, bool sum, TransformType type);
@@ -81,6 +89,10 @@ class MainWidget : public QWidget {
   void UpdateEdgeSettings();
   void UpdateVertexSettings();
   void UpdateBackground();
+
+  void ChangeValue(QDoubleSpinBox* spinBox, TransformType type, bool increase) {
+    spinBox->setValue(DoStep(spinBox->value(), increase, type));
+  }
 
  private slots:
   // Сброс преобразований

@@ -16,9 +16,10 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
+#include "Builder/TemplateAxisControlBuilder.h"
+#include "Builder/TransformControlBuilder.h"
 #include "CyclicDoubleSpinBox.h"
 #include "OpenGLWidget.h"
-
 // public
 MainWidget::MainWidget(QWidget* parent) : QWidget(parent), full_file_name_("") {
   MainWidget::SetupUI();
@@ -79,37 +80,14 @@ void MainWidget::SetupUI() {
   sidebar_layout->setSpacing(10);
 
   // Группа загрузки модели
-  QGroupBox* load_group = new QGroupBox("Загрузка модели");
-  QVBoxLayout* load_layout = new QVBoxLayout;
-  QPushButton* load_btn = new QPushButton("Загрузить OBJ файл");
-  file_name_label_ = new QLabel("Файл не выбран");
-  file_name_label_->setFrameStyle(QFrame::Panel | QFrame::Sunken);
-  file_name_label_->setStyleSheet(
-      "padding: 3px; background-color: #F0F0F0; color: #0d0c0c;");
-  file_name_label_->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
-  load_layout->addWidget(file_name_label_);
-  load_layout->addWidget(load_btn);
-  load_group->setLayout(load_layout);
-
+  QPushButton* load_btn;
+  QGroupBox* load_group = CreateLoadGroup(load_btn, file_name_label_);
   // Группа информации о модели
-  QGroupBox* info_group = new QGroupBox("Информация о модели");
-  QFormLayout* info_layout = new QFormLayout;
-  vertex_count_label_ = new QLabel("0");
-  edge_count_label_ = new QLabel("0");
-  info_layout->addRow("Вершин:", vertex_count_label_);
-  info_layout->addRow("Ребер:", edge_count_label_);
-  info_group->setLayout(info_layout);
-
+  QGroupBox* info_group =
+      CreateInfoGroup(vertex_count_label_, edge_count_label_);
   // Группа записи
-  QGroupBox* record_group = new QGroupBox("Запись");
-  QHBoxLayout* record_layout = new QHBoxLayout;
-  QPushButton* record_gif_btn = new QPushButton("GIF");
-  QPushButton* record_screen_btn = new QPushButton("Изображение");
-
-  record_layout->addWidget(record_gif_btn);
-  record_layout->addWidget(record_screen_btn);
-
-  record_group->setLayout(record_layout);
+  QPushButton *gif_btn, *screen_btn;
+  QGroupBox* record_group = CreateRecordGroup(gif_btn, screen_btn);
 
   // Создание области скрола
   QScrollArea* scroll_area = new QScrollArea;
@@ -121,41 +99,88 @@ void MainWidget::SetupUI() {
   scroll_layout->setAlignment(Qt::AlignTop);
 
   // Группа перемещения
-  QGroupBox* move_group = new QGroupBox("Перемещение");
-  QFormLayout* move_layout = new QFormLayout(move_group);
-  move_layout->addRow("По X:", CreateAxisWidgetsMoveAndScale(
-                                   move_x_, TransformType::Move, Axis::X));
-  move_layout->addRow("По Y:", CreateAxisWidgetsMoveAndScale(
-                                   move_y_, TransformType::Move, Axis::Y));
-  move_layout->addRow("По Z:", CreateAxisWidgetsMoveAndScale(
-                                   move_z_, TransformType::Move, Axis::Z));
-
+  QGroupBox* move_group =
+      TransformBuilder<QDoubleSpinBox>(TransformType::Move)
+          .AddAxis(
+              Axis::X, GetStepValue(TransformType::Move), move_x_,
+              [this]() { ChangeValue(move_x_, TransformType::Move, false); },
+              [this]() {
+                move_x_->setValue(
+                    DoStep(move_x_->value(), true, TransformType::Move));
+              })
+          .AddAxis(
+              Axis::Y, GetStepValue(TransformType::Move), move_y_,
+              [this]() {
+                move_y_->setValue(
+                    DoStep(move_y_->value(), false, TransformType::Move));
+              },
+              [this]() {
+                move_y_->setValue(
+                    DoStep(move_y_->value(), true, TransformType::Move));
+              })
+          .AddAxis(
+              Axis::Z, GetStepValue(TransformType::Move), move_z_,
+              [this]() {
+                move_z_->setValue(
+                    DoStep(move_z_->value(), false, TransformType::Move));
+              },
+              [this]() {
+                move_z_->setValue(
+                    DoStep(move_z_->value(), true, TransformType::Move));
+              })
+          .Build();
   // Группа поворота
-  QGroupBox* rotate_group = new QGroupBox("Поворот");
-  QFormLayout* rotate_layout = new QFormLayout(rotate_group);
-  rotate_layout->addRow("По X (°):",
-                        CreateAxisWidgetsRotate(rotate_x_, Axis::X));
-  rotate_layout->addRow("По Y (°):",
-                        CreateAxisWidgetsRotate(rotate_y_, Axis::Y));
-  rotate_layout->addRow("По Z (°):",
-                        CreateAxisWidgetsRotate(rotate_z_, Axis::Z));
-
+  QGroupBox* rotate_group =
+      TransformBuilder<CyclicDoubleSpinBox>(TransformType::Rotate)
+          .AddAxis(
+              Axis::X, GetStepValue(TransformType::Rotate), rotate_x_,
+              [this]() {
+                rotate_x_->setValue(
+                    DoStep(rotate_x_->value(), false, TransformType::Rotate));
+              },
+              [this]() {
+                rotate_x_->setValue(
+                    DoStep(rotate_x_->value(), true, TransformType::Rotate));
+              })
+          .AddAxis(
+              Axis::Y, GetStepValue(TransformType::Rotate), rotate_y_,
+              [this]() {
+                rotate_y_->setValue(
+                    DoStep(rotate_y_->value(), false, TransformType::Rotate));
+              },
+              [this]() {
+                rotate_y_->setValue(
+                    DoStep(rotate_y_->value(), true, TransformType::Rotate));
+              })
+          .AddAxis(
+              Axis::Z, GetStepValue(TransformType::Rotate), rotate_z_,
+              [this]() {
+                rotate_z_->setValue(
+                    DoStep(rotate_z_->value(), false, TransformType::Rotate));
+              },
+              [this]() {
+                rotate_z_->setValue(
+                    DoStep(rotate_z_->value(), true, TransformType::Rotate));
+              })
+          .Build();
   // Группа масштабирования
-  QGroupBox* scale_group = new QGroupBox("Масштабирование");
-  QFormLayout* scale_layout = new QFormLayout(scale_group);
-  scale_layout->addRow(
-      "Коэффицент:",
-      CreateAxisWidgetsMoveAndScale(scale_, TransformType::Scale, Axis::None));
-
+  QGroupBox* scale_group =
+      TransformBuilder<QDoubleSpinBox>(TransformType::Scale)
+          .AddAxis(
+              Axis::None, GetStepValue(TransformType::Scale), scale_,
+              [this]() {
+                scale_->setValue(
+                    DoStep(scale_->value(), false, TransformType::Scale));
+              },
+              [this]() {
+                scale_->setValue(
+                    DoStep(scale_->value(), true, TransformType::Scale));
+              })
+          .Build();
   // Группа: Настройки проекции
-  QGroupBox* projection_group = new QGroupBox("Проекция");
-  QVBoxLayout* projection_layout = new QVBoxLayout;
-  QRadioButton* parallel_btn = new QRadioButton("Параллельная");
-  QRadioButton* central_btn = new QRadioButton("Центральная");
-  central_btn->setChecked(true);  // По умолчанию параллельная проекция
-  projection_layout->addWidget(parallel_btn);
-  projection_layout->addWidget(central_btn);
-  projection_group->setLayout(projection_layout);
+  QRadioButton *parallel_btn, *central_btn;
+  QGroupBox* projection_group =
+      CreateProjectionGroup(parallel_btn, central_btn);
 
   // Группа: Настройки рёбер
   QGroupBox* edge_settings_group = new QGroupBox("Настройки рёбер");
@@ -166,7 +191,6 @@ void MainWidget::SetupUI() {
   QHBoxLayout* edge_type_layout = new QHBoxLayout(edge_type_widget);
   edge_type_layout->setContentsMargins(0, 0, 0, 0);
   edge_type_layout->addWidget(new QLabel("Тип линии:"));
-  //   QComboBox* edge_type_combo_ = new QComboBox;
   edge_type_combo_ = new QComboBox;
   edge_type_combo_->addItem("Сплошная");
   edge_type_combo_->addItem("Пунктирная");
@@ -183,7 +207,6 @@ void MainWidget::SetupUI() {
   QHBoxLayout* edge_thickness_layout = new QHBoxLayout(edge_thickness_widget);
   edge_thickness_layout->setContentsMargins(0, 0, 0, 0);
   edge_thickness_layout->addWidget(new QLabel("Толщина:"));
-  //   QDoubleSpinBox* edge_thickness = new QDoubleSpinBox;
   edge_thickness_ = new QDoubleSpinBox;
   edge_thickness_->setRange(0.1, 10.0);
   edge_thickness_->setSingleStep(0.1);
@@ -199,7 +222,6 @@ void MainWidget::SetupUI() {
   QHBoxLayout* vertex_display_layout = new QHBoxLayout(vertex_display_widget);
   vertex_display_layout->setContentsMargins(0, 0, 0, 0);
   vertex_display_layout->addWidget(new QLabel("Отображение:"));
-  //   QComboBox* vertex_display_combo = new QComboBox;
   vertex_display_combo_ = new QComboBox;
   vertex_display_combo_->addItem("Отсутствует");
   vertex_display_combo_->addItem("Круг");
@@ -355,88 +377,92 @@ void MainWidget::SetupUI() {
           &MainWidget::ResetDisplay);
 }
 
-QWidget* MainWidget::CreateAxisWidgetsMoveAndScale(QDoubleSpinBox*& spin_box,
-                                                   TransformType type,
-                                                   Axis axis) {
-  QWidget* container = new QWidget;
-  QHBoxLayout* h_layout = new QHBoxLayout(container);
-  h_layout->setContentsMargins(0, 0, 0, 0);  // Убираем отступы
+// QWidget* MainWidget::CreateAxisWidgetsMoveAndScale(QDoubleSpinBox*& spin_box,
+//                                                    TransformType type,
+//                                                    Axis axis) {
+//   QWidget* container = new QWidget;
+//   QHBoxLayout* h_layout = new QHBoxLayout(container);
+//   h_layout->setContentsMargins(0, 0, 0, 0);  // Убираем отступы
 
-  // Кнопка уменьшения значения
-  QPushButton* btn_minus = new QPushButton("-");
-  // Кнопка увеличения значения
-  QPushButton* btn_plus = new QPushButton("+");
-  // Фиксируем ширину кнопок
-  btn_minus->setFixedWidth(25);
-  btn_plus->setFixedWidth(25);
-  spin_box = new QDoubleSpinBox;
-  spin_box->setDecimals(2);
+//   // Кнопка уменьшения значения
+//   QPushButton* btn_minus = new QPushButton("-");
+//   // Кнопка увеличения значения
+//   QPushButton* btn_plus = new QPushButton("+");
+//   // Фиксируем ширину кнопок
+//   btn_minus->setFixedWidth(25);
+//   btn_plus->setFixedWidth(25);
+//   spin_box = new QDoubleSpinBox;
+//   spin_box->setDecimals(2);
 
-  // Настройка диапозонов в зависимости от типа преобразования
-  if (type == TransformType::Move) {
-    spin_box->setRange(-1000000.0, 1000000.0);
-    spin_box->setValue(0.0);
-  } else {
-    spin_box->setRange(0.01, 1000.0);
-    spin_box->setValue(1.0);
-  }
-  spin_box->setSingleStep(MainWidget::GetStepValue(type));
-  spin_box->setButtonSymbols(QAbstractSpinBox::NoButtons);  // Скрываем кнопки
+//   // Настройка диапозонов в зависимости от типа преобразования
+//   if (type == TransformType::Move) {
+//     spin_box->setRange(-1000000.0, 1000000.0);
+//     spin_box->setValue(0.0);
+//   } else {
+//     spin_box->setRange(0.01, 1000.0);
+//     spin_box->setValue(1.0);
+//   }
+//   spin_box->setSingleStep(MainWidget::GetStepValue(type));
+//   spin_box->setButtonSymbols(QAbstractSpinBox::NoButtons);  // Скрываем
+//   кнопки
 
-  // Компоновка элементов
-  h_layout->addWidget(btn_minus);
-  h_layout->addWidget(spin_box);
-  h_layout->addWidget(btn_plus);
+//   // Компоновка элементов
+//   h_layout->addWidget(btn_minus);
+//   h_layout->addWidget(spin_box);
+//   h_layout->addWidget(btn_plus);
 
-  // Обработчик кнопок +/-
-  connect(btn_minus, &QPushButton::clicked, [this, spin_box, type]() {
-    spin_box->setValue(DoStep(spin_box->value(), false, type));
-  });
-  connect(btn_plus, &QPushButton::clicked, [this, spin_box, type]() {
-    spin_box->setValue(DoStep(spin_box->value(), true, type));
-  });
+//   // Обработчик кнопок +/-
+//   connect(btn_minus, &QPushButton::clicked, [this, spin_box, type]() {
+//     spin_box->setValue(DoStep(spin_box->value(), false, type));
+//   });
+//   connect(btn_plus, &QPushButton::clicked, [this, spin_box, type]() {
+//     spin_box->setValue(DoStep(spin_box->value(), true, type));
+//   });
 
-  return container;
-}
+//   return container;
+// }
 
-QWidget* MainWidget::CreateAxisWidgetsRotate(CyclicDoubleSpinBox*& spin_box,
-                                             Axis axis) {
-  QWidget* container = new QWidget;
-  QHBoxLayout* h_layout = new QHBoxLayout(container);
-  h_layout->setContentsMargins(0, 0, 0, 0);  // Убираем отступы
+// QWidget* MainWidget::CreateAxisWidgetsRotate(CyclicDoubleSpinBox*& spin_box,
+//                                              Axis axis) {
+//   QWidget* container = new QWidget;
+//   QHBoxLayout* h_layout = new QHBoxLayout(container);
+//   h_layout->setContentsMargins(0, 0, 0, 0);  // Убираем отступы
 
-  // Кнопка уменьшения значения
-  QPushButton* btn_minus = new QPushButton("-");
-  // Кнопка увеличения значения
-  QPushButton* btn_plus = new QPushButton("+");
-  // Фиксируем ширину кнопок
-  btn_minus->setFixedWidth(25);
-  btn_plus->setFixedWidth(25);
-  spin_box = new CyclicDoubleSpinBox;
-  spin_box->setDecimals(0);
+//   // Кнопка уменьшения значения
+//   QPushButton* btn_minus = new QPushButton("-");
+//   // Кнопка увеличения значения
+//   QPushButton* btn_plus = new QPushButton("+");
+//   // Фиксируем ширину кнопок
+//   btn_minus->setFixedWidth(25);
+//   btn_plus->setFixedWidth(25);
+//   spin_box = new CyclicDoubleSpinBox;
+//   spin_box->setDecimals(0);
 
-  // Настройка диапозонов в зависимости от типа преобразования
-  spin_box->setRange(0.0, 359.0);  // Диапазон [0, 359]
-  spin_box->setValue(0.0);
-  spin_box->setDecimals(0);
-  spin_box->setSingleStep(MainWidget::GetStepValue(TransformType::Rotate));
-  spin_box->setButtonSymbols(QAbstractSpinBox::NoButtons);  // Скрываем кнопки
+//   // Настройка диапозонов в зависимости от типа преобразования
+//   spin_box->setRange(0.0, 359.0);  // Диапазон [0, 359]
+//   spin_box->setValue(0.0);
+//   spin_box->setDecimals(0);
+//   spin_box->setSingleStep(MainWidget::GetStepValue(TransformType::Rotate));
+//   spin_box->setButtonSymbols(QAbstractSpinBox::NoButtons);  // Скрываем
+//   кнопки
 
-  // Компоновка элементов
-  h_layout->addWidget(btn_minus);
-  h_layout->addWidget(spin_box);
-  h_layout->addWidget(btn_plus);
+//   // Компоновка элементов
+//   h_layout->addWidget(btn_minus);
+//   h_layout->addWidget(spin_box);
+//   h_layout->addWidget(btn_plus);
 
-  // Обработчик кнопок +/-
-  connect(btn_minus, &QPushButton::clicked, [this, spin_box]() {
-    spin_box->setValue(DoStep(spin_box->value(), false, TransformType::Rotate));
-  });
-  connect(btn_plus, &QPushButton::clicked, [this, spin_box]() {
-    spin_box->setValue(DoStep(spin_box->value(), true, TransformType::Rotate));
-  });
+//   // Обработчик кнопок +/-
+//   connect(btn_minus, &QPushButton::clicked, [this, spin_box]() {
+//     spin_box->setValue(DoStep(spin_box->value(), false,
+//     TransformType::Rotate));
+//   });
+//   connect(btn_plus, &QPushButton::clicked, [this, spin_box]() {
+//     spin_box->setValue(DoStep(spin_box->value(), true,
+//     TransformType::Rotate));
+//   });
 
-  return container;
-}
+//   return container;
+// }
 
 double MainWidget::GetStepValue(TransformType type) const {
   switch (type) {
@@ -871,4 +897,62 @@ void MainWidget::OnTransformChanged() {
   float scale = scale_->value();
 
   gl_widget_->SetTransformations(translation, rotation, scale);
+}
+
+// tmp разобрать потом и кровью
+
+QGroupBox* MainWidget::CreateLoadGroup(QPushButton*& load_btn,
+                                       QLabel*& file_name_label) {
+  QGroupBox* group = new QGroupBox("Загрузка модели");
+  QVBoxLayout* layout = new QVBoxLayout(group);
+
+  file_name_label = new QLabel("Файл не выбран");
+  file_name_label->setFrameStyle(QFrame::Panel | QFrame::Sunken);
+  file_name_label->setStyleSheet(
+      "padding: 3px; background-color: #F0F0F0; color: #0d0c0c;");
+  file_name_label->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+
+  load_btn = new QPushButton("Загрузить OBJ файл");
+
+  layout->addWidget(file_name_label);
+  layout->addWidget(load_btn);
+
+  return group;
+}
+
+QGroupBox* MainWidget::CreateInfoGroup(QLabel*& vertex_count,
+                                       QLabel*& edge_count) {
+  QGroupBox* group = new QGroupBox("Информация о модели");
+  QFormLayout* layout = new QFormLayout(group);
+
+  vertex_count = new QLabel("0");
+  edge_count = new QLabel("0");
+
+  layout->addRow("Вершин:", vertex_count);
+  layout->addRow("Ребер:", edge_count);
+
+  return group;
+}
+
+QGroupBox* MainWidget::CreateRecordGroup(QPushButton*& gif_btn,
+                                         QPushButton*& screen_btn) {
+  QGroupBox* group = new QGroupBox("Запись");
+  QHBoxLayout* layout = new QHBoxLayout(group);
+  gif_btn = new QPushButton("GIF");
+  screen_btn = new QPushButton("Изображение");
+  layout->addWidget(gif_btn);
+  layout->addWidget(screen_btn);
+  return group;
+}
+
+QGroupBox* MainWidget::CreateProjectionGroup(QRadioButton*& parallel_btn,
+                                             QRadioButton*& central_btn) {
+  QGroupBox* group = new QGroupBox("Проекция");
+  QVBoxLayout* layout = new QVBoxLayout(group);
+  parallel_btn = new QRadioButton("Параллельная");
+  central_btn = new QRadioButton("Центральная");
+  central_btn->setChecked(true);
+  layout->addWidget(parallel_btn);
+  layout->addWidget(central_btn);
+  return group;
 }
