@@ -14,6 +14,7 @@
 #include "CyclicDoubleSpinBox.h"
 #include "Enum.h"
 #include "OpenGLWidget.h"
+#include "../controller/facade.h"
 
 class MainWidget : public QWidget {
  public:
@@ -28,6 +29,7 @@ class MainWidget : public QWidget {
   void resizeEvent(QResizeEvent* event) override;
 
  private:
+  s21::Facade control_;
   OpenGLWidget* gl_widget_;
 
   QString full_file_name_;

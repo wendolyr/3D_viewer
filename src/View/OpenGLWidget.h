@@ -7,6 +7,8 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLWidget>
+#include <unordered_set>
+#include "../controller/facade.h"
 
 class OpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
   Q_OBJECT
@@ -17,11 +19,16 @@ class OpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
 
   explicit OpenGLWidget(QWidget* parent = nullptr);
   ~OpenGLWidget();
-  void SetModelData(const QVector<QVector3D>& vertices,
-                    const QVector<QPair<unsigned, unsigned>>& edges);
+  // void SetModelData(const QVector<QVector3D>& vertices,
+  //                   const QVector<QPair<unsigned, unsigned>>& edges);
+  void SetModelData(
+    const std::vector<s21::Vertex>& vertices,
+    const std::unordered_set<std::pair<unsigned, unsigned>, s21::PairHash>& edges);
   void ClearModel();
   void SetTransformations(const QVector3D& translation,
                           const QVector3D& rotation, float scale);
+  void NewSetTransformations(std::vector<std::vector<float>>& matrix);
+
 
   void SetProjectionType(ProjectionType type);
   void SetEdgeSettings(EdgeType type, const QVector3D& color, float thickness,
@@ -36,6 +43,7 @@ class OpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
   void paintGL() override;
 
  private:
+  QMatrix4x4 model_;
   // Шейдерные программы и буфферы
   QOpenGLShaderProgram* line_program_;  // Шейдерная программа для линий
   QOpenGLShaderProgram* point_program_;  // Шейдерная программа для точек

@@ -20,6 +20,8 @@
 #include "Builder/TransformControlBuilder.h"
 #include "CyclicDoubleSpinBox.h"
 #include "OpenGLWidget.h"
+#include "../controller/facade.h"
+
 // public
 MainWidget::MainWidget(QWidget* parent) : QWidget(parent), full_file_name_("") {
   MainWidget::SetupUI();
@@ -46,10 +48,16 @@ void MainWidget::LoadModel() {
     QFileInfo file_info(file_name);
     full_file_name_ = file_info.fileName();
 
-    if (!MainWidget::LoadModelData(file_name)) {
-      MainWidget::UpdateFileNameLabel();
-      MainWidget::ResetTransform();
-    }
+    // if (!MainWidget::LoadModelData(file_name)) {
+    //   MainWidget::UpdateFileNameLabel();
+    //   MainWidget::ResetTransform();
+    // }
+    MainWidget::ResetTransform();
+    qDebug() << static_cast<int>(control_.ParseFile(file_name.toStdString()));
+    MainWidget::UpdateFileNameLabel();
+
+
+    gl_widget_->SetModelData(control_.GetVertices(), control_.GetEdges());
   }
 }
 
@@ -747,7 +755,7 @@ int MainWidget::LoadModelData(const QString& file_path) {
   }
 
   // Передаем данные в OpenGLWidget
-  gl_widget_->SetModelData(vertices_, edge_vec);
+  // gl_widget_->SetModelData(vertices_, edge_vec);
 
   return 0;
 }
@@ -889,14 +897,21 @@ void MainWidget::ResetDisplay() {
 }
 
 void MainWidget::OnTransformChanged() {
-  QVector3D translation(move_x_->value(), move_y_->value(), move_z_->value());
+  std::vector<std::vector<float>> matrix;
+  control_.MoveFigure(matrix, {static_cast<float>(move_x_->value()), static_cast<float>(move_y_->value()), static_cast<float>(move_z_->value())});
 
-  QVector3D rotation(rotate_x_->value(), rotate_y_->value(),
-                     rotate_z_->value());
+  // control_.RotateFigure(matrix, {rotate_x_->value(), rotate_y_->value(), rotate_z_->value()});
+  // control_.ScaleFigure(matrix, scale_->value());
 
-  float scale = scale_->value();
+  // QVector3D translation(move_x_->value(), move_y_->value(), move_z_->value());
 
-  gl_widget_->SetTransformations(translation, rotation, scale);
+  // QVector3D rotation(rotate_x_->value(), rotate_y_->value(),
+  //                    rotate_z_->value());
+
+  // float scale = scale_->value();
+
+  // gl_widget_->SetTransformations(translation, rotation, scale);
+  gl_widget_->NewSetTransformations(matrix);
 }
 
 // tmp разобрать потом и кровью

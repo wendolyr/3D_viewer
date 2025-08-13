@@ -13,6 +13,11 @@ add_executable(viewer
     view/MainWidget.cc
     view/OpenGLWidget.cc
     view/CyclicDoubleSpinBox.cc
+    controller/facade.cc
+    model/common_objects.cc
+    model/figure.cc
+    model/file_manager.cc
+    model/strategy.cc
 )
 
 add_compile_options(-Wall -Wextra -Werror)

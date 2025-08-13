@@ -185,14 +185,14 @@ void OpenGLWidget::paintGL() {
   QMatrix4x4 view;
   view.translate(0.0f, 0.0f, -15.0f);
   // Модель нужно вынести из view и все её преобразования в том-числе
-  QMatrix4x4 model;
-  model.translate(translation_);
-  model.rotate(rotation_.x(), 1.0f, 0.0f, 0.0f);
-  model.rotate(rotation_.y(), 0.0f, 1.0f, 0.0f);
-  model.rotate(rotation_.z(), 0.0f, 0.0f, 1.0f);
-  model.scale(scale_);
+  // QMatrix4x4 model;
+  // model.translate(translation_);
+  // model.rotate(rotation_.x(), 1.0f, 0.0f, 0.0f);
+  // model.rotate(rotation_.y(), 0.0f, 1.0f, 0.0f);
+  // model.rotate(rotation_.z(), 0.0f, 0.0f, 1.0f);
+  // model.scale(scale_);
 
-  QMatrix4x4 mvp = projection_ * view * model;
+  QMatrix4x4 mvp = projection_ * view * model_;
 
   // ===== Отрисовка линий =====
   if (index_count_ > 0) {
@@ -235,9 +235,12 @@ void OpenGLWidget::paintGL() {
   vao_.release();
 }
 
+// void OpenGLWidget::SetModelData(
+//     const QVector<QVector3D>& vertices,
+//     const QVector<QPair<unsigned, unsigned>>& edges) {
 void OpenGLWidget::SetModelData(
-    const QVector<QVector3D>& vertices,
-    const QVector<QPair<unsigned, unsigned>>& edges) {
+    const std::vector<s21::Vertex>& vertices,
+    const std::unordered_set<std::pair<unsigned, unsigned>, s21::PairHash>& edges) {
   makeCurrent();
   vao_.bind();
 
@@ -249,7 +252,8 @@ void OpenGLWidget::SetModelData(
 
   vbo_.create();
   vbo_.bind();
-  vbo_.allocate(vertices.constData(), vertices.size() * sizeof(QVector3D));
+  // vbo_.allocate(vertices.constData(), vertices.size() * sizeof(QVector3D));
+  vbo_.allocate(vertices.data(), vertices.size() * sizeof(s21::Vertex));
 
   QVector<GLuint> indices;
   for (const auto& edge : edges) {
@@ -267,7 +271,7 @@ void OpenGLWidget::SetModelData(
   }
 
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(QVector3D), nullptr);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(s21::Vertex), nullptr);
 
   vbo_.release();
   if (ibo_.isCreated()) ibo_.release();
@@ -292,6 +296,15 @@ void OpenGLWidget::SetTransformations(const QVector3D& translation,
   translation_ = translation;
   rotation_ = rotation;
   scale_ = scale;
+  update();
+}
+
+void OpenGLWidget::NewSetTransformations(std::vector<std::vector<float>>& matrix) {
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 0; j < 4; ++j) {
+      model_(i, j) = matrix[i][j];
+    }
+  }
   update();
 }
 
