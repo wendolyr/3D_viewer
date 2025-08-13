@@ -18,16 +18,16 @@ Vertex& Vertex::operator-=(const Vertex& other) {
   return *this;
 }
 
-Vertex& Vertex::operator+(const Vertex& other) {
-  *this += other;
+Vertex Vertex::operator+(const Vertex& other) {
+  Vertex temp = {x + other.x, y + other.y, z + other.z};
 
-  return *this;
+  return temp;
 }
 
-Vertex& Vertex::operator-(const Vertex& other) {
-  *this -= other;
+Vertex Vertex::operator-(const Vertex& other) {
+  Vertex temp = {x - other.x, y - other.y, z - other.z};
 
-  return *this;
+  return temp;
 }
 
 }  // namespace s21

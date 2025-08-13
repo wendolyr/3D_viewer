@@ -1,9 +1,11 @@
 #include "figure.h"
 
+#include <iostream>
+
 namespace s21 {
 
 FigureModel::FigureModel()
-    : shift_{0.0, 0.0, 0.0}, rotation_{0.0, 0.0, 0.0}, scale_{1} {
+    : shift_{0.0, 0.0, 0.0}, rotation_{0.0, 0.0, 0.0}, scale_{1.0} {
   strategy_ = std::make_unique<Context>();
 }
 
@@ -22,30 +24,34 @@ FigureModel &FigureModel::operator=(FigureModel &&other) {
 
 void FigureModel::MoveFigure(std::vector<std::vector<float>> &matrix,
                              Vertex &&shift) {
-  shift_ += shift;
   MoveStrategyCreator creator;
   auto temp = creator.CreateStrategy();
   strategy_->SetStrategy(std::move(temp));
-  strategy_->Transform(matrix, shift);
+
+  strategy_->Transform(matrix, shift - shift_);
+
+  shift_ = shift;
 }
 
 void FigureModel::ScaleFigure(std::vector<std::vector<float>> &matrix,
                               float scale) {
-  scale_ = scale;
   ScaleStrategyCreator creator;
   auto temp = creator.CreateStrategy();
   strategy_->SetStrategy(std::move(temp));
 
-  strategy_->Transform(matrix, {scale, 0.0, 0.0});
+  strategy_->Transform(matrix, {scale / scale_, 0.0, 0.0});
+
+  scale_ = scale;
 }
 
 void FigureModel::RotateFigure(std::vector<std::vector<float>> &matrix,
                                Vertex &&angle) {
-  rotation_ += angle;
   RotateStrategyCreator creator;
   auto temp = creator.CreateStrategy();
   strategy_->SetStrategy(std::move(temp));
-  strategy_->Transform(matrix, angle);
+  strategy_->Transform(matrix, angle - rotation_);
+
+  rotation_ = angle;
 }
 
 void FigureModel::SetVertices(std::vector<Vertex> &v) { vertices_ = v; }

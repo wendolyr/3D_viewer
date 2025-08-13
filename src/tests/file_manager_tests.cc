@@ -51,22 +51,28 @@ TEST(FileManagerTester, SaveLoadSettingsTest2) {
   s21::Facade controller;
   CreateCorrectFile();
   controller.ParseFile("test.obj");
-  controller.RotateFigure({90.0, 0, 0});
-  controller.MoveFigure({0.0, 24.0, 0});
-  controller.ScaleFigure(3.0);
-  auto before = controller.GetVertices();
+  std::vector<std::vector<float>> tmp;
+  controller.RotateFigure(tmp, {90.0, 0, 0});
+  controller.MoveFigure(tmp, {0.0, 24.0, 0});
+  controller.ScaleFigure(tmp, 3.0);
+
+  auto before = controller.GetCurrentSettings();
   s21::ViewParams p;
   controller.SaveModel(p);
 
   s21::Facade controller2;
   controller2.LoadLastState(p);
-  auto after = controller2.GetVertices();
+  auto after = controller2.GetCurrentSettings();
+
+  EXPECT_EQ(before.rotation.x, after.rotation.x);
+  EXPECT_EQ(before.rotation.y, after.rotation.y);
+  EXPECT_EQ(before.rotation.z, after.rotation.z);
+  EXPECT_EQ(before.shift.x, after.shift.x);
+  EXPECT_EQ(before.shift.y, after.shift.y);
+  EXPECT_EQ(before.shift.z, after.shift.z);
+  EXPECT_EQ(before.scale, after.scale);
+
   // std::cout << after.size() << '\n';
-  for (size_t i = 0; i < before.size(); ++i) {
-    EXPECT_TRUE(fabs(before[i].x - after[i].x) < 1e-6);
-    EXPECT_TRUE(fabs(before[i].y - after[i].y) < 1e-6);
-    EXPECT_TRUE(fabs(before[i].z - after[i].z) < 1e-6);
-  }
 }
 
 TEST(FileManagerTester, SaveLoadSettingsTest3) {

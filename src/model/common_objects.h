@@ -30,10 +30,10 @@ struct Vertex {
   Vertex& operator-=(const Vertex& other);
 
   /// Overloaded operator + for Vertex
-  Vertex& operator+(const Vertex& other);
+  Vertex operator+(const Vertex& other);
 
   /// Overloaded operator += for Vertex
-  Vertex& operator-(const Vertex& other);
+  Vertex operator-(const Vertex& other);
 };
 
 /**
