@@ -4,94 +4,65 @@
 
 namespace s21 {
 
-void TransformStrategy::ParallelTransform(
-    std::vector<Vertex> &vertices,
-    const std::function<void(size_t, size_t)> &worker) {
-  const size_t num_threads = std::thread::hardware_concurrency();
-  const size_t chunk_size = vertices.size() / num_threads;
-  std::vector<std::thread> threads;
-
-  for (size_t i = 0; i < num_threads; ++i) {
-    size_t start = i * chunk_size;
-    size_t end = (i == num_threads - 1) ? vertices.size() : start + chunk_size;
-    threads.emplace_back(worker, start, end);
-  }
-
-  for (auto &thread : threads) {
-    thread.join();
-  }
-}
-
-void ScaleStrategy::Transform(std::vector<Vertex> &vertices,
+void ScaleStrategy::Transform(std::vector<std::vector<float>> &matrix,
                               const Vertex scale) {
   std::cout << "Scale\n";
+  std::vector<std::vector<float>> temp(4, {4, 0.0f});
 
-  auto worker = [&](size_t start, size_t end) {
-    for (size_t j = start; j < end; ++j) {
-      Vertex &i = vertices[j];
-      i.x *= scale.x;
-      i.y *= scale.x;
-      i.z *= scale.x;
-    }
-  };
+  for (size_t i = 0; i < temp.size() - 1; ++i) {
+    matrix[i][i] = scale.x;
+  }
 
-  ParallelTransform(vertices, worker);
+  matrix = std::move(temp);
 }
 
-void MoveStrategy::Transform(std::vector<Vertex> &vertices, const Vertex axis) {
+void MoveStrategy::Transform(std::vector<std::vector<float>> &matrix,
+                             const Vertex axis) {
   std::cout << "Move\n";
 
-  auto worker = [&](size_t start, size_t end) {
-    for (size_t j = start; j < end; ++j) {
-      Vertex &i = vertices[j];
-      i.x += axis.x;
-      i.y += axis.y;
-      i.z += axis.z;
-    }
-  };
+  std::vector<std::vector<float>> temp(4, {4, 0.0f});
+  for (size_t i = 0; i < temp.size(); ++i) {
+    temp[i][i] = 1;
+  }
 
-  ParallelTransform(vertices, worker);
+  matrix[0][3] = axis.x;
+  matrix[1][3] = axis.y;
+  matrix[2][3] = axis.z;
+
+  matrix = std::move(temp);
 }
 
-void RotateStrategy::Transform(std::vector<Vertex> &vertices,
+void RotateStrategy::Transform(std::vector<std::vector<float>> &matrix,
                                const Vertex axis) {
   std::cout << "Rotate\n";
+  std::vector<std::vector<float>> temp(4, {4, 0.0f});
+
   float rad_angle_x = axis.x * M_PI / 180;
   float rad_angle_y = axis.y * M_PI / 180;
   float rad_angle_z = axis.z * M_PI / 180;
 
-  float calc_sin_x = sin(rad_angle_x);
-  float calc_cos_x = cos(rad_angle_x);
+  float sin_x = sin(rad_angle_x);
+  float cos_x = cos(rad_angle_x);
 
-  float calc_sin_y = sin(rad_angle_y);
-  float calc_cos_y = cos(rad_angle_y);
+  float sin_y = sin(rad_angle_y);
+  float cos_y = cos(rad_angle_y);
 
-  float calc_sin_z = sin(rad_angle_z);
-  float calc_cos_z = cos(rad_angle_z);
+  float sin_z = sin(rad_angle_z);
+  float cos_z = cos(rad_angle_z);
 
-  auto worker = [&](size_t start, size_t end) {
-    for (size_t j = start; j < end; ++j) {
-      Vertex &i = vertices[j];
-      if (fabs(rad_angle_x) > 1e-7) {
-        float old_y = i.y;
-        float old_z = i.z;
-        i.y = old_y * calc_cos_x - old_z * calc_sin_x;
-        i.z = old_y * calc_sin_x + old_z * calc_cos_x;
-      } else if (fabs(rad_angle_y) > 1e-7) {
-        float old_x = i.x;
-        float old_z = i.z;
-        i.x = old_x * calc_cos_y + old_z * calc_sin_y;
-        i.z = -old_x * calc_sin_y + old_z * calc_cos_y;
-      } else {
-        float old_x = i.x;
-        float old_y = i.y;
-        i.x = old_x * calc_cos_z - old_y * calc_sin_z;
-        i.y = old_x * calc_sin_z + old_y * calc_cos_z;
-      }
-    }
-  };
+  temp[0][0] = cos_y * cos_z;
+  temp[0][1] = sin_x * sin_y * cos_z - sin_z * cos_x;
+  temp[0][2] = sin_x * sin_z + cos_x * sin_y * cos_z;
+  temp[1][0] = cos_y * sin_z;
+  temp[1][1] = cos_x * cos_z + sin_x * sin_y * sin_z;
+  temp[1][2] = cos_x * sin_y * sin_z - sin_x * cos_z;
+  temp[2][0] = -sin_y;
+  temp[2][1] = sin_x * cos_y;
+  temp[2][2] = cos_x * cos_y;
 
-  ParallelTransform(vertices, worker);
+  temp[3][3] = 1;
+
+  matrix = std::move(temp);
 }
 
 }  // namespace s21

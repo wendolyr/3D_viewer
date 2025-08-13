@@ -32,8 +32,7 @@ class FigureModel {
   void SetVertices(std::vector<Vertex>& v);
 
   /// Setter for model edges
-  void SetEdges(
-      std::unordered_set<std::pair<unsigned, unsigned>, PairHash>& p);
+  void SetEdges(std::unordered_set<std::pair<unsigned, unsigned>, PairHash>& p);
 
   /// Setter for model settings (shift, rotate, scale)
   void SetSettings(Params& params);
@@ -42,26 +41,25 @@ class FigureModel {
   const std::vector<Vertex>& GetVertices() const;
 
   /// Getter for model edges
-  const std::unordered_set<std::pair<unsigned, unsigned>, PairHash>&
-  GetEdges() const;
+  const std::unordered_set<std::pair<unsigned, unsigned>, PairHash>& GetEdges()
+      const;
 
   /// Getter for model settings
   const Params GetCurrentSettings() const;
 
   /// Rotate figure method
-  void MoveFigure(Vertex&& shift);
+  void MoveFigure(std::vector<std::vector<float>>& matrix, Vertex&& shift);
 
   /// Scale figure method
-  void ScaleFigure(float scale);
+  void ScaleFigure(std::vector<std::vector<float>>& matrix, float scale);
 
   /// Rotate figure method
-  void RotateFigure(Vertex&& angle);
+  void RotateFigure(std::vector<std::vector<float>>& matrix, Vertex&& angle);
 
   /// Resets all transformations to identity
   void ResetSettings();
 
  private:
-  std::vector<Vertex> original_;  ///< Untransformed vertices
   std::vector<Vertex> vertices_;  ///< Transformed vertices
   std::unordered_set<std::pair<unsigned, unsigned>, PairHash>
       edges_;  ///< Edges

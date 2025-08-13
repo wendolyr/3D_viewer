@@ -38,20 +38,20 @@ class Facade {
   const std::vector<Vertex>& GetVertices() const;
 
   /// Returns a reference to the model's polygon edge indices.
-  const std::unordered_set<std::pair<unsigned, unsigned>, PairHash>&
-  GetEdges() const;
+  const std::unordered_set<std::pair<unsigned, unsigned>, PairHash>& GetEdges()
+      const;
 
   /// Returns current transformation parameters (shift, rotation, scale).
   const Params GetCurrentSettings() const;
 
   /// Translates the model by the specified offset.
-  void MoveFigure(Vertex&& shift);
+  void MoveFigure(std::vector<std::vector<float>>& matrix, Vertex&& shift);
 
   /// Scales the model by the given factor.
-  void ScaleFigure(float scale);
+  void ScaleFigure(std::vector<std::vector<float>>& matrix, float scale);
 
   /// Rotates the model by the specified angles (in degrees).
-  void RotateFigure(Vertex&& angle);
+  void RotateFigure(std::vector<std::vector<float>>& matrix, Vertex&& angle);
 
   /// Resets all transformations to initial state.
   void ResetSettings();

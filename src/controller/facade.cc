@@ -27,12 +27,18 @@ const Params Facade::GetCurrentSettings() const {
   return model_.GetCurrentSettings();
 }
 
-void Facade::MoveFigure(Vertex&& shift) { model_.MoveFigure(std::move(shift)); }
+void Facade::MoveFigure(std::vector<std::vector<float>>& matrix,
+                        Vertex&& shift) {
+  model_.MoveFigure(matrix, std::move(shift));
+}
 
-void Facade::ScaleFigure(float scale) { model_.ScaleFigure(scale); }
+void Facade::ScaleFigure(std::vector<std::vector<float>>& matrix, float scale) {
+  model_.ScaleFigure(matrix, scale);
+}
 
-void Facade::RotateFigure(Vertex&& angle) {
-  model_.RotateFigure(std::move(angle));
+void Facade::RotateFigure(std::vector<std::vector<float>>& matrix,
+                          Vertex&& angle) {
+  model_.RotateFigure(matrix, std::move(angle));
 }
 
 void Facade::ResetSettings() { model_.ResetSettings(); }

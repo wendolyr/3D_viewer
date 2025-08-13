@@ -23,21 +23,8 @@ class TransformStrategy {
   virtual ~TransformStrategy() = default;
 
   /// Applies transformation to vertices using the parameter value
-  virtual void Transform(std::vector<Vertex> &vertices, const Vertex value) = 0;
-
-  /**
-   * @brief Applies a transformation function to a vector of vertices in
-   * parallel using multiple threads
-   *
-   * @param vertices - Reference to a vector of vertices to be transformed
-   * @param worker - Lambda that implements the actual transformation
-   *
-   * @note For small vector, the overhead of thread creation might outweigh
-   * parallelization benefits
-   */
-
-  void ParallelTransform(std::vector<Vertex> &vertices,
-                         const std::function<void(size_t, size_t)> &worker);
+  virtual void Transform(std::vector<std::vector<float>> &matrix,
+                         const Vertex value) = 0;
 };
 
 /**
@@ -45,7 +32,8 @@ class TransformStrategy {
  */
 class RotateStrategy : public TransformStrategy {
  public:
-  void Transform(std::vector<Vertex> &vertices, const Vertex angles) override;
+  void Transform(std::vector<std::vector<float>> &matrix,
+                 const Vertex angles) override;
 };
 
 /**
@@ -53,7 +41,8 @@ class RotateStrategy : public TransformStrategy {
  */
 class ScaleStrategy : public TransformStrategy {
  public:
-  void Transform(std::vector<Vertex> &vertices, const Vertex scale) override;
+  void Transform(std::vector<std::vector<float>> &matrix,
+                 const Vertex scale) override;
 };
 
 /**
@@ -61,7 +50,8 @@ class ScaleStrategy : public TransformStrategy {
  */
 class MoveStrategy : public TransformStrategy {
  public:
-  void Transform(std::vector<Vertex> &vertices, const Vertex shift) override;
+  void Transform(std::vector<std::vector<float>> &matrix,
+                 const Vertex shift) override;
 };
 
 /**
@@ -85,9 +75,9 @@ class Context {
   /**
    * @brief Applies transformation using the current strategy
    */
-  void Transform(std::vector<Vertex> &vertices, const Vertex param) {
+  void Transform(std::vector<std::vector<float>> &matrix, const Vertex param) {
     if (strategy_) {
-      strategy_->Transform(vertices, param);
+      strategy_->Transform(matrix, param);
     }
   }
 
