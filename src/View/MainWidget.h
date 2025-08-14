@@ -19,7 +19,8 @@
 class MainWidget : public QWidget {
  public:
   MainWidget(QWidget* parent = nullptr);
-
+  ~MainWidget();
+  
  public slots:
   // Слот для загрузки модели
   void LoadModel();

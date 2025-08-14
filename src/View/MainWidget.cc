@@ -25,15 +25,67 @@
 // public
 MainWidget::MainWidget(QWidget* parent) : QWidget(parent), full_file_name_("") {
   MainWidget::SetupUI();
-  // TODO Добавить загрузку настроек иначе загрузка базового профиля
-  //   if (есть настройки) {
-  //     LoadModel();
-  //     SetTransformSettings()  // типо метод для загрузки параметров модели,
-  //     пока
-  //                             // не существует
-  //   } else {
-  MainWidget::ResetDisplay();
-  //   }
+  s21::ViewParams params;
+  if (control_.LoadLastState(params)) {
+    edge_r_color->setValue(params.edge_color.x);
+    edge_g_color->setValue(params.edge_color.y);
+    edge_b_color->setValue(params.edge_color.z);
+    edge_thickness_->setValue(params.edge_thickness);
+    edge_type_combo_->setCurrentIndex(params.edge_type);
+    UpdateEdgeSettings();
+
+    vertex_r_color_->setValue(params.vertex_color.x);
+    vertex_g_color_->setValue(params.vertex_color.y);
+    vertex_b_color_->setValue(params.vertex_color.z);
+    vertex_size_->setValue(params.vertex_size);
+    vertex_display_combo_->setCurrentIndex(params.vertex_display);
+    UpdateVertexSettings();
+
+    background_color_r_->setValue(params.background_color.x);
+    background_color_g_->setValue(params.background_color.y);
+    background_color_b_->setValue(params.background_color.z);
+    UpdateBackground();
+    // если базовое название поменялось, значит файл с моделью существовал и был
+    // корректным
+    if (params.file_name != ".obj" && control_.GetVertices().size()) {
+      full_file_name_ = QString::fromStdString(params.file_name);
+      s21::Params affine = control_.GetCurrentSettings();
+      move_x_->setValue(affine.shift.x);
+      move_y_->setValue(affine.shift.y);
+      move_z_->setValue(affine.shift.z);
+      rotate_x_->setValue(affine.rotation.x);
+      rotate_y_->setValue(affine.rotation.y);
+      rotate_z_->setValue(affine.rotation.z);
+      scale_->setValue(affine.scale);
+
+      // повернуть фигуру
+      // я хз тут сега
+      // gl_widget_->SetModelData(control_.GetVertices(), control_.GetEdges());
+    }
+  } else {
+    MainWidget::ResetDisplay();
+  }
+}
+
+MainWidget::~MainWidget() {
+  s21::ViewParams params;
+  params.edge_color.x = edge_r_color->value();
+  params.edge_color.y = edge_g_color->value();
+  params.edge_color.z = edge_b_color->value();
+  params.edge_thickness = edge_thickness_->value();
+  params.edge_type = edge_type_combo_->currentIndex();
+
+  params.vertex_color.x = vertex_r_color_->value();
+  params.vertex_color.y = vertex_g_color_->value();
+  params.vertex_color.z = vertex_b_color_->value();
+  params.vertex_size = vertex_size_->value();
+  params.vertex_display = vertex_display_combo_->currentIndex();
+  params.background_color.x = background_color_r_->value();
+  params.background_color.y = background_color_g_->value();
+  params.background_color.z = background_color_b_->value();
+  params.file_name = full_file_name_.toStdString();
+
+  control_.SaveModel(params);
 }
 
 // public slots
@@ -53,7 +105,6 @@ void MainWidget::LoadModel() {
     //   MainWidget::ResetTransform();
     // }
     MainWidget::ResetTransform();
-    // qDebug() << static_cast<int>(
     control_.ParseFile(file_name.toStdString());
     MainWidget::UpdateFileNameLabel();
 

@@ -22,8 +22,6 @@ std::vector<std::vector<float>> TransformStrategy::MulSquareMatrix(
 
 void ScaleStrategy::Transform(std::vector<std::vector<float>> &matrix,
                               const Vertex scale) {
-  std::cout << "Scale\n";
-
   std::vector<std::vector<float>> scale_matrix(4, std::vector<float>(4, 0.0));
 
   for (size_t i = 0; i < scale_matrix.size() - 1; ++i) {
@@ -37,8 +35,6 @@ void ScaleStrategy::Transform(std::vector<std::vector<float>> &matrix,
 
 void MoveStrategy::Transform(std::vector<std::vector<float>> &matrix,
                              const Vertex axis) {
-  std::cout << "Move\n";
-
   std::vector<std::vector<float>> move_matrix(4, std::vector<float>(4, 0.0));
   for (size_t i = 0; i < move_matrix.size(); ++i) {
     move_matrix[i][i] = 1;
@@ -75,35 +71,6 @@ void RotateStrategy::Transform(std::vector<std::vector<float>> &matrix,
   auto Rxy = MulSquareMatrix(Ry, Rx);
   std::vector<std::vector<float>> R = MulSquareMatrix(Rz, Rxy);
   matrix = MulSquareMatrix(R, matrix);
-  // std::vector<std::vector<float>> rotate_matrix(4, std::vector<float>(4,
-  // 0.0)); for (size_t i = 0; i < rotate_matrix.size(); ++i) {
-  //   rotate_matrix[i][i] = 1;
-  // }
-
-  // float rad_angle_x = axis.x * M_PI / 180;
-  // float rad_angle_y = axis.y * M_PI / 180;
-  // float rad_angle_z = axis.z * M_PI / 180;
-
-  // float sin_x = sin(rad_angle_x);
-  // float cos_x = cos(rad_angle_x);
-
-  // float sin_y = sin(rad_angle_y);
-  // float cos_y = cos(rad_angle_y);
-
-  // float sin_z = sin(rad_angle_z);
-  // float cos_z = cos(rad_angle_z);
-
-  // rotate_matrix[0][0] = (cos_y * cos_z);
-  // rotate_matrix[0][1] = (sin_x * sin_y * cos_z - sin_z * cos_x);
-  // rotate_matrix[0][2] = (sin_x * sin_z + cos_x * sin_y * cos_z);
-  // rotate_matrix[1][0] = (cos_y * sin_z);
-  // rotate_matrix[1][1] = (cos_x * cos_z + sin_x * sin_y * sin_z);
-  // rotate_matrix[1][2] = (cos_x * sin_y * sin_z - sin_x * cos_z);
-  // rotate_matrix[2][0] = (-sin_y);
-  // rotate_matrix[2][1] = (sin_x * cos_y);
-  // rotate_matrix[2][2] = (cos_x * cos_y);
-
-  // matrix = MulSquareMatrix(rotate_matrix, matrix);
 }
 
 }  // namespace s21
