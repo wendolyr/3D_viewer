@@ -10,15 +10,16 @@ QWidget* TemplateAxisControlBuilder<SpinBoxType>::Build(
 
   QPushButton* btn_minus = nullptr;
   QPushButton* btn_plus = nullptr;
+  spin_box_ref = nullptr;
 
   if (add_minus_button_) {
-    btn_minus = new QPushButton("-");
+    btn_minus = new QPushButton("-", container);
     btn_minus->setFixedWidth(25);
     layout->addWidget(btn_minus);
   }
 
   if (add_spin_box_) {
-    SpinBoxType* spin_box = new SpinBoxType();
+    SpinBoxType* spin_box = new SpinBoxType(container);
     spin_box->setRange(range_.first, range_.second);
     spin_box->setDecimals(decimals_);
     spin_box->setValue(default_value_);
@@ -29,7 +30,7 @@ QWidget* TemplateAxisControlBuilder<SpinBoxType>::Build(
   }
 
   if (add_plus_button_) {
-    btn_plus = new QPushButton("+");
+    btn_plus = new QPushButton("+", container);
     btn_plus->setFixedWidth(25);
     layout->addWidget(btn_plus);
   }

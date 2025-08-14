@@ -11,10 +11,10 @@
 #include <QVector3D>
 #include <QWidget>
 
+#include "../controller/facade.h"
 #include "CyclicDoubleSpinBox.h"
 #include "Enum.h"
 #include "OpenGLWidget.h"
-#include "../controller/facade.h"
 
 class MainWidget : public QWidget {
  public:
@@ -43,7 +43,7 @@ class MainWidget : public QWidget {
   QLabel* edge_count_label_;
 
   // Для цвета ребер
-  QSpinBox *edge_r_color, *edge_g_color, *edge_b_color;
+  QSpinBox *edge_r_color_, *edge_g_color_, *edge_b_color_;
   QLabel* edge_color_preview_;
   QDoubleSpinBox* edge_thickness_;  // Добавлено
   QComboBox* edge_type_combo_;      // Добавлено

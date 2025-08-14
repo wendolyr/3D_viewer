@@ -12,7 +12,7 @@ class TransformBuilder {
  public:
   explicit TransformBuilder(TransformType type);
 
-  TransformBuilder& AddAxis(Axis axis, float step, SpinBoxType*& widgetRef,
+  TransformBuilder& AddAxis(Axis axis, double step, SpinBoxType*& widgetRef,
                             std::function<void()> minusHandler = nullptr,
                             std::function<void()> plusHandler = nullptr);
 

@@ -9,7 +9,7 @@ TransformBuilder<SpinBoxType>::TransformBuilder(TransformType type)
 
 template <typename SpinBoxType>
 TransformBuilder<SpinBoxType>& TransformBuilder<SpinBoxType>::AddAxis(
-    Axis axis, float step, SpinBoxType*& widgetRef,
+    Axis axis, double step, SpinBoxType*& widgetRef,
     std::function<void()> minusHandler, std::function<void()> plusHandler) {
   QString label = GetAxisLabel(axis);
   if (type_ == TransformType::Scale) {

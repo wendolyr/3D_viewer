@@ -16,11 +16,12 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
+#include "../controller/facade.h"
 #include "Builder/TemplateAxisControlBuilder.h"
 #include "Builder/TransformControlBuilder.h"
+#include "Builder/VisualSettingsBuilder.h"
 #include "CyclicDoubleSpinBox.h"
 #include "OpenGLWidget.h"
-#include "../controller/facade.h"
 
 // public
 MainWidget::MainWidget(QWidget* parent) : QWidget(parent), full_file_name_("") {
@@ -55,7 +56,6 @@ void MainWidget::LoadModel() {
     MainWidget::ResetTransform();
     qDebug() << static_cast<int>(control_.ParseFile(file_name.toStdString()));
     MainWidget::UpdateFileNameLabel();
-
 
     gl_widget_->SetModelData(control_.GetVertices(), control_.GetEdges());
   }
@@ -189,83 +189,35 @@ void MainWidget::SetupUI() {
   QRadioButton *parallel_btn, *central_btn;
   QGroupBox* projection_group =
       CreateProjectionGroup(parallel_btn, central_btn);
-
-  // Группа: Настройки рёбер
-  QGroupBox* edge_settings_group = new QGroupBox("Настройки рёбер");
-  QVBoxLayout* edge_layout = new QVBoxLayout(edge_settings_group);
-
-  // Тип линии
-  QWidget* edge_type_widget = new QWidget;
-  QHBoxLayout* edge_type_layout = new QHBoxLayout(edge_type_widget);
-  edge_type_layout->setContentsMargins(0, 0, 0, 0);
-  edge_type_layout->addWidget(new QLabel("Тип линии:"));
-  edge_type_combo_ = new QComboBox;
-  edge_type_combo_->addItem("Сплошная");
-  edge_type_combo_->addItem("Пунктирная");
-  edge_type_layout->addWidget(edge_type_combo_);
-  edge_layout->addWidget(edge_type_widget);
-
-  // Цвет ребра
-  QWidget* edge_color_widget = CreateColorWidget(
-      edge_r_color, edge_g_color, edge_b_color, edge_color_preview_, "Цвет:");
-  edge_layout->addWidget(edge_color_widget);
-
-  // Толщина ребра
-  QWidget* edge_thickness_widget = new QWidget;
-  QHBoxLayout* edge_thickness_layout = new QHBoxLayout(edge_thickness_widget);
-  edge_thickness_layout->setContentsMargins(0, 0, 0, 0);
-  edge_thickness_layout->addWidget(new QLabel("Толщина:"));
-  edge_thickness_ = new QDoubleSpinBox;
-  edge_thickness_->setRange(0.1, 10.0);
-  edge_thickness_->setSingleStep(0.1);
-  edge_thickness_layout->addWidget(edge_thickness_);
-  edge_layout->addWidget(edge_thickness_widget);
-
+  // // Группа: Настройки рёбер
+  QGroupBox* edge_settings_group =
+      s21::VisualSettingsBuilder()
+          .AddComboBox("Тип линии:", edge_type_combo_,
+                       {"Сплошная", "Пунктирная"})
+          .AddColorWidget("Цвет:", edge_r_color_, edge_g_color_, edge_b_color_,
+                          edge_color_preview_,
+                          Qt::white)  // Надо будет настроить и передавать
+                                      // корректный цвет, а не white
+          .AddDoubleSpinBox("Толщина:", edge_thickness_, 0.1, 10.0, 0.1, 1)
+          .Build("Настройки ребер");
   // Группа: Настройки вершин
-  QGroupBox* vertex_settings_group = new QGroupBox("Настройки вершин");
-  QVBoxLayout* vertex_layout = new QVBoxLayout(vertex_settings_group);
-
-  // Способ отображения
-  QWidget* vertex_display_widget = new QWidget;
-  QHBoxLayout* vertex_display_layout = new QHBoxLayout(vertex_display_widget);
-  vertex_display_layout->setContentsMargins(0, 0, 0, 0);
-  vertex_display_layout->addWidget(new QLabel("Отображение:"));
-  vertex_display_combo_ = new QComboBox;
-  vertex_display_combo_->addItem("Отсутствует");
-  vertex_display_combo_->addItem("Круг");
-  vertex_display_combo_->addItem("Квадрат");
-  vertex_display_layout->addWidget(vertex_display_combo_);
-  vertex_layout->addWidget(vertex_display_widget);
-
-  // Цвет вершин
-  QWidget* vertex_color_widget =
-      CreateColorWidget(vertex_r_color_, vertex_g_color_, vertex_b_color_,
-                        vertex_color_preview_, "Цвет:");
-  vertex_layout->addWidget(vertex_color_widget);
-
-  // Размер вершин
-  QWidget* vertex_size_widget = new QWidget;
-  QHBoxLayout* vertex_size_layout = new QHBoxLayout(vertex_size_widget);
-  vertex_size_layout->setContentsMargins(0, 0, 0, 0);
-  vertex_size_layout->addWidget(new QLabel("Размер:"));
-  //   QDoubleSpinBox* vertex_size = new QDoubleSpinBox;
-  vertex_size_ = new QDoubleSpinBox;
-  vertex_size_->setDecimals(1);
-  vertex_size_->setRange(0.1, 25.0);
-  vertex_size_->setSingleStep(0.1);
-  vertex_size_layout->addWidget(vertex_size_);
-  vertex_layout->addWidget(vertex_size_widget);
-
+  QGroupBox* vertex_settings_group =
+      s21::VisualSettingsBuilder()
+          .AddComboBox("Отображение", vertex_display_combo_,
+                       {"Отсутствует", "Круг", "Квадрат"})
+          .AddColorWidget("Цвет:", vertex_r_color_, vertex_g_color_,
+                          vertex_b_color_, vertex_color_preview_, Qt::red)
+          .AddDoubleSpinBox("Размер:", vertex_size_, 0.1, 25.0, 0.1, 1)
+          .Build("Настройки вершин");
   // Группа: Настройки фона
-  QGroupBox* bg_settings_group = new QGroupBox("Настройки фона");
-  QVBoxLayout* bg_layout = new QVBoxLayout(bg_settings_group);
+  QGroupBox* bg_settings_group =
+      s21::VisualSettingsBuilder()
+          .AddColorWidget("Цвет фона:", background_color_r_,
+                          background_color_g_, background_color_b_,
+                          background_color_preview_, Qt::black)
+          .Build("Настройки фона");
 
-  // Цвет фона
-  QWidget* bg_color_widget = CreateColorWidget(
-      background_color_r_, background_color_g_, background_color_b_,
-      background_color_preview_, "Цвет фона:");
-  bg_layout->addWidget(bg_color_widget);
-
+  // Сборка в область скрола
   scroll_layout->addWidget(move_group);
   scroll_layout->addWidget(rotate_group);
   scroll_layout->addWidget(scale_group);
@@ -345,11 +297,11 @@ void MainWidget::SetupUI() {
           this,
           &MainWidget::UpdateEdgeSettings);  // Толщина ребра
   // Настройка цвета ребер с помощью RGB
-  connect(edge_r_color, QOverload<int>::of(&QSpinBox::valueChanged), this,
+  connect(edge_r_color_, QOverload<int>::of(&QSpinBox::valueChanged), this,
           &MainWidget::UpdateEdgeSettings);
-  connect(edge_g_color, QOverload<int>::of(&QSpinBox::valueChanged), this,
+  connect(edge_g_color_, QOverload<int>::of(&QSpinBox::valueChanged), this,
           &MainWidget::UpdateEdgeSettings);
-  connect(edge_b_color, QOverload<int>::of(&QSpinBox::valueChanged), this,
+  connect(edge_b_color_, QOverload<int>::of(&QSpinBox::valueChanged), this,
           &MainWidget::UpdateEdgeSettings);
 
   // Настройки вершин
@@ -384,93 +336,6 @@ void MainWidget::SetupUI() {
   connect(reset_view_btn, &QPushButton::clicked, this,
           &MainWidget::ResetDisplay);
 }
-
-// QWidget* MainWidget::CreateAxisWidgetsMoveAndScale(QDoubleSpinBox*& spin_box,
-//                                                    TransformType type,
-//                                                    Axis axis) {
-//   QWidget* container = new QWidget;
-//   QHBoxLayout* h_layout = new QHBoxLayout(container);
-//   h_layout->setContentsMargins(0, 0, 0, 0);  // Убираем отступы
-
-//   // Кнопка уменьшения значения
-//   QPushButton* btn_minus = new QPushButton("-");
-//   // Кнопка увеличения значения
-//   QPushButton* btn_plus = new QPushButton("+");
-//   // Фиксируем ширину кнопок
-//   btn_minus->setFixedWidth(25);
-//   btn_plus->setFixedWidth(25);
-//   spin_box = new QDoubleSpinBox;
-//   spin_box->setDecimals(2);
-
-//   // Настройка диапозонов в зависимости от типа преобразования
-//   if (type == TransformType::Move) {
-//     spin_box->setRange(-1000000.0, 1000000.0);
-//     spin_box->setValue(0.0);
-//   } else {
-//     spin_box->setRange(0.01, 1000.0);
-//     spin_box->setValue(1.0);
-//   }
-//   spin_box->setSingleStep(MainWidget::GetStepValue(type));
-//   spin_box->setButtonSymbols(QAbstractSpinBox::NoButtons);  // Скрываем
-//   кнопки
-
-//   // Компоновка элементов
-//   h_layout->addWidget(btn_minus);
-//   h_layout->addWidget(spin_box);
-//   h_layout->addWidget(btn_plus);
-
-//   // Обработчик кнопок +/-
-//   connect(btn_minus, &QPushButton::clicked, [this, spin_box, type]() {
-//     spin_box->setValue(DoStep(spin_box->value(), false, type));
-//   });
-//   connect(btn_plus, &QPushButton::clicked, [this, spin_box, type]() {
-//     spin_box->setValue(DoStep(spin_box->value(), true, type));
-//   });
-
-//   return container;
-// }
-
-// QWidget* MainWidget::CreateAxisWidgetsRotate(CyclicDoubleSpinBox*& spin_box,
-//                                              Axis axis) {
-//   QWidget* container = new QWidget;
-//   QHBoxLayout* h_layout = new QHBoxLayout(container);
-//   h_layout->setContentsMargins(0, 0, 0, 0);  // Убираем отступы
-
-//   // Кнопка уменьшения значения
-//   QPushButton* btn_minus = new QPushButton("-");
-//   // Кнопка увеличения значения
-//   QPushButton* btn_plus = new QPushButton("+");
-//   // Фиксируем ширину кнопок
-//   btn_minus->setFixedWidth(25);
-//   btn_plus->setFixedWidth(25);
-//   spin_box = new CyclicDoubleSpinBox;
-//   spin_box->setDecimals(0);
-
-//   // Настройка диапозонов в зависимости от типа преобразования
-//   spin_box->setRange(0.0, 359.0);  // Диапазон [0, 359]
-//   spin_box->setValue(0.0);
-//   spin_box->setDecimals(0);
-//   spin_box->setSingleStep(MainWidget::GetStepValue(TransformType::Rotate));
-//   spin_box->setButtonSymbols(QAbstractSpinBox::NoButtons);  // Скрываем
-//   кнопки
-
-//   // Компоновка элементов
-//   h_layout->addWidget(btn_minus);
-//   h_layout->addWidget(spin_box);
-//   h_layout->addWidget(btn_plus);
-
-//   // Обработчик кнопок +/-
-//   connect(btn_minus, &QPushButton::clicked, [this, spin_box]() {
-//     spin_box->setValue(DoStep(spin_box->value(), false,
-//     TransformType::Rotate));
-//   });
-//   connect(btn_plus, &QPushButton::clicked, [this, spin_box]() {
-//     spin_box->setValue(DoStep(spin_box->value(), true,
-//     TransformType::Rotate));
-//   });
-
-//   return container;
-// }
 
 double MainWidget::GetStepValue(TransformType type) const {
   switch (type) {
@@ -521,243 +386,6 @@ void MainWidget::UpdateFileNameLabel() {
     file_name_label_->setText("Файл не выбран");
     file_name_label_->setToolTip("");
   }
-}
-
-int MainWidget::LoadModelData(const QString& file_path) {
-  std::setlocale(LC_NUMERIC, "C");
-  QFile file(file_path);
-  // Проверка существования файла
-  if (!file.exists()) {
-    QMessageBox::warning(this, "Ошибка", "Файл не существует");
-    return 1;
-  }
-  // Попытка открытия файла
-  if (!file.open(QIODevice::ReadOnly)) {
-    QMessageBox::warning(this, "Ошибка", "Не удается открыть файл");
-    return 1;
-  }
-
-  vertices_.clear();
-  edges_.clear();
-
-  // Чтение всего файла в память
-  const QByteArray file_data = file.readAll();
-  file.close();
-  // Таймер для замера производительности
-  QElapsedTimer timer;
-  timer.start();
-  const char* data = file_data.constData();
-  const char* end = data + file_data.size();
-  const char* ptr = data;
-
-  static std::vector<unsigned> face;
-  face.clear();
-  face.reserve(16);
-  // Основной цикл парсинга
-  while (ptr < end) {
-    // Пропуск пробелов и управляющих символов
-    while (ptr < end &&
-           (*ptr == ' ' || *ptr == '\t' || *ptr == '\r' || *ptr == '\n')) {
-      ++ptr;
-    }
-    if (ptr >= end) break;
-    // Обработка вершин (строки начинающиеся с "v ")
-    if (*ptr == 'v' && (ptr + 1 < end) &&
-        (*(ptr + 1) == ' ' || *(ptr + 1) == '\t')) {
-      if (ptr + 2 >= end) break;
-      const char* line_start = ptr + 2;
-      float x, y, z;
-      char* next;  // Указатель на следующую позицию
-      // Парсинг координаты X
-      const char* before_x = line_start;
-      x = std::strtof(line_start, &next);
-      // if (next == before_x) {
-      //     QMessageBox::warning(this, "Ошибка", "Некорректный файл");
-      //     return 1;
-      //     // ptr = SkipToNextLine(ptr, end);
-      //     // continue;
-      // }
-      // // Парсинг координаты Y
-      // const char* before_y = next;
-      y = std::strtof(next, &next);
-      // if (next == before_y) {
-      //     QMessageBox::warning(this, "Ошибка", "Некорректный файл");
-      //     return 1;
-      //     // ptr = SkipToNextLine(ptr, end);
-      //     // continue;
-      // }
-      // // Парсинг координаты Z
-      // const char* before_z = next;
-      z = std::strtof(next, &next);
-      // if (next == before_z) {
-      //     QMessageBox::warning(this, "Ошибка", "Некорректный файл");
-      //     return 1;
-      //     // ptr = SkipToNextLine(ptr, end);
-      //     // continue;
-      // }
-      if (next == line_start) {
-        QMessageBox::warning(this, "Ошибка", "Некорректный файл");
-        return 1;
-      }
-      // Добавление вершины
-      vertices_.append(QVector3D(x, y, z));
-      ptr = SkipToNextLine(ptr, end);
-      continue;
-    }
-    // New Обработка граней (f)
-    else if (*ptr == 'f' && (ptr + 1 < end) &&
-             (*(ptr + 1) == ' ' || *(ptr + 1) == '\t')) {
-      if (ptr + 2 >= end) break;
-
-      const char* line_start = ptr + 2;
-      face.clear();
-
-      // Парсинг каждого значения в строке грани
-      const char* token_start = line_start;
-      // while (token_start < end && *token_start != '\n' && *token_start !=
-      // '\r') {
-      while (token_start < end) {
-        // Пропуск пробелов в начале токена
-        while (token_start < end &&
-               (*token_start == ' ' || *token_start == '\t')) {
-          ++token_start;
-        }
-        if (token_start >= end || *token_start == '\n' || *token_start == '\r')
-          break;
-        // new variant
-        int idx = 0;
-        bool negative = false;
-        const char* num_start = token_start;
-
-        // Обработка знака
-        if (*num_start == '-') {
-          negative = true;
-          ++num_start;
-        } else if (*num_start == '+') {
-          ++num_start;
-        }
-
-        // Парсинг числа
-        if (num_start < end && *num_start >= '0' && *num_start <= '9') {
-          while (num_start < end && *num_start >= '0' && *num_start <= '9') {
-            idx = idx * 10 + (*num_start++ - '0');
-          }
-
-          // Преобразование индекса
-          unsigned vertex_index;
-          if (negative) {
-            vertex_index = static_cast<unsigned>(vertices_.size() - idx);
-          } else {
-            vertex_index = static_cast<unsigned>(idx - 1);
-          }
-
-          // Проверка и добавление индекса
-          if (vertex_index < static_cast<unsigned>(vertices_.size())) {
-            face.push_back(vertex_index);
-          }
-        }
-
-        while (token_start < end && *token_start != ' ' &&
-               *token_start != '\t' && *token_start != '\n' &&
-               *token_start != '\r') {
-          ++token_start;
-        }
-
-        // old variant
-        // const char* token_end = token_start;
-        // // Поиск конца токена (пробел, табуляция или конец строки)
-        // while (token_end < end && *token_end != ' ' && *token_end != '\t' &&
-        // *token_end != '\n' && *token_end != '\r') {
-        //     token_end++;
-        // }
-        // // Преобразование строки в число
-        // char* next_char;
-        // int idx = std::strtol(token_start, &next_char, 10);
-
-        // // Проверка корректности преобразования
-        // if (next_char != token_start) {
-        //     // OBJ использует 1-индексацию, преобразуем в 0-индексацию
-        //     unsigned vertex_index = static_cast<unsigned>(std::abs(idx)) - 1;
-
-        //     // Проверка валидности индекса
-        //     if (vertex_index < static_cast<unsigned>(vertices.size())) {
-        //         face.append(vertex_index);
-        //     }
-        // }
-
-        // // Переход к следующему токену
-        // token_start = token_end;
-      }
-
-      // Сохраняем грань если есть хотя бы 3 вершины
-      const size_t face_size = face.size();
-      // if (face.size() >= 2) {
-      if (face_size >= 2) {
-        // Для каждой вершины в грани
-        // new variant
-        const unsigned int last_index = face[face_size - 1];
-        unsigned int prev_index = last_index;
-
-        for (size_t i = 0; i < face_size; ++i) {
-          const unsigned int current_index = face[i];
-
-          // Создание упорядоченной пары
-          const auto edge = (prev_index < current_index)
-                                ? qMakePair(prev_index, current_index)
-                                : qMakePair(current_index, prev_index);
-
-          edges_.insert(edge);
-          prev_index = current_index;
-        }
-
-        // old variant
-        // for (int i = 0; i < face.size(); i++) {
-        //     // Получаем две соседние вершины
-        //     unsigned idx1 = face[i];
-        //     unsigned idx2 = face[(i + 1) % face.size()];
-
-        //     // Создаем упорядоченную пару (min, max) для избежания дубликатов
-        //     QPair<unsigned,unsigned> edge = (idx1 < idx2) ? qMakePair(idx1,
-        //     idx2) : qMakePair(idx2, idx1);
-        //     // Добавляем ребро в множество (автоматическое удаление
-        //     дубликатов) edges.insert(edge);
-        // }
-      }
-
-      ptr = SkipToNextLine(ptr, end);
-      continue;
-    }
-    // Пропуск остальных строк
-    else {
-      ptr = SkipToNextLine(ptr, end);
-    }
-    // Переход к следующему символу
-    if (ptr < end) ++ptr;
-  }
-  // Замер времени выполнения
-  qint64 elapsed_ns = timer.nsecsElapsed();
-  double elapsed_ms = elapsed_ns / 1000000.0;
-  // Вывод информации в консоль
-  // qDebug() << "Оптимизированный парсинг выполнен за:" << elapsed_ms << "мс |
-  // Вершин:" << vertices.size();
-  qDebug() << "Парсинг выполнен за:" << elapsed_ms
-           << "мс | Вершин:" << vertices_.size() << "| Ребер:" << edges_.size();
-  // Обновление UI
-  // vertex_count_label_->setText(QString("Парсинг: %1 мс | Вершин:
-  // %2").arg(elapsed_ms).arg(vertices.size()));
-  vertex_count_label_->setText(QString("%1").arg(vertices_.size()));
-  edge_count_label_->setText(QString("%1").arg(edges_.size()));
-
-  QVector<QPair<unsigned, unsigned>> edge_vec;
-  edge_vec.reserve(edges_.size());
-  for (const auto& edge : edges_) {
-    edge_vec.append(edge);
-  }
-
-  // Передаем данные в OpenGLWidget
-  // gl_widget_->SetModelData(vertices_, edge_vec);
-
-  return 0;
 }
 
 // Пропуск до следующей строки
@@ -815,17 +443,17 @@ QWidget* MainWidget::CreateColorWidget(QSpinBox*& r, QSpinBox*& g, QSpinBox*& b,
 void MainWidget::UpdateEdgeSettings() {
   OpenGLWidget::EdgeType type =
       static_cast<OpenGLWidget::EdgeType>(edge_type_combo_->currentIndex());
-  QVector3D color(edge_r_color->value() / 255.0f,
-                  edge_g_color->value() / 255.0f,
-                  edge_b_color->value() / 255.0f);
+  QVector3D color(edge_r_color_->value() / 255.0f,
+                  edge_g_color_->value() / 255.0f,
+                  edge_b_color_->value() / 255.0f);
   gl_widget_->SetEdgeSettings(type, color, edge_thickness_->value());
 
   // Обновление превью цвета
   edge_color_preview_->setStyleSheet(
       QString("background-color: rgb(%1,%2,%3); border: 1px solid gray;")
-          .arg(edge_r_color->value())
-          .arg(edge_g_color->value())
-          .arg(edge_b_color->value()));
+          .arg(edge_r_color_->value())
+          .arg(edge_g_color_->value())
+          .arg(edge_b_color_->value()));
 }
 
 void MainWidget::UpdateVertexSettings() {
@@ -876,9 +504,9 @@ void MainWidget::ResetTransform() {
 
 void MainWidget::ResetDisplay() {
   // Установка отображения ребер: цвет RGB; толщина; тип отображения
-  edge_r_color->setValue(204);
-  edge_g_color->setValue(204);
-  edge_b_color->setValue(255);
+  edge_r_color_->setValue(204);
+  edge_g_color_->setValue(204);
+  edge_b_color_->setValue(255);
   edge_thickness_->setValue(1.0f);
   edge_type_combo_->setCurrentIndex(0);
   UpdateEdgeSettings();
@@ -898,12 +526,15 @@ void MainWidget::ResetDisplay() {
 
 void MainWidget::OnTransformChanged() {
   std::vector<std::vector<float>> matrix;
-  control_.MoveFigure(matrix, {static_cast<float>(move_x_->value()), static_cast<float>(move_y_->value()), static_cast<float>(move_z_->value())});
+  control_.MoveFigure(matrix, {static_cast<float>(move_x_->value()),
+                               static_cast<float>(move_y_->value()),
+                               static_cast<float>(move_z_->value())});
 
-  // control_.RotateFigure(matrix, {rotate_x_->value(), rotate_y_->value(), rotate_z_->value()});
-  // control_.ScaleFigure(matrix, scale_->value());
+  // control_.RotateFigure(matrix, {rotate_x_->value(), rotate_y_->value(),
+  // rotate_z_->value()}); control_.ScaleFigure(matrix, scale_->value());
 
-  // QVector3D translation(move_x_->value(), move_y_->value(), move_z_->value());
+  // QVector3D translation(move_x_->value(), move_y_->value(),
+  // move_z_->value());
 
   // QVector3D rotation(rotate_x_->value(), rotate_y_->value(),
   //                    rotate_z_->value());

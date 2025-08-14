@@ -18,6 +18,8 @@ add_executable(viewer
     model/figure.cc
     model/file_manager.cc
     model/strategy.cc
+    view/builder/ColorWidgetBuilder.cc
+    view/builder/VisualSettingsBuilder.cc
 )
 
 add_compile_options(-Wall -Wextra -Werror)
