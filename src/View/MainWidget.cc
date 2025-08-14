@@ -16,11 +16,11 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
+#include "../controller/facade.h"
 #include "Builder/TemplateAxisControlBuilder.h"
 #include "Builder/TransformControlBuilder.h"
 #include "CyclicDoubleSpinBox.h"
 #include "OpenGLWidget.h"
-#include "../controller/facade.h"
 
 // public
 MainWidget::MainWidget(QWidget* parent) : QWidget(parent), full_file_name_("") {
@@ -53,9 +53,9 @@ void MainWidget::LoadModel() {
     //   MainWidget::ResetTransform();
     // }
     MainWidget::ResetTransform();
-    qDebug() << static_cast<int>(control_.ParseFile(file_name.toStdString()));
+    // qDebug() << static_cast<int>(
+    control_.ParseFile(file_name.toStdString());
     MainWidget::UpdateFileNameLabel();
-
 
     gl_widget_->SetModelData(control_.GetVertices(), control_.GetEdges());
   }
@@ -897,13 +897,20 @@ void MainWidget::ResetDisplay() {
 }
 
 void MainWidget::OnTransformChanged() {
-  std::vector<std::vector<float>> matrix;
-  control_.MoveFigure(matrix, {static_cast<float>(move_x_->value()), static_cast<float>(move_y_->value()), static_cast<float>(move_z_->value())});
+  std::vector<std::vector<float>> matrix(4, std::vector<float>(4, 0.0f));
+  for (int i = 0; i < 4; ++i) {
+    matrix[i][i] = 1;
+  }
+  control_.ScaleFigure(matrix, static_cast<float>(scale_->value()));
+  control_.RotateFigure(matrix, {static_cast<float>(rotate_x_->value()),
+                                 static_cast<float>(rotate_y_->value()),
+                                 static_cast<float>(rotate_z_->value())});
+  control_.MoveFigure(matrix, {static_cast<float>(move_x_->value()),
+                               static_cast<float>(move_y_->value()),
+                               static_cast<float>(move_z_->value())});
 
-  // control_.RotateFigure(matrix, {rotate_x_->value(), rotate_y_->value(), rotate_z_->value()});
-  // control_.ScaleFigure(matrix, scale_->value());
-
-  // QVector3D translation(move_x_->value(), move_y_->value(), move_z_->value());
+  // QVector3D translation(move_x_->value(), move_y_->value(),
+  // move_z_->value());
 
   // QVector3D rotation(rotate_x_->value(), rotate_y_->value(),
   //                    rotate_z_->value());

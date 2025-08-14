@@ -6,6 +6,7 @@ namespace s21 {
 
 FileError FileManager::ParseFile(const std::string &file_name,
                                  FigureModel &model) {
+  std::setlocale(LC_NUMERIC, "C");
   std::ifstream file(file_name);
   if (!file.is_open()) {
     return FileError::kNotExist;
@@ -51,14 +52,14 @@ FileError FileManager::ParseVertices(const char *ptr,
   char *end;
   for (size_t i = 0; i < nums.size(); ++i) {
     nums[i] = std::strtof(ptr, &end);
-    if (*end != ' ' && *end != '\0') {
+    if (*end != ' ' && *end != '\0' && *end != '\r') {
       return FileError::kInvalidFile;
     }
 
     ptr = end;
   }
 
-  if (*end != '\0') {
+  if (*end != '\0' && *end != '\r') {
     return FileError::kInvalidFile;
   }
 
@@ -72,7 +73,7 @@ FileError FileManager::ParseEdges(
   ++(++ptr);
   std::vector<unsigned> face;
 
-  while (*ptr != '\0') {
+  while (*ptr != '\0' && *ptr != '\r') {
     if (*ptr == ' ' || *ptr == '\t') {
       ++ptr;
       continue;
@@ -97,7 +98,7 @@ FileError FileManager::ParseEdges(
       ++ptr;
     }
 
-    if (*ptr != ' ' && *ptr != '\0') {
+    if (*ptr != ' ' && *ptr != '\0' && *ptr != '\r') {
       return FileError::kInvalidFile;
     }
 
