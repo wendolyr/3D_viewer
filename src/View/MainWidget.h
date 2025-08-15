@@ -8,6 +8,7 @@
 #include <QPushButton>
 #include <QRadioButton>
 #include <QScrollArea>
+#include <QTimer>
 #include <QVector3D>
 #include <QWidget>
 
@@ -98,6 +99,13 @@ class MainWidget : public QWidget {
     spinBox->setValue(DoStep(spinBox->value(), increase, type));
   }
 
+  // RECORDING
+  bool isRecording = false;
+  QList<QImage> gifFrames;
+  QTimer timer;
+  int frameCounter = 0;
+  void saveGif();
+
  private slots:
   void OnWheelScrolled(int delta);
   void handleRotationDelta(float dx, float dy);
@@ -107,6 +115,13 @@ class MainWidget : public QWidget {
   void ResetDisplay();
   // TODO Метод для применения преобразований к модели
   void OnTransformChanged();
+
+  // RECORDING
+  void RecordGif();
+  void stopRecording();
+  void captureFrame();
+  void SaveJPEG();
+  void SaveBMP();
 };
 
 #endif  // CPP4_3DVIEWER_V2_0_VIEW_MAINWIDGET_H

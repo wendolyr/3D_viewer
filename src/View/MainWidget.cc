@@ -454,6 +454,14 @@ void MainWidget::SetupUI() {
 
   connect(gl_widget_, &OpenGLWidget::translationDeltaChanged, this,
           &MainWidget::handleTranslationDelta);
+
+  connect(gif_btn, &QPushButton::clicked,
+          [this]() { MainWidget::RecordGif(); });
+  connect(&timer, &QTimer::timeout, this, &MainWidget::captureFrame);
+  // connect(save_bmp_btn, &QPushButton::clicked,
+  //         [this]() { MainWidget::SaveBMP(); });
+  // connect(save_jpeg_btn, &QPushButton::clicked,
+  //         [this]() { MainWidget::SaveJPEG(); });
 }
 
 double MainWidget::GetStepValue(TransformType type) const {
@@ -750,4 +758,72 @@ void MainWidget::handleTranslationDelta(float dx, float dy, float dz) {
   if (fabs(dz) > std::numeric_limits<float>::epsilon()) {
     move_z_->setValue(move_z_->value() + dz);
   }
+}
+
+// RECORDING
+void MainWidget::RecordGif() {
+  if (isRecording) return;
+  qDebug("Начало записи GIF");
+  isRecording = true;
+  gifFrames.clear();
+  frameCounter = 0;
+  timer.start(100);  // 10 fps
+}
+
+void MainWidget::stopRecording() {
+  timer.stop();
+  saveGif();
+  isRecording = false;
+}
+
+void MainWidget::captureFrame() {
+  if (frameCounter >= 50) {  // 5 sec * 10 fps
+    stopRecording();
+    return;
+  }
+
+  QImage frame = gl_widget_->grabFramebuffer();
+  gifFrames.append(
+      frame.scaled(640, 480, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+
+  frameCounter++;
+}
+
+void MainWidget::saveGif() {
+  QString fileName = QFileDialog::getSaveFileName(
+      this, "Сохранить как GIF", QCoreApplication::applicationDirPath(),
+      "GIF Images (*.gif)");
+
+  QDir tempDir = QCoreApplication::applicationDirPath() + "/frames";
+  if (!tempDir.exists()) {
+    tempDir.mkpath(".");
+  }
+  for (int i = 0; i < 50; i++) {
+    QString framePath = tempDir.filePath(QString("frame_%1.png").arg(i));
+    gifFrames[i].save(framePath);
+  }
+
+  QProcess ffmpeg;
+  ffmpeg.start("ffmpeg", {"-y", "-framerate", "10", "-i",
+                          tempDir.filePath("frame_%d.png"), "-vf",
+                          "scale=640:480", fileName});
+
+  if (ffmpeg.waitForFinished()) {
+    qDebug("Конец записи GIF");
+  }
+  tempDir.removeRecursively();
+}
+
+void MainWidget::SaveBMP() {
+  QString fileName = QFileDialog::getSaveFileName(
+      this, "Сохранить как BMP", QCoreApplication::applicationDirPath(),
+      "BMP Images (*.bmp)");
+  gl_widget_->grabFramebuffer().save(fileName);
+}
+
+void MainWidget::SaveJPEG() {
+  QString fileName = QFileDialog::getSaveFileName(
+      this, "Сохранить как JPEG", QCoreApplication::applicationDirPath(),
+      "JPEG Images (*.jpeg)");
+  gl_widget_->grabFramebuffer().save(fileName);
 }
