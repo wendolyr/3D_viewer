@@ -451,6 +451,9 @@ void MainWidget::SetupUI() {
 
   connect(gl_widget_, &OpenGLWidget::rotationDeltaChanged, this,
           &MainWidget::handleRotationDelta);
+
+  connect(gl_widget_, &OpenGLWidget::translationDeltaChanged, this,
+          &MainWidget::handleTranslationDelta);
 }
 
 double MainWidget::GetStepValue(TransformType type) const {
@@ -736,4 +739,15 @@ void MainWidget::handleRotationDelta(float dx, float dy) {
 
   rotate_x_->setValue(new_x);
   rotate_y_->setValue(new_y);
+}
+
+void MainWidget::handleTranslationDelta(float dx, float dy, float dz) {
+  // Обновляем значения в спинбоксах
+  move_x_->setValue(move_x_->value() + dx);
+  move_y_->setValue(move_y_->value() + dy);
+
+  // Если есть смещение по Z
+  if (fabs(dz) > std::numeric_limits<float>::epsilon()) {
+    move_z_->setValue(move_z_->value() + dz);
+  }
 }

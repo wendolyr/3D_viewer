@@ -43,6 +43,7 @@ class OpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
  signals:
   void wheelScrolled(int delta);
   void rotationDeltaChanged(float dx, float dy);
+  void translationDeltaChanged(float dx, float dy, float dz = 0);
 
  protected:
   // Обработка действий мыши
@@ -90,6 +91,8 @@ class OpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
   QPoint last_mouse_pos_;
   bool is_rotating_ = false;
   float rotation_sensitivity_ = 0.3f;
+
+  bool is_panning_ = false;
 };
 
 #endif  // CPP4_3DVIEWER_V2_0_VIEW_OPENGLWIDGET_H
