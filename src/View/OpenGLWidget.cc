@@ -347,3 +347,41 @@ void OpenGLWidget::wheelEvent(QWheelEvent* event) {
   emit wheelScrolled(event->angleDelta().y());
   event->accept();
 }
+
+void OpenGLWidget::mousePressEvent(QMouseEvent* event) {
+  if (event->button() == Qt::LeftButton) {
+    last_mouse_pos_ = event->pos();
+    is_rotating_ = true;
+    setCursor(Qt::ClosedHandCursor);  // Изменяем курсор
+    event->accept();
+  } else {
+    event->ignore();
+  }
+}
+
+void OpenGLWidget::mouseMoveEvent(QMouseEvent* event) {
+  if (is_rotating_) {
+    QPoint delta = event->pos() - last_mouse_pos_;
+    last_mouse_pos_ = event->pos();
+
+    // Рассчитываем углы вращения
+    float delta_x = rotation_sensitivity_ * delta.y();  // Вращение вокруг X
+    float delta_y = rotation_sensitivity_ * delta.x();  // Вращение вокруг Y
+
+    // Генерируем сигнал с дельтой вращения
+    emit rotationDeltaChanged(delta_x, delta_y);
+    event->accept();
+  } else {
+    event->ignore();
+  }
+}
+
+void OpenGLWidget::mouseReleaseEvent(QMouseEvent* event) {
+  if (event->button() == Qt::LeftButton) {
+    is_rotating_ = false;
+    setCursor(Qt::ArrowCursor);  // Восстанавливаем курсор
+    event->accept();
+  } else {
+    event->ignore();
+  }
+}

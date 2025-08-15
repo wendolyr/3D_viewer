@@ -448,6 +448,9 @@ void MainWidget::SetupUI() {
 
   connect(gl_widget_, &OpenGLWidget::wheelScrolled, this,
           &MainWidget::OnWheelScrolled);
+
+  connect(gl_widget_, &OpenGLWidget::rotationDeltaChanged, this,
+          &MainWidget::handleRotationDelta);
 }
 
 double MainWidget::GetStepValue(TransformType type) const {
@@ -717,4 +720,20 @@ void MainWidget::OnWheelScrolled(int delta) {
   if (newScale > 100.0) newScale = 100.0;
 
   scale_->setValue(newScale);
+}
+
+void MainWidget::handleRotationDelta(float dx, float dy) {
+  // Обновляем углы вращения в spinbox'ах
+  float new_x = rotate_x_->value() + dx;
+  float new_y = rotate_y_->value() + dy;
+
+  // Нормализуем углы в диапазон [0, 360)
+  new_x = fmod(new_x, 360.0f);
+  if (new_x < 0) new_x += 360.0f;
+
+  new_y = fmod(new_y, 360.0f);
+  if (new_y < 0) new_y += 360.0f;
+
+  rotate_x_->setValue(new_x);
+  rotate_y_->setValue(new_y);
 }

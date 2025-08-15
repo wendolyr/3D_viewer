@@ -100,6 +100,7 @@ class MainWidget : public QWidget {
 
  private slots:
   void OnWheelScrolled(int delta);
+  void handleRotationDelta(float dx, float dy);
   // Сброс преобразований
   void ResetTransform();
   void ResetDisplay();

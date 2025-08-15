@@ -2,6 +2,7 @@
 #define CPP4_3DVIEWER_V2_0_VIEW_OPENGLWIDGET_H
 
 #include <QMatrix4x4>
+#include <QMouseEvent>
 #include <QOpenGLBuffer>
 #include <QOpenGLFunctions>
 #include <QOpenGLShaderProgram>
@@ -41,9 +42,15 @@ class OpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
   ProjectionType GetProjectionType() const;
  signals:
   void wheelScrolled(int delta);
+  void rotationDeltaChanged(float dx, float dy);
 
  protected:
+  // Обработка действий мыши
   void wheelEvent(QWheelEvent* event) override;
+  void mousePressEvent(QMouseEvent* event) override;
+  void mouseMoveEvent(QMouseEvent* event) override;
+  void mouseReleaseEvent(QMouseEvent* event) override;
+
   void initializeGL() override;
   void resizeGL(int w, int h) override;
   void paintGL() override;
@@ -78,6 +85,11 @@ class OpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
   float vertex_size_;
 
   QVector3D background_color_;  // Цвет заднего фона
+
+  // параметры вращения мыши
+  QPoint last_mouse_pos_;
+  bool is_rotating_ = false;
+  float rotation_sensitivity_ = 0.3f;
 };
 
 #endif  // CPP4_3DVIEWER_V2_0_VIEW_OPENGLWIDGET_H
