@@ -11,16 +11,16 @@
 #include <QVector3D>
 #include <QWidget>
 
+#include "../controller/facade.h"
 #include "CyclicDoubleSpinBox.h"
 #include "Enum.h"
 #include "OpenGLWidget.h"
-#include "../controller/facade.h"
 
 class MainWidget : public QWidget {
  public:
   MainWidget(QWidget* parent = nullptr);
   ~MainWidget();
-  
+
  public slots:
   // Слот для загрузки модели
   void LoadModel();
@@ -28,6 +28,7 @@ class MainWidget : public QWidget {
  protected:
   // Обработчик изменения размеров окна
   void resizeEvent(QResizeEvent* event) override;
+  void showEvent(QShowEvent* event) override;
 
  private:
   s21::Facade control_;
@@ -98,6 +99,7 @@ class MainWidget : public QWidget {
   }
 
  private slots:
+  void OnWheelScrolled(int delta);
   // Сброс преобразований
   void ResetTransform();
   void ResetDisplay();

@@ -7,7 +7,9 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLWidget>
+#include <QWheelEvent>
 #include <unordered_set>
+
 #include "../controller/facade.h"
 
 class OpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
@@ -21,14 +23,13 @@ class OpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
   ~OpenGLWidget();
   // void SetModelData(const QVector<QVector3D>& vertices,
   //                   const QVector<QPair<unsigned, unsigned>>& edges);
-  void SetModelData(
-    const std::vector<s21::Vertex>& vertices,
-    const std::unordered_set<std::pair<unsigned, unsigned>, s21::PairHash>& edges);
+  void SetModelData(const std::vector<s21::Vertex>& vertices,
+                    const std::unordered_set<std::pair<unsigned, unsigned>,
+                                             s21::PairHash>& edges);
   void ClearModel();
   void SetTransformations(const QVector3D& translation,
                           const QVector3D& rotation, float scale);
   void NewSetTransformations(std::vector<std::vector<float>>& matrix);
-
 
   void SetProjectionType(ProjectionType type);
   void SetEdgeSettings(EdgeType type, const QVector3D& color, float thickness,
@@ -37,7 +38,12 @@ class OpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
                          float size);
   void SetBackgroundColor(const QVector3D& color);
 
+  ProjectionType GetProjectionType() const;
+ signals:
+  void wheelScrolled(int delta);
+
  protected:
+  void wheelEvent(QWheelEvent* event) override;
   void initializeGL() override;
   void resizeGL(int w, int h) override;
   void paintGL() override;
@@ -45,7 +51,7 @@ class OpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
  private:
   QMatrix4x4 model_;
   // Шейдерные программы и буфферы
-  QOpenGLShaderProgram* line_program_;  // Шейдерная программа для линий
+  QOpenGLShaderProgram* line_program_;   // Шейдерная программа для линий
   QOpenGLShaderProgram* point_program_;  // Шейдерная программа для точек
   QOpenGLBuffer vbo_;
   QOpenGLBuffer ibo_;

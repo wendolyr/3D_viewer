@@ -240,7 +240,8 @@ void OpenGLWidget::paintGL() {
 //     const QVector<QPair<unsigned, unsigned>>& edges) {
 void OpenGLWidget::SetModelData(
     const std::vector<s21::Vertex>& vertices,
-    const std::unordered_set<std::pair<unsigned, unsigned>, s21::PairHash>& edges) {
+    const std::unordered_set<std::pair<unsigned, unsigned>, s21::PairHash>&
+        edges) {
   makeCurrent();
   vao_.bind();
 
@@ -299,7 +300,8 @@ void OpenGLWidget::SetTransformations(const QVector3D& translation,
   update();
 }
 
-void OpenGLWidget::NewSetTransformations(std::vector<std::vector<float>>& matrix) {
+void OpenGLWidget::NewSetTransformations(
+    std::vector<std::vector<float>>& matrix) {
   for (int i = 0; i < 4; ++i) {
     for (int j = 0; j < 4; ++j) {
       model_(i, j) = matrix[i][j];
@@ -312,6 +314,10 @@ void OpenGLWidget::SetProjectionType(ProjectionType type) {
   projection_type_ = type;
   resizeGL(width(), height());
   update();
+}
+
+auto OpenGLWidget::GetProjectionType() const -> ProjectionType {
+  return projection_type_;
 }
 
 void OpenGLWidget::SetEdgeSettings(EdgeType type, const QVector3D& color,
@@ -335,4 +341,9 @@ void OpenGLWidget::SetVertexSettings(VertexDisplay display,
 void OpenGLWidget::SetBackgroundColor(const QVector3D& color) {
   background_color_ = color;
   update();
+}
+
+void OpenGLWidget::wheelEvent(QWheelEvent* event) {
+  emit wheelScrolled(event->angleDelta().y());
+  event->accept();
 }
