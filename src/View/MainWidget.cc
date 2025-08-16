@@ -334,9 +334,11 @@ QGroupBox* MainWidget::CreateRecordGroup() {
   QGroupBox* group = new QGroupBox("Запись");
   QHBoxLayout* layout = new QHBoxLayout(group);
   gif_btn_ = new QPushButton("GIF");
-  screen_btn_ = new QPushButton("Изображение");
+  save_bmp_btn_ = new QPushButton("BMP");
+  save_jpeg_btn_ = new QPushButton("JPEG");
   layout->addWidget(gif_btn_);
-  layout->addWidget(screen_btn_);
+  layout->addWidget(save_bmp_btn_);
+  layout->addWidget(save_jpeg_btn_);
   return group;
 }
 
@@ -649,9 +651,14 @@ QGroupBox* MainWidget::CreateBackgroundSettingsGroup() {
 
 void MainWidget::CreateConnections() {
   connect(load_btn_, &QPushButton::clicked, this, &MainWidget::LoadModel);
-  // Запись (TODO: заменить на реальные слоты)
-  // connect(gif_btn_, &QPushButton::clicked, this, &MainWidget::RecordGif);
-  // connect(screen_btn_, &QPushButton::clicked, this,
+  connect(gif_btn_, &QPushButton::clicked,
+          [this]() { MainWidget::RecordGif(); });
+  connect(&timer, &QTimer::timeout, this, &MainWidget::captureFrame);
+  connect(save_bmp_btn_, &QPushButton::clicked,
+          [this]() { MainWidget::SaveBMP(); });
+  connect(save_jpeg_btn_, &QPushButton::clicked,
+          [this]() { MainWidget::SaveJPEG(); });
+
   // &MainWidget::TakeScreenshot);
   auto ConnectTransformSignal = [this](auto widget) {
     connect(widget, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
@@ -704,4 +711,13 @@ void MainWidget::CreateConnections() {
           &MainWidget::ResetTransform);
   connect(reset_view_btn_, &QPushButton::clicked, this,
           &MainWidget::ResetDisplay);
+
+  connect(gl_widget_, &OpenGLWidget::wheelScrolled, this,
+          &MainWidget::OnWheelScrolled);
+
+  connect(gl_widget_, &OpenGLWidget::rotationDeltaChanged, this,
+          &MainWidget::handleRotationDelta);
+
+  connect(gl_widget_, &OpenGLWidget::translationDeltaChanged, this,
+          &MainWidget::handleTranslationDelta);
 }

@@ -46,21 +46,21 @@ class MainWidget : public QWidget {
   QLabel* edge_count_label_;
 
   // Кнопки интерфейса
-  QPushButton *load_btn_, *gif_btn_, *screen_btn_, *reset_model_btn_,
-      *reset_view_btn_;
+  QPushButton *load_btn_, *gif_btn_, *save_bmp_btn_, *save_jpeg_btn_,
+      *reset_model_btn_, *reset_view_btn_;
   QRadioButton *parallel_btn_, *central_btn_;
 
   // Для цвета ребер
   QSpinBox *edge_r_color_, *edge_g_color_, *edge_b_color_;
   QLabel* edge_color_preview_;
-  QDoubleSpinBox* edge_thickness_;  // Добавлено
-  QComboBox* edge_type_combo_;      // Добавлено
+  QDoubleSpinBox* edge_thickness_;
+  QComboBox* edge_type_combo_;
 
   // Для цвета вершин
   QSpinBox *vertex_r_color_, *vertex_g_color_, *vertex_b_color_;
   QLabel* vertex_color_preview_;
-  QDoubleSpinBox* vertex_size_;      // Добавлено
-  QComboBox* vertex_display_combo_;  // Добавлено
+  QDoubleSpinBox* vertex_size_;
+  QComboBox* vertex_display_combo_;
 
   // Для цвета фона
   QSpinBox *background_color_r_, *background_color_g_, *background_color_b_;
