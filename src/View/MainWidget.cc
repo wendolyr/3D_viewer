@@ -9,6 +9,7 @@
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QMessageBox>
+#include <QProcess>
 #include <QPushButton>
 #include <QRadioButton>
 #include <QResizeEvent>
@@ -26,15 +27,78 @@
 // public
 MainWidget::MainWidget(QWidget* parent) : QWidget(parent), full_file_name_("") {
   MainWidget::SetupUI();
-  // TODO Добавить загрузку настроек иначе загрузка базового профиля
-  //   if (есть настройки) {
-  //     LoadModel();
-  //     SetTransformSettings()  // типо метод для загрузки параметров модели,
-  //     пока
-  //                             // не существует
-  //   } else {
-  MainWidget::ResetDisplay();
-  //   }
+  s21::ViewParams params;
+  if (control_.LoadLastState(params)) {
+    edge_r_color_->setValue(params.edge_color.x);
+    edge_g_color_->setValue(params.edge_color.y);
+    edge_b_color_->setValue(params.edge_color.z);
+    edge_thickness_->setValue(params.edge_thickness);
+    edge_type_combo_->setCurrentIndex(params.edge_type);
+    UpdateEdgeSettings();
+
+    vertex_r_color_->setValue(params.vertex_color.x);
+    vertex_g_color_->setValue(params.vertex_color.y);
+    vertex_b_color_->setValue(params.vertex_color.z);
+    vertex_size_->setValue(params.vertex_size);
+    vertex_display_combo_->setCurrentIndex(params.vertex_display);
+    UpdateVertexSettings();
+
+    background_color_r_->setValue(params.background_color.x);
+    background_color_g_->setValue(params.background_color.y);
+    background_color_b_->setValue(params.background_color.z);
+    UpdateBackground();
+
+    /**
+     * на экране кнопка всегда центральная
+     */
+    gl_widget_->SetProjectionType(
+        static_cast<OpenGLWidget::ProjectionType>(params.projection_type));
+
+    // если базовое имя файла поменялось, значит файл с моделью существовал и
+    // был корректным
+    if (params.file_name != ".obj" && control_.GetVertices().size()) {
+      full_file_name_ = QString::fromStdString(params.file_name);
+      s21::Params affine = control_.GetCurrentSettings();
+      move_x_->setValue(affine.shift.x);
+      move_y_->setValue(affine.shift.y);
+      move_z_->setValue(affine.shift.z);
+      rotate_x_->setValue(affine.rotation.x);
+      rotate_y_->setValue(affine.rotation.y);
+      rotate_z_->setValue(affine.rotation.z);
+      scale_->setValue(affine.scale);
+    }
+  } else {
+    MainWidget::ResetDisplay();
+  }
+}
+
+void MainWidget::showEvent(QShowEvent* event) {
+  QWidget::showEvent(event);
+  if (control_.GetVertices().size() > 0) {
+    gl_widget_->SetModelData(control_.GetVertices(), control_.GetEdges());
+  }
+}
+
+MainWidget::~MainWidget() {
+  s21::ViewParams params;
+  params.projection_type = static_cast<int>(gl_widget_->GetProjectionType());
+  params.edge_color.x = edge_r_color_->value();
+  params.edge_color.y = edge_g_color_->value();
+  params.edge_color.z = edge_b_color_->value();
+  params.edge_thickness = edge_thickness_->value();
+  params.edge_type = edge_type_combo_->currentIndex();
+
+  params.vertex_color.x = vertex_r_color_->value();
+  params.vertex_color.y = vertex_g_color_->value();
+  params.vertex_color.z = vertex_b_color_->value();
+  params.vertex_size = vertex_size_->value();
+  params.vertex_display = vertex_display_combo_->currentIndex();
+  params.background_color.x = background_color_r_->value();
+  params.background_color.y = background_color_g_->value();
+  params.background_color.z = background_color_b_->value();
+  params.file_name = full_file_name_.toStdString();
+
+  control_.SaveModel(params);
 }
 
 // public slots
@@ -54,7 +118,7 @@ void MainWidget::LoadModel() {
     //   MainWidget::ResetTransform();
     // }
     MainWidget::ResetTransform();
-    qDebug() << static_cast<int>(control_.ParseFile(file_name.toStdString()));
+    control_.ParseFile(file_name.toStdString());
     MainWidget::UpdateFileNameLabel();
 
     gl_widget_->SetModelData(control_.GetVertices(), control_.GetEdges());
@@ -125,14 +189,6 @@ void MainWidget::UpdateFileNameLabel() {
     file_name_label_->setText("Файл не выбран");
     file_name_label_->setToolTip("");
   }
-}
-
-// Пропуск до следующей строки
-const char* MainWidget::SkipToNextLine(const char* ptr, const char* end) {
-  while (ptr < end && *ptr != '\n') {
-    ++ptr;
-  }
-  return ptr;
 }
 
 void MainWidget::UpdateEdgeSettings() {
@@ -220,23 +276,18 @@ void MainWidget::ResetDisplay() {
 }
 
 void MainWidget::OnTransformChanged() {
-  std::vector<std::vector<float>> matrix;
+  std::vector<std::vector<float>> matrix(4, std::vector<float>(4, 0.0f));
+  for (int i = 0; i < 4; ++i) {
+    matrix[i][i] = 1;
+  }
+  control_.ScaleFigure(matrix, static_cast<float>(scale_->value()));
+  control_.RotateFigure(matrix, {static_cast<float>(rotate_x_->value()),
+                                 static_cast<float>(rotate_y_->value()),
+                                 static_cast<float>(rotate_z_->value())});
   control_.MoveFigure(matrix, {static_cast<float>(move_x_->value()),
                                static_cast<float>(move_y_->value()),
                                static_cast<float>(move_z_->value())});
 
-  // control_.RotateFigure(matrix, {rotate_x_->value(), rotate_y_->value(),
-  // rotate_z_->value()}); control_.ScaleFigure(matrix, scale_->value());
-
-  // QVector3D translation(move_x_->value(), move_y_->value(),
-  // move_z_->value());
-
-  // QVector3D rotation(rotate_x_->value(), rotate_y_->value(),
-  //                    rotate_z_->value());
-
-  // float scale = scale_->value();
-
-  // gl_widget_->SetTransformations(translation, rotation, scale);
   gl_widget_->NewSetTransformations(matrix);
 }
 
@@ -327,6 +378,117 @@ QGroupBox* MainWidget::CreateResetGroup() {
   group->setLayout(layout);
 
   return group;
+}
+
+void MainWidget::OnWheelScrolled(int delta) {
+  // Определяем направление прокрутки (1 - вверх, -1 - вниз)
+  int direction = (delta > 0) ? 1 : -1;
+
+  // Рассчитываем новый масштаб
+  double step = GetStepValue(TransformType::Scale);
+  double newScale =
+      scale_->value() + direction * step * 0.5;  // Медленное изменение
+
+  // Устанавливаем границы масштабирования
+  if (newScale < 0.01) newScale = 0.01;
+  if (newScale > 100.0) newScale = 100.0;
+
+  scale_->setValue(newScale);
+}
+
+void MainWidget::handleRotationDelta(float dx, float dy) {
+  // Обновляем углы вращения в spinbox'ах
+  float new_x = rotate_x_->value() + dx;
+  float new_y = rotate_y_->value() + dy;
+
+  // Нормализуем углы в диапазон [0, 360)
+  new_x = fmod(new_x, 360.0f);
+  if (new_x < 0) new_x += 360.0f;
+
+  new_y = fmod(new_y, 360.0f);
+  if (new_y < 0) new_y += 360.0f;
+
+  rotate_x_->setValue(new_x);
+  rotate_y_->setValue(new_y);
+}
+
+void MainWidget::handleTranslationDelta(float dx, float dy, float dz) {
+  // Обновляем значения в спинбоксах
+  move_x_->setValue(move_x_->value() + dx);
+  move_y_->setValue(move_y_->value() + dy);
+
+  // Если есть смещение по Z
+  if (fabs(dz) > std::numeric_limits<float>::epsilon()) {
+    move_z_->setValue(move_z_->value() + dz);
+  }
+}
+
+// RECORDING
+void MainWidget::RecordGif() {
+  if (isRecording) return;
+  qDebug("Начало записи GIF");
+  isRecording = true;
+  gifFrames.clear();
+  frameCounter = 0;
+  timer.start(100);  // 10 fps
+}
+
+void MainWidget::stopRecording() {
+  timer.stop();
+  saveGif();
+  isRecording = false;
+}
+
+void MainWidget::captureFrame() {
+  if (frameCounter >= 50) {  // 5 sec * 10 fps
+    stopRecording();
+    return;
+  }
+
+  QImage frame = gl_widget_->grabFramebuffer();
+  gifFrames.append(
+      frame.scaled(640, 480, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+
+  frameCounter++;
+}
+
+void MainWidget::saveGif() {
+  QString fileName = QFileDialog::getSaveFileName(
+      this, "Сохранить как GIF", QCoreApplication::applicationDirPath(),
+      "GIF Images (*.gif)");
+
+  QDir tempDir = QCoreApplication::applicationDirPath() + "/frames";
+  if (!tempDir.exists()) {
+    tempDir.mkpath(".");
+  }
+  for (int i = 0; i < 50; i++) {
+    QString framePath = tempDir.filePath(QString("frame_%1.png").arg(i));
+    gifFrames[i].save(framePath);
+  }
+
+  QProcess ffmpeg;
+  ffmpeg.start("ffmpeg", {"-y", "-framerate", "10", "-i",
+                          tempDir.filePath("frame_%d.png"), "-vf",
+                          "scale=640:480", fileName});
+
+  if (ffmpeg.waitForFinished()) {
+    qDebug("Конец записи GIF");
+  }
+  tempDir.removeRecursively();
+}
+
+void MainWidget::SaveBMP() {
+  QString fileName = QFileDialog::getSaveFileName(
+      this, "Сохранить как BMP", QCoreApplication::applicationDirPath(),
+      "BMP Images (*.bmp)");
+  gl_widget_->grabFramebuffer().save(fileName);
+}
+
+void MainWidget::SaveJPEG() {
+  QString fileName = QFileDialog::getSaveFileName(
+      this, "Сохранить как JPEG", QCoreApplication::applicationDirPath(),
+      "JPEG Images (*.jpeg)");
+  gl_widget_->grabFramebuffer().save(fileName);
 }
 
 QScrollArea* MainWidget::CreateScrollArea() {
@@ -533,7 +695,7 @@ void MainWidget::CreateConnections() {
   ConnectColorGroup({vertex_r_color_, vertex_g_color_, vertex_b_color_},
                     UpdateVertex);
   // Настройки фона
-  auto UpdateBackground = [this] { UpdateBackground(); };
+  auto UpdateBackground = [this] { MainWidget::UpdateBackground(); };
   ConnectColorGroup(
       {background_color_r_, background_color_g_, background_color_b_},
       UpdateBackground);

@@ -28,7 +28,7 @@ void FigureModel::MoveFigure(std::vector<std::vector<float>> &matrix,
   auto temp = creator.CreateStrategy();
   strategy_->SetStrategy(std::move(temp));
 
-  strategy_->Transform(matrix, shift - shift_);
+  strategy_->Transform(matrix, shift);
 
   shift_ = shift;
 }
@@ -39,7 +39,7 @@ void FigureModel::ScaleFigure(std::vector<std::vector<float>> &matrix,
   auto temp = creator.CreateStrategy();
   strategy_->SetStrategy(std::move(temp));
 
-  strategy_->Transform(matrix, {scale / scale_, 0.0, 0.0});
+  strategy_->Transform(matrix, {scale, 0.0, 0.0});
 
   scale_ = scale;
 }
@@ -49,7 +49,7 @@ void FigureModel::RotateFigure(std::vector<std::vector<float>> &matrix,
   RotateStrategyCreator creator;
   auto temp = creator.CreateStrategy();
   strategy_->SetStrategy(std::move(temp));
-  strategy_->Transform(matrix, angle - rotation_);
+  strategy_->Transform(matrix, angle);
 
   rotation_ = angle;
 }

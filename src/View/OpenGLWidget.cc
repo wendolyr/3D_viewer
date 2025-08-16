@@ -316,6 +316,10 @@ void OpenGLWidget::SetProjectionType(ProjectionType type) {
   update();
 }
 
+auto OpenGLWidget::GetProjectionType() const -> ProjectionType {
+  return projection_type_;
+}
+
 void OpenGLWidget::SetEdgeSettings(EdgeType type, const QVector3D& color,
                                    float thickness, float dash_size,
                                    float gap_size) {
@@ -337,4 +341,73 @@ void OpenGLWidget::SetVertexSettings(VertexDisplay display,
 void OpenGLWidget::SetBackgroundColor(const QVector3D& color) {
   background_color_ = color;
   update();
+}
+
+void OpenGLWidget::wheelEvent(QWheelEvent* event) {
+  emit wheelScrolled(event->angleDelta().y());
+  event->accept();
+}
+
+void OpenGLWidget::mousePressEvent(QMouseEvent* event) {
+  if (event->button() == Qt::LeftButton) {
+    last_mouse_pos_ = event->pos();
+    is_rotating_ = true;
+    setCursor(Qt::ClosedHandCursor);  // Изменяем курсор
+    event->accept();
+  } else if (event->button() == Qt::MiddleButton) {
+    last_mouse_pos_ = event->pos();
+    is_panning_ = true;
+    setCursor(Qt::SizeAllCursor);  // Курсор перемещения
+    event->accept();
+  } else {
+    event->ignore();
+  }
+}
+
+void OpenGLWidget::mouseMoveEvent(QMouseEvent* event) {
+  if (is_rotating_) {
+    QPoint delta = event->pos() - last_mouse_pos_;
+    last_mouse_pos_ = event->pos();
+
+    // Рассчитываем углы вращения
+    float delta_x = rotation_sensitivity_ * delta.y();  // Вращение вокруг X
+    float delta_y = rotation_sensitivity_ * delta.x();  // Вращение вокруг Y
+
+    // Генерируем сигнал с дельтой вращения
+    emit rotationDeltaChanged(delta_x, delta_y);
+    event->accept();
+  } else if (is_panning_) {
+    QPoint delta = event->pos() - last_mouse_pos_;
+    last_mouse_pos_ = event->pos();
+
+    float sensitivity = 0.01f;
+    float dx = delta.x() * sensitivity;
+    float dy = -delta.y() * sensitivity;  // Инвертируем ось Y
+
+    // Если зажат Shift - двигаем по оси Z
+    float dz = 0;
+    if (event->modifiers() & Qt::ShiftModifier) {
+      dz = dy;
+      dy = 0;
+    }
+
+    emit translationDeltaChanged(dx, dy, dz);
+    event->accept();
+  } else {
+    event->ignore();
+  }
+}
+
+void OpenGLWidget::mouseReleaseEvent(QMouseEvent* event) {
+  if (event->button() == Qt::LeftButton) {
+    is_rotating_ = false;
+    setCursor(Qt::ArrowCursor);  // Восстанавливаем курсор
+    event->accept();
+  } else if (event->button() == Qt::MiddleButton) {
+    is_panning_ = false;
+    setCursor(Qt::ArrowCursor);
+    event->accept();
+  } else {
+    event->ignore();
+  }
 }
