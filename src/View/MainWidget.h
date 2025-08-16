@@ -42,6 +42,11 @@ class MainWidget : public QWidget {
   QLabel* vertex_count_label_;
   QLabel* edge_count_label_;
 
+  // Кнопки интерфейса
+  QPushButton *load_btn_, *gif_btn_, *screen_btn_, *reset_model_btn_,
+      *reset_view_btn_;
+  QRadioButton *parallel_btn_, *central_btn_;
+
   // Для цвета ребер
   QSpinBox *edge_r_color_, *edge_g_color_, *edge_b_color_;
   QLabel* edge_color_preview_;
@@ -64,14 +69,29 @@ class MainWidget : public QWidget {
   // Создание пользовательского интерфейса
   void SetupUI();
   // Создание групп интерфейса
-  QGroupBox* CreateLoadGroup(QPushButton*& load_btn, QLabel*& file_name_label);
-  QGroupBox* CreateInfoGroup(QLabel*& vertex_count, QLabel*& edge_count);
-  QGroupBox* CreateRecordGroup(QPushButton*& gif_btn, QPushButton*& screen_btn);
-  QGroupBox* CreateProjectionGroup(QRadioButton*& parallel_btn,
-                                   QRadioButton*& central_btn);
-  QGroupBox* CreateResetGroup(QPushButton*& reset_model_btn,
-                              QPushButton*& reset_view_btn);
+  // QGroupBox* CreateLoadGroup(QPushButton*& load_btn, QLabel*&
+  // file_name_label); QGroupBox* CreateInfoGroup(QLabel*& vertex_count,
+  // QLabel*& edge_count); QGroupBox* CreateRecordGroup(QPushButton*& gif_btn,
+  // QPushButton*& screen_btn); QGroupBox* CreateProjectionGroup(QRadioButton*&
+  // parallel_btn,
+  //                                  QRadioButton*& central_btn);
+  // QGroupBox* CreateResetGroup(QPushButton*& reset_model_btn,
+  //                             QPushButton*& reset_view_btn);
+  QGroupBox* CreateLoadGroup();
+  QGroupBox* CreateInfoGroup();
+  QGroupBox* CreateRecordGroup();
+  QGroupBox* CreateProjectionGroup();
+  QGroupBox* CreateResetGroup();
   QScrollArea* CreateScrollArea();
+  void CreateMainLayout();
+  void CreateSidebar();
+  QGroupBox* CreateMoveGroup();
+  QGroupBox* CreateRotateGroup();
+  QGroupBox* CreateScaleGroup();
+  QGroupBox* CreateEdgeSettingsGroup();
+  QGroupBox* CreateVertexSettingsGroup();
+  QGroupBox* CreateBackgroundSettingsGroup();
+  void CreateConnections();
   // Создание виджета управления для оси
   // QWidget* CreateAxisWidgetsMoveAndScale(QDoubleSpinBox*& spin_box,
   //                                        TransformType type, Axis axis);

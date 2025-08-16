@@ -71,253 +71,9 @@ void MainWidget::resizeEvent(QResizeEvent* event) {
 // private
 // Следует разделить на блоки: ---, ---, сборка боковой панели, подключение, ---
 void MainWidget::SetupUI() {
-  // Главная горизонтальная разметка
-  QHBoxLayout* main_layout = new QHBoxLayout(this);
-  main_layout->setContentsMargins(10, 10, 10, 10);
-  main_layout->setSpacing(15);
-
-  gl_widget_ = new OpenGLWidget;
-  gl_widget_->setMinimumSize(640, 480);
-  main_layout->addWidget(gl_widget_, 7);  // 70% ширины
-
-  // Боковая панель управления
-  QWidget* sidebar = new QWidget;
-  QVBoxLayout* sidebar_layout = new QVBoxLayout(sidebar);
-  sidebar_layout->setAlignment(Qt::AlignTop);
-  sidebar_layout->setContentsMargins(5, 5, 5, 5);
-  sidebar_layout->setSpacing(10);
-
-  // Группа загрузки модели
-  QPushButton* load_btn;
-  QGroupBox* load_group = CreateLoadGroup(load_btn, file_name_label_);
-  // Группа информации о модели
-  QGroupBox* info_group =
-      CreateInfoGroup(vertex_count_label_, edge_count_label_);
-  // Группа записи
-  QPushButton *gif_btn, *screen_btn;
-  QGroupBox* record_group = CreateRecordGroup(gif_btn, screen_btn);
-
-  // Создание области скрола
-  QScrollArea* scroll_area = new QScrollArea;
-  scroll_area->setWidgetResizable(true);
-  scroll_area->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-
-  QWidget* scroll_content = new QWidget;
-  QVBoxLayout* scroll_layout = new QVBoxLayout(scroll_content);
-  scroll_layout->setAlignment(Qt::AlignTop);
-
-  // Группа перемещения
-  QGroupBox* move_group =
-      TransformBuilder<QDoubleSpinBox>(TransformType::Move)
-          .AddAxis(
-              Axis::X, GetStepValue(TransformType::Move), move_x_,
-              [this]() { ChangeValue(move_x_, TransformType::Move, false); },
-              [this]() {
-                move_x_->setValue(
-                    DoStep(move_x_->value(), true, TransformType::Move));
-              })
-          .AddAxis(
-              Axis::Y, GetStepValue(TransformType::Move), move_y_,
-              [this]() {
-                move_y_->setValue(
-                    DoStep(move_y_->value(), false, TransformType::Move));
-              },
-              [this]() {
-                move_y_->setValue(
-                    DoStep(move_y_->value(), true, TransformType::Move));
-              })
-          .AddAxis(
-              Axis::Z, GetStepValue(TransformType::Move), move_z_,
-              [this]() {
-                move_z_->setValue(
-                    DoStep(move_z_->value(), false, TransformType::Move));
-              },
-              [this]() {
-                move_z_->setValue(
-                    DoStep(move_z_->value(), true, TransformType::Move));
-              })
-          .Build();
-  // Группа поворота
-  QGroupBox* rotate_group =
-      TransformBuilder<CyclicDoubleSpinBox>(TransformType::Rotate)
-          .AddAxis(
-              Axis::X, GetStepValue(TransformType::Rotate), rotate_x_,
-              [this]() {
-                rotate_x_->setValue(
-                    DoStep(rotate_x_->value(), false, TransformType::Rotate));
-              },
-              [this]() {
-                rotate_x_->setValue(
-                    DoStep(rotate_x_->value(), true, TransformType::Rotate));
-              })
-          .AddAxis(
-              Axis::Y, GetStepValue(TransformType::Rotate), rotate_y_,
-              [this]() {
-                rotate_y_->setValue(
-                    DoStep(rotate_y_->value(), false, TransformType::Rotate));
-              },
-              [this]() {
-                rotate_y_->setValue(
-                    DoStep(rotate_y_->value(), true, TransformType::Rotate));
-              })
-          .AddAxis(
-              Axis::Z, GetStepValue(TransformType::Rotate), rotate_z_,
-              [this]() {
-                rotate_z_->setValue(
-                    DoStep(rotate_z_->value(), false, TransformType::Rotate));
-              },
-              [this]() {
-                rotate_z_->setValue(
-                    DoStep(rotate_z_->value(), true, TransformType::Rotate));
-              })
-          .Build();
-  // Группа масштабирования
-  QGroupBox* scale_group =
-      TransformBuilder<QDoubleSpinBox>(TransformType::Scale)
-          .AddAxis(
-              Axis::None, GetStepValue(TransformType::Scale), scale_,
-              [this]() {
-                scale_->setValue(
-                    DoStep(scale_->value(), false, TransformType::Scale));
-              },
-              [this]() {
-                scale_->setValue(
-                    DoStep(scale_->value(), true, TransformType::Scale));
-              })
-          .Build();
-  // Группа: Настройки проекции
-  QRadioButton *parallel_btn, *central_btn;
-  QGroupBox* projection_group =
-      CreateProjectionGroup(parallel_btn, central_btn);
-  // // Группа: Настройки рёбер
-  QGroupBox* edge_settings_group =
-      s21::VisualSettingsBuilder()
-          .AddComboBox("Тип линии:", edge_type_combo_,
-                       {"Сплошная", "Пунктирная"})
-          .AddColorWidget("Цвет:", edge_r_color_, edge_g_color_, edge_b_color_,
-                          edge_color_preview_,
-                          Qt::white)  // Надо будет настроить и передавать
-                                      // корректный цвет, а не white
-          .AddDoubleSpinBox("Толщина:", edge_thickness_, 0.1, 10.0, 0.1, 1)
-          .Build("Настройки ребер");
-  // Группа: Настройки вершин
-  QGroupBox* vertex_settings_group =
-      s21::VisualSettingsBuilder()
-          .AddComboBox("Отображение", vertex_display_combo_,
-                       {"Отсутствует", "Круг", "Квадрат"})
-          .AddColorWidget("Цвет:", vertex_r_color_, vertex_g_color_,
-                          vertex_b_color_, vertex_color_preview_, Qt::red)
-          .AddDoubleSpinBox("Размер:", vertex_size_, 0.1, 25.0, 0.1, 1)
-          .Build("Настройки вершин");
-  // Группа: Настройки фона
-  QGroupBox* bg_settings_group =
-      s21::VisualSettingsBuilder()
-          .AddColorWidget("Цвет фона:", background_color_r_,
-                          background_color_g_, background_color_b_,
-                          background_color_preview_, Qt::black)
-          .Build("Настройки фона");
-
-  // Сборка в область скрола
-  scroll_layout->addWidget(move_group);
-  scroll_layout->addWidget(rotate_group);
-  scroll_layout->addWidget(scale_group);
-  scroll_layout->addWidget(projection_group);
-  scroll_layout->addWidget(edge_settings_group);
-  scroll_layout->addWidget(vertex_settings_group);
-  scroll_layout->addWidget(bg_settings_group);
-
-  scroll_area->setWidget(scroll_content);
-  // Группа сброса преобразований
-  QPushButton *reset_model_btn, *reset_view_btn;
-  QGroupBox* reset_group = CreateResetGroup(reset_model_btn, reset_view_btn);
-
-  // Сбор боковой панели
-  sidebar->setMinimumWidth(360);
-  scroll_content->setMinimumWidth(340);
-
-  sidebar_layout->addWidget(load_group);
-  sidebar_layout->addWidget(info_group);
-  sidebar_layout->addWidget(record_group);
-  sidebar_layout->addWidget(scroll_area);
-  sidebar_layout->addWidget(reset_group);
-  main_layout->addWidget(sidebar, 3);
-
-  // Подключение сигналов и слотов
-  connect(load_btn, &QPushButton::clicked, this,
-          &MainWidget::LoadModel);  // Загрузка модели
-  // TODO Подключение к кнопке гиф и скриншота
-  // Перемещение модели
-  connect(move_x_, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
-          &MainWidget::OnTransformChanged);
-  connect(move_y_, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
-          &MainWidget::OnTransformChanged);
-  connect(move_z_, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
-          &MainWidget::OnTransformChanged);
-  // Поворот модели
-  connect(rotate_x_, QOverload<double>::of(&CyclicDoubleSpinBox::valueChanged),
-          this, &MainWidget::OnTransformChanged);
-  connect(rotate_y_, QOverload<double>::of(&CyclicDoubleSpinBox::valueChanged),
-          this, &MainWidget::OnTransformChanged);
-  connect(rotate_z_, QOverload<double>::of(&CyclicDoubleSpinBox::valueChanged),
-          this, &MainWidget::OnTransformChanged);
-  // Масштаб модели
-  connect(scale_, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
-          &MainWidget::OnTransformChanged);
-  // Проекция
-  connect(parallel_btn, &QRadioButton::toggled, [this](bool checked) {
-    if (checked) gl_widget_->SetProjectionType(OpenGLWidget::Parallel);
-  });
-  connect(central_btn, &QRadioButton::toggled, [this](bool checked) {
-    if (checked) gl_widget_->SetProjectionType(OpenGLWidget::Central);
-  });
-
-  // Настройки ребер
-  // Отображение ребер
-  connect(edge_type_combo_, QOverload<int>::of(&QComboBox::currentIndexChanged),
-          this,
-          &MainWidget::UpdateEdgeSettings);  // Тип отображения
-  connect(edge_thickness_, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-          this,
-          &MainWidget::UpdateEdgeSettings);  // Толщина ребра
-  // Настройка цвета ребер с помощью RGB
-  connect(edge_r_color_, QOverload<int>::of(&QSpinBox::valueChanged), this,
-          &MainWidget::UpdateEdgeSettings);
-  connect(edge_g_color_, QOverload<int>::of(&QSpinBox::valueChanged), this,
-          &MainWidget::UpdateEdgeSettings);
-  connect(edge_b_color_, QOverload<int>::of(&QSpinBox::valueChanged), this,
-          &MainWidget::UpdateEdgeSettings);
-
-  // Настройки вершин
-  // Отображение вершин
-  connect(vertex_display_combo_,
-          QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-          &MainWidget::UpdateVertexSettings);  // Тип отображения
-  connect(vertex_size_, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-          this,
-          &MainWidget::UpdateVertexSettings);  // Размер вершин
-  // Настройка цвета вершин с помощью RGB
-  connect(vertex_r_color_, QOverload<int>::of(&QSpinBox::valueChanged), this,
-          &MainWidget::UpdateVertexSettings);
-  connect(vertex_g_color_, QOverload<int>::of(&QSpinBox::valueChanged), this,
-          &MainWidget::UpdateVertexSettings);
-  connect(vertex_b_color_, QOverload<int>::of(&QSpinBox::valueChanged), this,
-          &MainWidget::UpdateVertexSettings);
-
-  // Настройки фона
-  // Настройка цвета вершин с помощью RGB
-  connect(background_color_r_, QOverload<int>::of(&QSpinBox::valueChanged),
-          this, &MainWidget::UpdateBackground);
-  connect(background_color_g_, QOverload<int>::of(&QSpinBox::valueChanged),
-          this, &MainWidget::UpdateBackground);
-  connect(background_color_b_, QOverload<int>::of(&QSpinBox::valueChanged),
-          this, &MainWidget::UpdateBackground);
-
-  // Cброс модели
-  connect(reset_model_btn, &QPushButton::clicked, this,
-          &MainWidget::ResetTransform);
-  // Сброс вида
-  connect(reset_view_btn, &QPushButton::clicked, this,
-          &MainWidget::ResetDisplay);
+  CreateMainLayout();
+  CreateSidebar();
+  CreateConnections();
 }
 
 double MainWidget::GetStepValue(TransformType type) const {
@@ -486,69 +242,74 @@ void MainWidget::OnTransformChanged() {
 
 // tmp разобрать потом и кровью
 
-QGroupBox* MainWidget::CreateLoadGroup(QPushButton*& load_btn,
-                                       QLabel*& file_name_label) {
+// QGroupBox* MainWidget::CreateLoadGroup(QPushButton*& load_btn,
+//                                        QLabel*& file_name_label) {
+QGroupBox* MainWidget::CreateLoadGroup() {
   QGroupBox* group = new QGroupBox("Загрузка модели");
   QVBoxLayout* layout = new QVBoxLayout(group);
 
-  file_name_label = new QLabel("Файл не выбран");
-  file_name_label->setFrameStyle(QFrame::Panel | QFrame::Sunken);
-  file_name_label->setStyleSheet(
+  file_name_label_ = new QLabel("Файл не выбран");
+  file_name_label_->setFrameStyle(QFrame::Panel | QFrame::Sunken);
+  file_name_label_->setStyleSheet(
       "padding: 3px; background-color: #F0F0F0; color: #0d0c0c;");
-  file_name_label->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+  file_name_label_->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
 
-  load_btn = new QPushButton("Загрузить OBJ файл");
+  load_btn_ = new QPushButton("Загрузить OBJ файл");
 
-  layout->addWidget(file_name_label);
-  layout->addWidget(load_btn);
+  layout->addWidget(file_name_label_);
+  layout->addWidget(load_btn_);
 
   return group;
 }
 
-QGroupBox* MainWidget::CreateInfoGroup(QLabel*& vertex_count,
-                                       QLabel*& edge_count) {
+// QGroupBox* MainWidget::CreateInfoGroup(QLabel*& vertex_count,
+//                                        QLabel*& edge_count) {
+QGroupBox* MainWidget::CreateInfoGroup() {
   QGroupBox* group = new QGroupBox("Информация о модели");
   QFormLayout* layout = new QFormLayout(group);
 
-  vertex_count = new QLabel("0");
-  edge_count = new QLabel("0");
+  vertex_count_label_ = new QLabel("0");
+  edge_count_label_ = new QLabel("0");
 
-  layout->addRow("Вершин:", vertex_count);
-  layout->addRow("Ребер:", edge_count);
+  layout->addRow("Вершин:", vertex_count_label_);
+  layout->addRow("Ребер:", edge_count_label_);
 
   return group;
 }
 
-QGroupBox* MainWidget::CreateRecordGroup(QPushButton*& gif_btn,
-                                         QPushButton*& screen_btn) {
+// QGroupBox* MainWidget::CreateRecordGroup(QPushButton*& gif_btn,
+//                                          QPushButton*& screen_btn) {
+QGroupBox* MainWidget::CreateRecordGroup() {
   QGroupBox* group = new QGroupBox("Запись");
   QHBoxLayout* layout = new QHBoxLayout(group);
-  gif_btn = new QPushButton("GIF");
-  screen_btn = new QPushButton("Изображение");
-  layout->addWidget(gif_btn);
-  layout->addWidget(screen_btn);
+  gif_btn_ = new QPushButton("GIF");
+  screen_btn_ = new QPushButton("Изображение");
+  layout->addWidget(gif_btn_);
+  layout->addWidget(screen_btn_);
   return group;
 }
 
-QGroupBox* MainWidget::CreateProjectionGroup(QRadioButton*& parallel_btn,
-                                             QRadioButton*& central_btn) {
+// QGroupBox* MainWidget::CreateProjectionGroup(QRadioButton*& parallel_btn,
+//                                              QRadioButton*& central_btn) {
+QGroupBox* MainWidget::CreateProjectionGroup() {
   QGroupBox* group = new QGroupBox("Проекция");
   QVBoxLayout* layout = new QVBoxLayout(group);
-  parallel_btn = new QRadioButton("Параллельная");
-  central_btn = new QRadioButton("Центральная");
-  central_btn->setChecked(true);
-  layout->addWidget(parallel_btn);
-  layout->addWidget(central_btn);
+  parallel_btn_ = new QRadioButton("Параллельная");
+  central_btn_ = new QRadioButton("Центральная");
+  central_btn_->setChecked(true);
+  layout->addWidget(parallel_btn_);
+  layout->addWidget(central_btn_);
   return group;
 }
 
-QGroupBox* MainWidget::CreateResetGroup(QPushButton*& reset_model_btn,
-                                        QPushButton*& reset_view_btn) {
+// QGroupBox* MainWidget::CreateResetGroup(QPushButton*& reset_model_btn,
+//                                         QPushButton*& reset_view_btn) {
+QGroupBox* MainWidget::CreateResetGroup() {
   QGroupBox* group = new QGroupBox("Сброс");
   QHBoxLayout* layout = new QHBoxLayout;
-  reset_model_btn = new QPushButton("Сброс\nпреобразования");
-  reset_view_btn = new QPushButton("Сброс\nотображения");
-  QFontMetrics font_metrics(reset_model_btn->font());
+  reset_model_btn_ = new QPushButton("Сброс\nпреобразования");
+  reset_view_btn_ = new QPushButton("Сброс\nотображения");
+  QFontMetrics font_metrics(reset_model_btn_->font());
   int min_height = font_metrics.lineSpacing() * 2;
 
   auto SetupButton = [min_height](QPushButton* button) {
@@ -557,15 +318,228 @@ QGroupBox* MainWidget::CreateResetGroup(QPushButton*& reset_model_btn,
     button->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
   };
 
-  SetupButton(reset_model_btn);
-  SetupButton(reset_view_btn);
+  SetupButton(reset_model_btn_);
+  SetupButton(reset_view_btn_);
 
-  layout->addWidget(reset_model_btn);
-  layout->addWidget(reset_view_btn);
+  layout->addWidget(reset_model_btn_);
+  layout->addWidget(reset_view_btn_);
 
   group->setLayout(layout);
 
   return group;
 }
 
-QScrollArea* MainWidget::CreateScrollArea() {}
+QScrollArea* MainWidget::CreateScrollArea() {
+  QScrollArea* scroll_area = new QScrollArea;
+  scroll_area->setWidgetResizable(true);
+  scroll_area->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+  QWidget* scroll_content = new QWidget;
+  QVBoxLayout* scroll_layout = new QVBoxLayout(scroll_content);
+  scroll_layout->setAlignment(Qt::AlignTop);
+
+  scroll_layout->addWidget(CreateMoveGroup());
+  scroll_layout->addWidget(CreateRotateGroup());
+  scroll_layout->addWidget(CreateScaleGroup());
+  scroll_layout->addWidget(CreateProjectionGroup());
+  scroll_layout->addWidget(CreateEdgeSettingsGroup());
+  scroll_layout->addWidget(CreateVertexSettingsGroup());
+  scroll_layout->addWidget(CreateBackgroundSettingsGroup());
+  scroll_area->setWidget(scroll_content);
+  scroll_content->setMinimumWidth(340);
+
+  return scroll_area;
+}
+
+void MainWidget::CreateMainLayout() {
+  QHBoxLayout* main_layout = new QHBoxLayout(this);
+  main_layout->setContentsMargins(10, 10, 10, 10);
+  main_layout->setSpacing(15);
+
+  gl_widget_ = new OpenGLWidget;
+  gl_widget_->setMinimumSize(640, 480);
+  main_layout->addWidget(gl_widget_, 7);  // 70% ширины
+}
+
+void MainWidget::CreateSidebar() {
+  // Боковая панель управления
+  QWidget* sidebar = new QWidget;
+  QVBoxLayout* sidebar_layout = new QVBoxLayout(sidebar);
+  sidebar_layout->setAlignment(Qt::AlignTop);
+  sidebar_layout->setContentsMargins(5, 5, 5, 5);
+  sidebar_layout->setSpacing(10);
+
+  sidebar_layout->addWidget(CreateLoadGroup());
+  sidebar_layout->addWidget(CreateInfoGroup());
+  sidebar_layout->addWidget(CreateRecordGroup());
+
+  QScrollArea* scroll_area = CreateScrollArea();
+  sidebar_layout->addWidget(scroll_area);
+  sidebar_layout->addWidget(CreateResetGroup());
+  sidebar->setMinimumWidth(360);
+  qobject_cast<QHBoxLayout*>(layout())->addWidget(sidebar, 3);
+}
+
+QGroupBox* MainWidget::CreateMoveGroup() {
+  return TransformBuilder<QDoubleSpinBox>(TransformType::Move)
+      .AddAxis(
+          Axis::X, GetStepValue(TransformType::Move), move_x_,
+          [this]() { ChangeValue(move_x_, TransformType::Move, false); },
+          [this]() {
+            move_x_->setValue(
+                DoStep(move_x_->value(), true, TransformType::Move));
+          })
+      .AddAxis(
+          Axis::Y, GetStepValue(TransformType::Move), move_y_,
+          [this]() {
+            move_y_->setValue(
+                DoStep(move_y_->value(), false, TransformType::Move));
+          },
+          [this]() {
+            move_y_->setValue(
+                DoStep(move_y_->value(), true, TransformType::Move));
+          })
+      .AddAxis(
+          Axis::Z, GetStepValue(TransformType::Move), move_z_,
+          [this]() {
+            move_z_->setValue(
+                DoStep(move_z_->value(), false, TransformType::Move));
+          },
+          [this]() {
+            move_z_->setValue(
+                DoStep(move_z_->value(), true, TransformType::Move));
+          })
+      .Build();
+}
+QGroupBox* MainWidget::CreateRotateGroup() {
+  return TransformBuilder<CyclicDoubleSpinBox>(TransformType::Rotate)
+      .AddAxis(
+          Axis::X, GetStepValue(TransformType::Rotate), rotate_x_,
+          [this]() {
+            rotate_x_->setValue(
+                DoStep(rotate_x_->value(), false, TransformType::Rotate));
+          },
+          [this]() {
+            rotate_x_->setValue(
+                DoStep(rotate_x_->value(), true, TransformType::Rotate));
+          })
+      .AddAxis(
+          Axis::Y, GetStepValue(TransformType::Rotate), rotate_y_,
+          [this]() {
+            rotate_y_->setValue(
+                DoStep(rotate_y_->value(), false, TransformType::Rotate));
+          },
+          [this]() {
+            rotate_y_->setValue(
+                DoStep(rotate_y_->value(), true, TransformType::Rotate));
+          })
+      .AddAxis(
+          Axis::Z, GetStepValue(TransformType::Rotate), rotate_z_,
+          [this]() {
+            rotate_z_->setValue(
+                DoStep(rotate_z_->value(), false, TransformType::Rotate));
+          },
+          [this]() {
+            rotate_z_->setValue(
+                DoStep(rotate_z_->value(), true, TransformType::Rotate));
+          })
+      .Build();
+}
+QGroupBox* MainWidget::CreateScaleGroup() {
+  return TransformBuilder<QDoubleSpinBox>(TransformType::Scale)
+      .AddAxis(
+          Axis::None, GetStepValue(TransformType::Scale), scale_,
+          [this]() {
+            scale_->setValue(
+                DoStep(scale_->value(), false, TransformType::Scale));
+          },
+          [this]() {
+            scale_->setValue(
+                DoStep(scale_->value(), true, TransformType::Scale));
+          })
+      .Build();
+}
+QGroupBox* MainWidget::CreateEdgeSettingsGroup() {
+  return s21::VisualSettingsBuilder()
+      .AddComboBox("Тип линии:", edge_type_combo_, {"Сплошная", "Пунктирная"})
+      .AddColorWidget("Цвет:", edge_r_color_, edge_g_color_, edge_b_color_,
+                      edge_color_preview_,
+                      Qt::white)  // Надо будет настроить и передавать
+                                  // корректный цвет, а не white
+      .AddDoubleSpinBox("Толщина:", edge_thickness_, 0.1, 10.0, 0.1, 1)
+      .Build("Настройки ребер");
+}
+QGroupBox* MainWidget::CreateVertexSettingsGroup() {
+  return s21::VisualSettingsBuilder()
+      .AddComboBox("Отображение", vertex_display_combo_,
+                   {"Отсутствует", "Круг", "Квадрат"})
+      .AddColorWidget("Цвет:", vertex_r_color_, vertex_g_color_,
+                      vertex_b_color_, vertex_color_preview_, Qt::red)
+      .AddDoubleSpinBox("Размер:", vertex_size_, 0.1, 25.0, 0.1, 1)
+      .Build("Настройки вершин");
+}
+QGroupBox* MainWidget::CreateBackgroundSettingsGroup() {
+  return s21::VisualSettingsBuilder()
+      .AddColorWidget("Цвет фона:", background_color_r_, background_color_g_,
+                      background_color_b_, background_color_preview_, Qt::black)
+      .Build("Настройки фона");
+}
+
+void MainWidget::CreateConnections() {
+  connect(load_btn_, &QPushButton::clicked, this, &MainWidget::LoadModel);
+  // Запись (TODO: заменить на реальные слоты)
+  // connect(gif_btn_, &QPushButton::clicked, this, &MainWidget::RecordGif);
+  // connect(screen_btn_, &QPushButton::clicked, this,
+  // &MainWidget::TakeScreenshot);
+  auto ConnectTransformSignal = [this](auto widget) {
+    connect(widget, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
+            &MainWidget::OnTransformChanged);
+  };
+  // Подключение виджетов трансформации
+  ConnectTransformSignal(move_x_);
+  ConnectTransformSignal(move_y_);
+  ConnectTransformSignal(move_z_);
+  ConnectTransformSignal(rotate_x_);
+  ConnectTransformSignal(rotate_y_);
+  ConnectTransformSignal(rotate_z_);
+  ConnectTransformSignal(scale_);
+  // Проекция
+  connect(parallel_btn_, &QRadioButton::toggled, [this](bool checked) {
+    if (checked) gl_widget_->SetProjectionType(OpenGLWidget::Parallel);
+  });
+  connect(central_btn_, &QRadioButton::toggled, [this](bool checked) {
+    if (checked) gl_widget_->SetProjectionType(OpenGLWidget::Central);
+  });
+  // Общая функция для подключения цветовых компонентов
+  auto ConnectColorGroup = [](const std::vector<QSpinBox*>& color_boxes,
+                              auto update_func) {
+    for (auto* box : color_boxes) {
+      connect(box, QOverload<int>::of(&QSpinBox::valueChanged), update_func);
+    }
+  };
+  // Настройки ребер
+  auto UpdateEdge = [this] { UpdateEdgeSettings(); };
+  connect(edge_type_combo_, QOverload<int>::of(&QComboBox::currentIndexChanged),
+          UpdateEdge);
+  connect(edge_thickness_, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+          UpdateEdge);
+  ConnectColorGroup({edge_r_color_, edge_g_color_, edge_b_color_}, UpdateEdge);
+  // Настройки вершин
+  auto UpdateVertex = [this] { UpdateVertexSettings(); };
+  connect(vertex_display_combo_,
+          QOverload<int>::of(&QComboBox::currentIndexChanged), UpdateVertex);
+  connect(vertex_size_, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+          UpdateVertex);
+  ConnectColorGroup({vertex_r_color_, vertex_g_color_, vertex_b_color_},
+                    UpdateVertex);
+  // Настройки фона
+  auto UpdateBackground = [this] { UpdateBackground(); };
+  ConnectColorGroup(
+      {background_color_r_, background_color_g_, background_color_b_},
+      UpdateBackground);
+  // Сброс
+  connect(reset_model_btn_, &QPushButton::clicked, this,
+          &MainWidget::ResetTransform);
+  connect(reset_view_btn_, &QPushButton::clicked, this,
+          &MainWidget::ResetDisplay);
+}
