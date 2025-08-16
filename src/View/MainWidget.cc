@@ -23,8 +23,8 @@
 #include "Builder/VisualSettingsBuilder.h"
 #include "CyclicDoubleSpinBox.h"
 #include "OpenGLWidget.h"
-
-// public
+// TODO пофиксить загрузку состояния проекции(всегда ставит центральную по
+// умолчанию, даже если стоит паралелльная) public
 MainWidget::MainWidget(QWidget* parent) : QWidget(parent), full_file_name_("") {
   MainWidget::SetupUI();
   s21::ViewParams params;
@@ -58,6 +58,9 @@ MainWidget::MainWidget(QWidget* parent) : QWidget(parent), full_file_name_("") {
     // был корректным
     if (params.file_name != ".obj" && control_.GetVertices().size()) {
       full_file_name_ = QString::fromStdString(params.file_name);
+      vertex_count_label_->setText(
+          QString::number(control_.GetVertices().size()));
+      edge_count_label_->setText(QString::number(control_.GetEdges().size()));
       s21::Params affine = control_.GetCurrentSettings();
       move_x_->setValue(affine.shift.x);
       move_y_->setValue(affine.shift.y);
@@ -111,17 +114,29 @@ void MainWidget::LoadModel() {
   if (!file_name.isEmpty()) {
     // Извлекаем только имя файла для отображения
     QFileInfo file_info(file_name);
-    full_file_name_ = file_info.fileName();
-
-    // if (!MainWidget::LoadModelData(file_name)) {
-    //   MainWidget::UpdateFileNameLabel();
-    //   MainWidget::ResetTransform();
-    // }
-    MainWidget::ResetTransform();
-    control_.ParseFile(file_name.toStdString());
-    MainWidget::UpdateFileNameLabel();
-
-    gl_widget_->SetModelData(control_.GetVertices(), control_.GetEdges());
+    s21::FileError error = control_.ParseFile(file_name.toStdString());
+    if (error == s21::FileError::kOk) {
+      full_file_name_ = file_info.fileName();
+      MainWidget::ResetTransform();
+      MainWidget::UpdateFileNameLabel();
+      std::vector<s21::Vertex> vertices = control_.GetVertices();
+      std::unordered_set<std::pair<unsigned, unsigned>, s21::PairHash> edges =
+          control_.GetEdges();
+      vertex_count_label_->setText(QString::number(vertices.size()));
+      edge_count_label_->setText(QString::number(edges.size()));
+      gl_widget_->SetModelData(vertices, edges);
+    } else if (error == s21::FileError::kNotExist) {
+      QMessageBox::warning(this, "Ошибка открытия",
+                           "Файл не существует!\n"
+                           "Проверьте путь: " +
+                               file_name);
+    } else if (error == s21::FileError::kInvalidFile) {
+      QMessageBox::warning(this, "Ошибка чтения",
+                           "Некорректный файл!\n"
+                           "В файле должны быть координаты вершин!",
+                           QMessageBox::Ok  // Кнопка по умолчанию
+      );
+    }
   }
 }
 
@@ -133,7 +148,6 @@ void MainWidget::resizeEvent(QResizeEvent* event) {
 }
 
 // private
-// Следует разделить на блоки: ---, ---, сборка боковой панели, подключение, ---
 void MainWidget::SetupUI() {
   CreateMainLayout();
   CreateSidebar();
@@ -293,8 +307,6 @@ void MainWidget::OnTransformChanged() {
 
 // tmp разобрать потом и кровью
 
-// QGroupBox* MainWidget::CreateLoadGroup(QPushButton*& load_btn,
-//                                        QLabel*& file_name_label) {
 QGroupBox* MainWidget::CreateLoadGroup() {
   QGroupBox* group = new QGroupBox("Загрузка модели");
   QVBoxLayout* layout = new QVBoxLayout(group);
@@ -305,16 +317,15 @@ QGroupBox* MainWidget::CreateLoadGroup() {
       "padding: 3px; background-color: #F0F0F0; color: #0d0c0c;");
   file_name_label_->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
 
-  load_btn_ = new QPushButton("Загрузить OBJ файл");
+  QPushButton* load_btn = new QPushButton("Загрузить OBJ файл");
+  connect(load_btn, &QPushButton::clicked, this, &MainWidget::LoadModel);
 
   layout->addWidget(file_name_label_);
-  layout->addWidget(load_btn_);
+  layout->addWidget(load_btn);
 
   return group;
 }
 
-// QGroupBox* MainWidget::CreateInfoGroup(QLabel*& vertex_count,
-//                                        QLabel*& edge_count) {
 QGroupBox* MainWidget::CreateInfoGroup() {
   QGroupBox* group = new QGroupBox("Информация о модели");
   QFormLayout* layout = new QFormLayout(group);
@@ -328,41 +339,46 @@ QGroupBox* MainWidget::CreateInfoGroup() {
   return group;
 }
 
-// QGroupBox* MainWidget::CreateRecordGroup(QPushButton*& gif_btn,
-//                                          QPushButton*& screen_btn) {
 QGroupBox* MainWidget::CreateRecordGroup() {
   QGroupBox* group = new QGroupBox("Запись");
   QHBoxLayout* layout = new QHBoxLayout(group);
-  gif_btn_ = new QPushButton("GIF");
-  save_bmp_btn_ = new QPushButton("BMP");
-  save_jpeg_btn_ = new QPushButton("JPEG");
-  layout->addWidget(gif_btn_);
-  layout->addWidget(save_bmp_btn_);
-  layout->addWidget(save_jpeg_btn_);
+  QPushButton* gif_btn = new QPushButton("GIF");
+  QPushButton* save_bmp_btn = new QPushButton("BMP");
+  QPushButton* save_jpeg_btn = new QPushButton("JPEG");
+  connect(gif_btn, &QPushButton::clicked, this, &MainWidget::RecordGif);
+  connect(&timer, &QTimer::timeout, this, &MainWidget::captureFrame);
+  connect(save_bmp_btn, &QPushButton::clicked, this, &MainWidget::SaveBMP);
+  connect(save_jpeg_btn, &QPushButton::clicked, this, &MainWidget::SaveJPEG);
+  layout->addWidget(gif_btn);
+  layout->addWidget(save_bmp_btn);
+  layout->addWidget(save_jpeg_btn);
   return group;
 }
 
-// QGroupBox* MainWidget::CreateProjectionGroup(QRadioButton*& parallel_btn,
-//                                              QRadioButton*& central_btn) {
 QGroupBox* MainWidget::CreateProjectionGroup() {
   QGroupBox* group = new QGroupBox("Проекция");
   QVBoxLayout* layout = new QVBoxLayout(group);
-  parallel_btn_ = new QRadioButton("Параллельная");
-  central_btn_ = new QRadioButton("Центральная");
-  central_btn_->setChecked(true);
-  layout->addWidget(parallel_btn_);
-  layout->addWidget(central_btn_);
+  QRadioButton* parallel_btn = new QRadioButton("Параллельная");
+  QRadioButton* central_btn = new QRadioButton("Центральная");
+  central_btn->setChecked(true);
+  connect(parallel_btn, &QRadioButton::toggled, [this](bool checked) {
+    if (checked) gl_widget_->SetProjectionType(OpenGLWidget::Parallel);
+  });
+
+  connect(central_btn, &QRadioButton::toggled, [this](bool checked) {
+    if (checked) gl_widget_->SetProjectionType(OpenGLWidget::Central);
+  });
+  layout->addWidget(parallel_btn);
+  layout->addWidget(central_btn);
   return group;
 }
 
-// QGroupBox* MainWidget::CreateResetGroup(QPushButton*& reset_model_btn,
-//                                         QPushButton*& reset_view_btn) {
 QGroupBox* MainWidget::CreateResetGroup() {
   QGroupBox* group = new QGroupBox("Сброс");
   QHBoxLayout* layout = new QHBoxLayout;
-  reset_model_btn_ = new QPushButton("Сброс\nпреобразования");
-  reset_view_btn_ = new QPushButton("Сброс\nотображения");
-  QFontMetrics font_metrics(reset_model_btn_->font());
+  QPushButton* reset_model_btn = new QPushButton("Сброс\nпреобразования");
+  QPushButton* reset_view_btn = new QPushButton("Сброс\nотображения");
+  QFontMetrics font_metrics(reset_model_btn->font());
   int min_height = font_metrics.lineSpacing() * 2;
 
   auto SetupButton = [min_height](QPushButton* button) {
@@ -371,11 +387,16 @@ QGroupBox* MainWidget::CreateResetGroup() {
     button->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
   };
 
-  SetupButton(reset_model_btn_);
-  SetupButton(reset_view_btn_);
+  SetupButton(reset_model_btn);
+  SetupButton(reset_view_btn);
 
-  layout->addWidget(reset_model_btn_);
-  layout->addWidget(reset_view_btn_);
+  connect(reset_model_btn, &QPushButton::clicked, this,
+          &MainWidget::ResetTransform);
+  connect(reset_view_btn, &QPushButton::clicked, this,
+          &MainWidget::ResetDisplay);
+
+  layout->addWidget(reset_model_btn);
+  layout->addWidget(reset_view_btn);
 
   group->setLayout(layout);
 
@@ -627,9 +648,7 @@ QGroupBox* MainWidget::CreateEdgeSettingsGroup() {
   return s21::VisualSettingsBuilder()
       .AddComboBox("Тип линии:", edge_type_combo_, {"Сплошная", "Пунктирная"})
       .AddColorWidget("Цвет:", edge_r_color_, edge_g_color_, edge_b_color_,
-                      edge_color_preview_,
-                      Qt::white)  // Надо будет настроить и передавать
-                                  // корректный цвет, а не white
+                      edge_color_preview_, Qt::white)
       .AddDoubleSpinBox("Толщина:", edge_thickness_, 0.1, 10.0, 0.1, 1)
       .Build("Настройки ребер");
 }
@@ -650,16 +669,6 @@ QGroupBox* MainWidget::CreateBackgroundSettingsGroup() {
 }
 
 void MainWidget::CreateConnections() {
-  connect(load_btn_, &QPushButton::clicked, this, &MainWidget::LoadModel);
-  connect(gif_btn_, &QPushButton::clicked,
-          [this]() { MainWidget::RecordGif(); });
-  connect(&timer, &QTimer::timeout, this, &MainWidget::captureFrame);
-  connect(save_bmp_btn_, &QPushButton::clicked,
-          [this]() { MainWidget::SaveBMP(); });
-  connect(save_jpeg_btn_, &QPushButton::clicked,
-          [this]() { MainWidget::SaveJPEG(); });
-
-  // &MainWidget::TakeScreenshot);
   auto ConnectTransformSignal = [this](auto widget) {
     connect(widget, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
             &MainWidget::OnTransformChanged);
@@ -672,13 +681,6 @@ void MainWidget::CreateConnections() {
   ConnectTransformSignal(rotate_y_);
   ConnectTransformSignal(rotate_z_);
   ConnectTransformSignal(scale_);
-  // Проекция
-  connect(parallel_btn_, &QRadioButton::toggled, [this](bool checked) {
-    if (checked) gl_widget_->SetProjectionType(OpenGLWidget::Parallel);
-  });
-  connect(central_btn_, &QRadioButton::toggled, [this](bool checked) {
-    if (checked) gl_widget_->SetProjectionType(OpenGLWidget::Central);
-  });
   // Общая функция для подключения цветовых компонентов
   auto ConnectColorGroup = [](const std::vector<QSpinBox*>& color_boxes,
                               auto update_func) {
@@ -706,18 +708,11 @@ void MainWidget::CreateConnections() {
   ConnectColorGroup(
       {background_color_r_, background_color_g_, background_color_b_},
       UpdateBackground);
-  // Сброс
-  connect(reset_model_btn_, &QPushButton::clicked, this,
-          &MainWidget::ResetTransform);
-  connect(reset_view_btn_, &QPushButton::clicked, this,
-          &MainWidget::ResetDisplay);
-
+  // Управление мышью
   connect(gl_widget_, &OpenGLWidget::wheelScrolled, this,
           &MainWidget::OnWheelScrolled);
-
   connect(gl_widget_, &OpenGLWidget::rotationDeltaChanged, this,
           &MainWidget::handleRotationDelta);
-
   connect(gl_widget_, &OpenGLWidget::translationDeltaChanged, this,
           &MainWidget::handleTranslationDelta);
 }

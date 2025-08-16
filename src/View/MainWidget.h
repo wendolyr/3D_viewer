@@ -45,11 +45,6 @@ class MainWidget : public QWidget {
   QLabel* vertex_count_label_;
   QLabel* edge_count_label_;
 
-  // Кнопки интерфейса
-  QPushButton *load_btn_, *gif_btn_, *save_bmp_btn_, *save_jpeg_btn_,
-      *reset_model_btn_, *reset_view_btn_;
-  QRadioButton *parallel_btn_, *central_btn_;
-
   // Для цвета ребер
   QSpinBox *edge_r_color_, *edge_g_color_, *edge_b_color_;
   QLabel* edge_color_preview_;
@@ -72,14 +67,6 @@ class MainWidget : public QWidget {
   // Создание пользовательского интерфейса
   void SetupUI();
   // Создание групп интерфейса
-  // QGroupBox* CreateLoadGroup(QPushButton*& load_btn, QLabel*&
-  // file_name_label); QGroupBox* CreateInfoGroup(QLabel*& vertex_count,
-  // QLabel*& edge_count); QGroupBox* CreateRecordGroup(QPushButton*& gif_btn,
-  // QPushButton*& screen_btn); QGroupBox* CreateProjectionGroup(QRadioButton*&
-  // parallel_btn,
-  //                                  QRadioButton*& central_btn);
-  // QGroupBox* CreateResetGroup(QPushButton*& reset_model_btn,
-  //                             QPushButton*& reset_view_btn);
   QGroupBox* CreateLoadGroup();
   QGroupBox* CreateInfoGroup();
   QGroupBox* CreateRecordGroup();
@@ -95,24 +82,13 @@ class MainWidget : public QWidget {
   QGroupBox* CreateVertexSettingsGroup();
   QGroupBox* CreateBackgroundSettingsGroup();
   void CreateConnections();
-  // Создание виджета управления для оси
-  // QWidget* CreateAxisWidgetsMoveAndScale(QDoubleSpinBox*& spin_box,
-  //                                        TransformType type, Axis axis);
-  // QWidget* CreateAxisWidgetsRotate(CyclicDoubleSpinBox*& spin_box, Axis
-  // axis); Получение шага для изменения модели
+  // Получение шага для изменения модели
   double GetStepValue(TransformType type) const;
   // Выполнение шага изменения при нажатии
   double DoStep(double value, bool sum, TransformType type);
   // Обновление отображения имени файла
   void UpdateFileNameLabel();
-  // Открытие и парсер obj-файла с моделью
-  int LoadModelData(const QString& file_path);
-  // Пропуск не нужных строк в парсере
-  inline const char* SkipToNextLine(const char* ptr, const char* end);
 
-  // возможно стоит убрать
-  QWidget* CreateColorWidget(QSpinBox*& r, QSpinBox*& g, QSpinBox*& b,
-                             QLabel*& preview, const QString& labelText);
   // Методы обновления настроек граней, вершин и заднего фона
   void UpdateEdgeSettings();
   void UpdateVertexSettings();
