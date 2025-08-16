@@ -227,26 +227,9 @@ void MainWidget::SetupUI() {
   scroll_layout->addWidget(bg_settings_group);
 
   scroll_area->setWidget(scroll_content);
-
   // Группа сброса преобразований
-  QGroupBox* reset_group = new QGroupBox("Сброс");
-  QHBoxLayout* reset_layout = new QHBoxLayout;
-  QPushButton* reset_model_btn = new QPushButton("Сброс\nпреобразования");
-  QPushButton* reset_view_btn = new QPushButton("Сброс\nотображения");
-
-  QFontMetrics font_metrics(reset_model_btn->font());
-  int min_height = font_metrics.lineSpacing() * 2;
-  reset_model_btn->setMinimumHeight(min_height);
-  reset_view_btn->setMinimumHeight(min_height);
-  reset_model_btn->setStyleSheet("text-align: center;");
-  reset_view_btn->setStyleSheet("text-align: center;");
-  reset_model_btn->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-  reset_view_btn->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-
-  reset_layout->addWidget(reset_model_btn);
-  reset_layout->addWidget(reset_view_btn);
-
-  reset_group->setLayout(reset_layout);
+  QPushButton *reset_model_btn, *reset_view_btn;
+  QGroupBox* reset_group = CreateResetGroup(reset_model_btn, reset_view_btn);
 
   // Сбор боковой панели
   sidebar->setMinimumWidth(360);
@@ -394,50 +377,6 @@ const char* MainWidget::SkipToNextLine(const char* ptr, const char* end) {
     ++ptr;
   }
   return ptr;
-}
-
-QWidget* MainWidget::CreateColorWidget(QSpinBox*& r, QSpinBox*& g, QSpinBox*& b,
-                                       QLabel*& preview,
-                                       const QString& labelText) {
-  QWidget* container = new QWidget;
-  QHBoxLayout* layout = new QHBoxLayout(container);
-  layout->setContentsMargins(0, 0, 0, 0);
-
-  // Метка названия цвета
-  QLabel* color_label = new QLabel(labelText);
-  color_label->setMinimumWidth(65);  // Фиксированная ширина для выравнивания
-
-  // Компоненты RGB
-  r = new QSpinBox;
-  r->setRange(0, 255);
-  r->setValue(0);
-  r->setMaximumWidth(50);
-
-  g = new QSpinBox;
-  g->setRange(0, 255);
-  g->setValue(0);
-  g->setMaximumWidth(50);
-
-  b = new QSpinBox;
-  b->setRange(0, 255);
-  b->setValue(0);
-  b->setMaximumWidth(50);
-
-  // Превью цвета
-  preview = new QLabel;
-  preview->setFixedSize(20, 20);
-  preview->setStyleSheet("border: 1px solid gray;");
-
-  layout->addWidget(color_label);
-  layout->addWidget(new QLabel("R:"));
-  layout->addWidget(r);
-  layout->addWidget(new QLabel("G:"));
-  layout->addWidget(g);
-  layout->addWidget(new QLabel("B:"));
-  layout->addWidget(b);
-  layout->addWidget(preview);
-
-  return container;
 }
 
 void MainWidget::UpdateEdgeSettings() {
@@ -602,3 +541,31 @@ QGroupBox* MainWidget::CreateProjectionGroup(QRadioButton*& parallel_btn,
   layout->addWidget(central_btn);
   return group;
 }
+
+QGroupBox* MainWidget::CreateResetGroup(QPushButton*& reset_model_btn,
+                                        QPushButton*& reset_view_btn) {
+  QGroupBox* group = new QGroupBox("Сброс");
+  QHBoxLayout* layout = new QHBoxLayout;
+  reset_model_btn = new QPushButton("Сброс\nпреобразования");
+  reset_view_btn = new QPushButton("Сброс\nотображения");
+  QFontMetrics font_metrics(reset_model_btn->font());
+  int min_height = font_metrics.lineSpacing() * 2;
+
+  auto SetupButton = [min_height](QPushButton* button) {
+    button->setMinimumHeight(min_height);
+    button->setStyleSheet("text-align: center;");
+    button->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+  };
+
+  SetupButton(reset_model_btn);
+  SetupButton(reset_view_btn);
+
+  layout->addWidget(reset_model_btn);
+  layout->addWidget(reset_view_btn);
+
+  group->setLayout(layout);
+
+  return group;
+}
+
+QScrollArea* MainWidget::CreateScrollArea() {}

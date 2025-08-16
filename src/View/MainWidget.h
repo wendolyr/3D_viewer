@@ -69,6 +69,9 @@ class MainWidget : public QWidget {
   QGroupBox* CreateRecordGroup(QPushButton*& gif_btn, QPushButton*& screen_btn);
   QGroupBox* CreateProjectionGroup(QRadioButton*& parallel_btn,
                                    QRadioButton*& central_btn);
+  QGroupBox* CreateResetGroup(QPushButton*& reset_model_btn,
+                              QPushButton*& reset_view_btn);
+  QScrollArea* CreateScrollArea();
   // Создание виджета управления для оси
   // QWidget* CreateAxisWidgetsMoveAndScale(QDoubleSpinBox*& spin_box,
   //                                        TransformType type, Axis axis);
