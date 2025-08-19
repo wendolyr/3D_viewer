@@ -1,5 +1,5 @@
-#ifndef CPP4_3DVIEWER_V2_0_VIEW_OPENGLWIDGET_H
-#define CPP4_3DVIEWER_V2_0_VIEW_OPENGLWIDGET_H
+#ifndef CPP4_3DVIEWER_V2_0_VIEW_OPENGL_WIDGET_H
+#define CPP4_3DVIEWER_V2_0_VIEW_OPENGL_WIDGET_H
 
 #include <QMatrix4x4>
 #include <QMouseEvent>
@@ -13,6 +13,7 @@
 
 #include "../controller/facade.h"
 
+namespace s21 {
 class OpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
   Q_OBJECT
  public:
@@ -24,9 +25,9 @@ class OpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
   ~OpenGLWidget();
   // void SetModelData(const QVector<QVector3D>& vertices,
   //                   const QVector<QPair<unsigned, unsigned>>& edges);
-  void SetModelData(const std::vector<s21::Vertex>& vertices,
+  void SetModelData(const std::vector<Vertex>& vertices,
                     const std::unordered_set<std::pair<unsigned, unsigned>,
-                                             s21::PairHash>& edges);
+                                             PairHash>& edges);
   void ClearModel();
   void SetTransformations(const QVector3D& translation,
                           const QVector3D& rotation, float scale);
@@ -94,5 +95,6 @@ class OpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
 
   bool is_panning_ = false;
 };
+} // namespace s21
 
-#endif  // CPP4_3DVIEWER_V2_0_VIEW_OPENGLWIDGET_H
+#endif  // CPP4_3DVIEWER_V2_0_VIEW_OPENGL_WIDGET_H

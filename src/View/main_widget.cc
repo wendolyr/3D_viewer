@@ -1,4 +1,4 @@
-#include "MainWidget.h"
+#include "main_widget.h"
 
 #include <QApplication>
 #include <QComboBox>
@@ -18,16 +18,16 @@
 #include <QWidget>
 
 #include "../controller/facade.h"
-#include "Builder/TemplateAxisControlBuilder.h"
-#include "Builder/TransformControlBuilder.h"
-#include "Builder/VisualSettingsBuilder.h"
-#include "CyclicDoubleSpinBox.h"
-#include "OpenGLWidget.h"
-// TODO пофиксить загрузку состояния проекции(всегда ставит центральную по
-// умолчанию, даже если стоит паралелльная) public
+#include "builder/template_axis_control_builder.h"
+#include "builder/transform_control_builder.h"
+#include "builder/visual_settings_builder.h"
+#include "cyclic_double_spin_box.h"
+#include "opengl_widget.h"
+
+namespace s21 {
 MainWidget::MainWidget(QWidget* parent) : QWidget(parent), full_file_name_("") {
   MainWidget::SetupUI();
-  s21::ViewParams params;
+  ViewParams params;
   if (control_.LoadLastState(params)) {
     edge_r_color_->setValue(params.edge_color.x);
     edge_g_color_->setValue(params.edge_color.y);
@@ -48,11 +48,10 @@ MainWidget::MainWidget(QWidget* parent) : QWidget(parent), full_file_name_("") {
     background_color_b_->setValue(params.background_color.z);
     UpdateBackground();
 
-    /**
-     * на экране кнопка всегда центральная
-     */
     gl_widget_->SetProjectionType(
         static_cast<OpenGLWidget::ProjectionType>(params.projection_type));
+    parallel_btn_->setChecked(params.projection_type == static_cast<int>(OpenGLWidget::Parallel));
+    central_btn_->setChecked(params.projection_type == static_cast<int>(OpenGLWidget::Central));
 
     // если базовое имя файла поменялось, значит файл с моделью существовал и
     // был корректным
@@ -61,7 +60,7 @@ MainWidget::MainWidget(QWidget* parent) : QWidget(parent), full_file_name_("") {
       vertex_count_label_->setText(
           QString::number(control_.GetVertices().size()));
       edge_count_label_->setText(QString::number(control_.GetEdges().size()));
-      s21::Params affine = control_.GetCurrentSettings();
+      Params affine = control_.GetCurrentSettings();
       move_x_->setValue(affine.shift.x);
       move_y_->setValue(affine.shift.y);
       move_z_->setValue(affine.shift.z);
@@ -83,7 +82,7 @@ void MainWidget::showEvent(QShowEvent* event) {
 }
 
 MainWidget::~MainWidget() {
-  s21::ViewParams params;
+  ViewParams params;
   params.projection_type = static_cast<int>(gl_widget_->GetProjectionType());
   params.edge_color.x = edge_r_color_->value();
   params.edge_color.y = edge_g_color_->value();
@@ -114,27 +113,27 @@ void MainWidget::LoadModel() {
   if (!file_name.isEmpty()) {
     // Извлекаем только имя файла для отображения
     QFileInfo file_info(file_name);
-    s21::FileError error = control_.ParseFile(file_name.toStdString());
-    if (error == s21::FileError::kOk) {
+    FileError error = control_.ParseFile(file_name.toStdString());
+    if (error == FileError::kOk) {
       full_file_name_ = file_info.fileName();
       MainWidget::ResetTransform();
       MainWidget::UpdateFileNameLabel();
-      std::vector<s21::Vertex> vertices = control_.GetVertices();
-      std::unordered_set<std::pair<unsigned, unsigned>, s21::PairHash> edges =
+      std::vector<Vertex> vertices = control_.GetVertices();
+      std::unordered_set<std::pair<unsigned, unsigned>, PairHash> edges =
           control_.GetEdges();
       vertex_count_label_->setText(QString::number(vertices.size()));
       edge_count_label_->setText(QString::number(edges.size()));
       gl_widget_->SetModelData(vertices, edges);
-    } else if (error == s21::FileError::kNotExist) {
+    } else if (error == FileError::kNotExist) {
       QMessageBox::warning(this, "Ошибка открытия",
                            "Файл не существует!\n"
                            "Проверьте путь: " +
                                file_name);
-    } else if (error == s21::FileError::kInvalidFile) {
+    } else if (error == FileError::kInvalidFile) {
       QMessageBox::warning(this, "Ошибка чтения",
                            "Некорректный файл!\n"
                            "В файле должны быть координаты вершин!",
-                           QMessageBox::Ok  // Кнопка по умолчанию
+                           QMessageBox::Ok
       );
     }
   }
@@ -268,6 +267,7 @@ void MainWidget::ResetTransform() {
 }
 
 void MainWidget::ResetDisplay() {
+  central_btn_->setChecked(true);
   // Установка отображения ребер: цвет RGB; толщина; тип отображения
   edge_r_color_->setValue(204);
   edge_g_color_->setValue(204);
@@ -346,7 +346,7 @@ QGroupBox* MainWidget::CreateRecordGroup() {
   QPushButton* save_bmp_btn = new QPushButton("BMP");
   QPushButton* save_jpeg_btn = new QPushButton("JPEG");
   connect(gif_btn, &QPushButton::clicked, this, &MainWidget::RecordGif);
-  connect(&timer, &QTimer::timeout, this, &MainWidget::captureFrame);
+  connect(&timer, &QTimer::timeout, this, &MainWidget::CaptureFrame);
   connect(save_bmp_btn, &QPushButton::clicked, this, &MainWidget::SaveBMP);
   connect(save_jpeg_btn, &QPushButton::clicked, this, &MainWidget::SaveJPEG);
   layout->addWidget(gif_btn);
@@ -358,18 +358,18 @@ QGroupBox* MainWidget::CreateRecordGroup() {
 QGroupBox* MainWidget::CreateProjectionGroup() {
   QGroupBox* group = new QGroupBox("Проекция");
   QVBoxLayout* layout = new QVBoxLayout(group);
-  QRadioButton* parallel_btn = new QRadioButton("Параллельная");
-  QRadioButton* central_btn = new QRadioButton("Центральная");
-  central_btn->setChecked(true);
-  connect(parallel_btn, &QRadioButton::toggled, [this](bool checked) {
+  parallel_btn_ = new QRadioButton("Параллельная");
+  central_btn_ = new QRadioButton("Центральная");
+  central_btn_->setChecked(true);
+  connect(parallel_btn_, &QRadioButton::toggled, [this](bool checked) {
     if (checked) gl_widget_->SetProjectionType(OpenGLWidget::Parallel);
   });
 
-  connect(central_btn, &QRadioButton::toggled, [this](bool checked) {
+  connect(central_btn_, &QRadioButton::toggled, [this](bool checked) {
     if (checked) gl_widget_->SetProjectionType(OpenGLWidget::Central);
   });
-  layout->addWidget(parallel_btn);
-  layout->addWidget(central_btn);
+  layout->addWidget(parallel_btn_);
+  layout->addWidget(central_btn_);
   return group;
 }
 
@@ -409,17 +409,17 @@ void MainWidget::OnWheelScrolled(int delta) {
 
   // Рассчитываем новый масштаб
   double step = GetStepValue(TransformType::Scale);
-  double newScale =
+  double new_scale =
       scale_->value() + direction * step * 0.5;  // Медленное изменение
 
   // Устанавливаем границы масштабирования
-  if (newScale < 0.01) newScale = 0.01;
-  if (newScale > 100.0) newScale = 100.0;
+  if (new_scale < 0.01) new_scale = 0.01;
+  if (new_scale > 100.0) new_scale = 100.0;
 
-  scale_->setValue(newScale);
+  scale_->setValue(new_scale);
 }
 
-void MainWidget::handleRotationDelta(float dx, float dy) {
+void MainWidget::HandleRotationDelta(float dx, float dy) {
   // Обновляем углы вращения в spinbox'ах
   float new_x = rotate_x_->value() + dx;
   float new_y = rotate_y_->value() + dy;
@@ -435,7 +435,7 @@ void MainWidget::handleRotationDelta(float dx, float dy) {
   rotate_y_->setValue(new_y);
 }
 
-void MainWidget::handleTranslationDelta(float dx, float dy, float dz) {
+void MainWidget::HandleTranslationDelta(float dx, float dy, float dz) {
   // Обновляем значения в спинбоксах
   move_x_->setValue(move_x_->value() + dx);
   move_y_->setValue(move_y_->value() + dy);
@@ -448,70 +448,70 @@ void MainWidget::handleTranslationDelta(float dx, float dy, float dz) {
 
 // RECORDING
 void MainWidget::RecordGif() {
-  if (isRecording) return;
+  if (is_recording_) return;
   qDebug("Начало записи GIF");
-  isRecording = true;
-  gifFrames.clear();
-  frameCounter = 0;
+  is_recording_ = true;
+  gif_frames_.clear();
+  frame_counter_ = 0;
   timer.start(100);  // 10 fps
 }
 
-void MainWidget::stopRecording() {
+void MainWidget::StopRecording() {
   timer.stop();
-  saveGif();
-  isRecording = false;
+  SaveGif();
+  is_recording_ = false;
 }
 
-void MainWidget::captureFrame() {
-  if (frameCounter >= 50) {  // 5 sec * 10 fps
-    stopRecording();
+void MainWidget::CaptureFrame() {
+  if (frame_counter_ >= 50) {  // 5 sec * 10 fps
+    StopRecording();
     return;
   }
 
   QImage frame = gl_widget_->grabFramebuffer();
-  gifFrames.append(
+  gif_frames_.append(
       frame.scaled(640, 480, Qt::KeepAspectRatio, Qt::SmoothTransformation));
 
-  frameCounter++;
+  frame_counter_++;
 }
 
-void MainWidget::saveGif() {
-  QString fileName = QFileDialog::getSaveFileName(
+void MainWidget::SaveGif() {
+  QString file_name = QFileDialog::getSaveFileName(
       this, "Сохранить как GIF", QCoreApplication::applicationDirPath(),
       "GIF Images (*.gif)");
 
-  QDir tempDir = QCoreApplication::applicationDirPath() + "/frames";
-  if (!tempDir.exists()) {
-    tempDir.mkpath(".");
+  QDir temp_dir = QCoreApplication::applicationDirPath() + "/frames";
+  if (!temp_dir.exists()) {
+    temp_dir.mkpath(".");
   }
   for (int i = 0; i < 50; i++) {
-    QString framePath = tempDir.filePath(QString("frame_%1.png").arg(i));
-    gifFrames[i].save(framePath);
+    QString framePath = temp_dir.filePath(QString("frame_%1.png").arg(i));
+    gif_frames_[i].save(framePath);
   }
 
   QProcess ffmpeg;
   ffmpeg.start("ffmpeg", {"-y", "-framerate", "10", "-i",
-                          tempDir.filePath("frame_%d.png"), "-vf",
-                          "scale=640:480", fileName});
+                          temp_dir.filePath("frame_%d.png"), "-vf",
+                          "scale=640:480", file_name});
 
   if (ffmpeg.waitForFinished()) {
     qDebug("Конец записи GIF");
   }
-  tempDir.removeRecursively();
+  temp_dir.removeRecursively();
 }
 
 void MainWidget::SaveBMP() {
-  QString fileName = QFileDialog::getSaveFileName(
+  QString file_name = QFileDialog::getSaveFileName(
       this, "Сохранить как BMP", QCoreApplication::applicationDirPath(),
       "BMP Images (*.bmp)");
-  gl_widget_->grabFramebuffer().save(fileName);
+  gl_widget_->grabFramebuffer().save(file_name);
 }
 
 void MainWidget::SaveJPEG() {
-  QString fileName = QFileDialog::getSaveFileName(
+  QString file_name = QFileDialog::getSaveFileName(
       this, "Сохранить как JPEG", QCoreApplication::applicationDirPath(),
       "JPEG Images (*.jpeg)");
-  gl_widget_->grabFramebuffer().save(fileName);
+  gl_widget_->grabFramebuffer().save(file_name);
 }
 
 QScrollArea* MainWidget::CreateScrollArea() {
@@ -645,7 +645,7 @@ QGroupBox* MainWidget::CreateScaleGroup() {
       .Build();
 }
 QGroupBox* MainWidget::CreateEdgeSettingsGroup() {
-  return s21::VisualSettingsBuilder()
+  return VisualSettingsBuilder()
       .AddComboBox("Тип линии:", edge_type_combo_, {"Сплошная", "Пунктирная"})
       .AddColorWidget("Цвет:", edge_r_color_, edge_g_color_, edge_b_color_,
                       edge_color_preview_, Qt::white)
@@ -653,7 +653,7 @@ QGroupBox* MainWidget::CreateEdgeSettingsGroup() {
       .Build("Настройки ребер");
 }
 QGroupBox* MainWidget::CreateVertexSettingsGroup() {
-  return s21::VisualSettingsBuilder()
+  return VisualSettingsBuilder()
       .AddComboBox("Отображение", vertex_display_combo_,
                    {"Отсутствует", "Круг", "Квадрат"})
       .AddColorWidget("Цвет:", vertex_r_color_, vertex_g_color_,
@@ -662,7 +662,7 @@ QGroupBox* MainWidget::CreateVertexSettingsGroup() {
       .Build("Настройки вершин");
 }
 QGroupBox* MainWidget::CreateBackgroundSettingsGroup() {
-  return s21::VisualSettingsBuilder()
+  return VisualSettingsBuilder()
       .AddColorWidget("Цвет фона:", background_color_r_, background_color_g_,
                       background_color_b_, background_color_preview_, Qt::black)
       .Build("Настройки фона");
@@ -712,7 +712,8 @@ void MainWidget::CreateConnections() {
   connect(gl_widget_, &OpenGLWidget::wheelScrolled, this,
           &MainWidget::OnWheelScrolled);
   connect(gl_widget_, &OpenGLWidget::rotationDeltaChanged, this,
-          &MainWidget::handleRotationDelta);
+          &MainWidget::HandleRotationDelta);
   connect(gl_widget_, &OpenGLWidget::translationDeltaChanged, this,
-          &MainWidget::handleTranslationDelta);
+          &MainWidget::HandleTranslationDelta);
 }
+} // namespace s21

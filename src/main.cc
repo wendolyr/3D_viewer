@@ -1,7 +1,7 @@
 #include <QApplication>
 #include <QSurfaceFormat>
 
-#include "View/MainWidget.h"
+#include "view/main_widget.h"
 
 int main(int argc, char* argv[]) {
   QApplication app(argc, argv);
@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
   QSurfaceFormat::setDefaultFormat(format);
 
   // Создание и отображение главного окна
-  MainWidget window;
+  s21::MainWidget window;
   window.setWindowTitle("3D_Viewer");
   window.resize(1350, 1000);
   window.show();

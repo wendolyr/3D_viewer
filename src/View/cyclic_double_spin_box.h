@@ -1,10 +1,11 @@
-#ifndef CPP4_3DVIEWER_V2_0_VIEW_CYCLICDOUBLESPINBOX_H
-#define CPP4_3DVIEWER_V2_0_VIEW_CYCLICDOUBLESPINBOX_H
+#ifndef CPP4_3DVIEWER_V2_0_VIEW_CYCLIC_DOUBLE_SPIN_BOX_H
+#define CPP4_3DVIEWER_V2_0_VIEW_CYCLIC_DOUBLE_SPIN_BOX_H
 
 #include <QDoubleSpinBox>
 #include <QKeyEvent>
 #include <QWheelEvent>
 
+namespace s21 {
 class CyclicDoubleSpinBox : public QDoubleSpinBox {
   Q_OBJECT
  public:
@@ -15,5 +16,6 @@ class CyclicDoubleSpinBox : public QDoubleSpinBox {
   void wheelEvent(QWheelEvent *event) override;
   void keyPressEvent(QKeyEvent *event) override;
 };
+} // namespace s21
 
-#endif  // CPP4_3DVIEWER_V2_0_VIEW_CYCLICDOUBLESPINBOX_H
+#endif  // CPP4_3DVIEWER_V2_0_VIEW_CYCLIC_DOUBLE_SPIN_BOX_H

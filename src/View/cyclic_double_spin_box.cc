@@ -1,8 +1,9 @@
-#include "CyclicDoubleSpinBox.h"
+#include "cyclic_double_spin_box.h"
 
 #include <QWheelEvent>
 #include <cmath>
 
+namespace s21 {
 CyclicDoubleSpinBox::CyclicDoubleSpinBox(QWidget *parent)
     : QDoubleSpinBox(parent) {}
 
@@ -61,3 +62,4 @@ void CyclicDoubleSpinBox::keyPressEvent(QKeyEvent *event) {
     QDoubleSpinBox::keyPressEvent(event);
   }
 }
+} // namespace s21

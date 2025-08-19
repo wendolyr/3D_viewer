@@ -1,5 +1,6 @@
-#include "TransformControlBuilder.h"
+#include "transform_control_builder.h"
 
+namespace s21 {
 template <typename SpinBoxType>
 TransformBuilder<SpinBoxType>::TransformBuilder(TransformType type)
     : type_(type) {
@@ -91,3 +92,4 @@ int TransformBuilder<SpinBoxType>::GetDecimals() const {
       return 2;
   }
 }
+} // namespace s21

@@ -10,16 +10,16 @@ find_package(Curses REQUIRED)
 
 add_executable(viewer
     main.cc
-    view/MainWidget.cc
-    view/OpenGLWidget.cc
-    view/CyclicDoubleSpinBox.cc
+    view/main_widget.cc
+    view/opengl_widget.cc
+    view/cyclic_double_spin_box.cc
     controller/facade.cc
     model/common_objects.cc
     model/figure.cc
     model/file_manager.cc
     model/strategy.cc
-    view/builder/ColorWidgetBuilder.cc
-    view/builder/VisualSettingsBuilder.cc
+    view/builder/color_widget_builder.cc
+    view/builder/visual_settings_builder.cc
 )
 
 add_compile_options(-Wall -Wextra -Werror)

@@ -1,13 +1,14 @@
-#ifndef CPP4_3DVIEWER_V2_0_VIEW_BUILDER_TEMPLATEAXISCONTROLBUILDER_H
-#define CPP4_3DVIEWER_V2_0_VIEW_BUILDER_TEMPLATEAXISCONTROLBUILDER_H
+#ifndef CPP4_3DVIEWER_V2_0_VIEW_BUILDER_TEMPLATE_AXIS_CONTROL_BUILDER_H
+#define CPP4_3DVIEWER_V2_0_VIEW_BUILDER_TEMPLATE_AXIS_CONTROL_BUILDER_H
 
 #include <QDoubleSpinBox>
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QWidget>
 
-#include "../CyclicDoubleSpinBox.h"
+#include "../cyclic_double_spin_box.h"
 
+namespace s21 {
 template <typename SpinBoxType>
 class TemplateAxisControlBuilder {
  public:
@@ -61,7 +62,8 @@ class TemplateAxisControlBuilder {
   double step_ = 0.1;
   int decimals_ = 2;
 };
+} // namespace s21
 
-#include "TemplateAxisControlBuilder.tpp"
+#include "template_axis_control_builder.tpp"
 
-#endif  // CPP4_3DVIEWER_V2_0_VIEW_BUILDER_TEMPLATEAXISCONTROLBUILDER_H
+#endif  // CPP4_3DVIEWER_V2_0_VIEW_BUILDER_TEMPLATE_AXIS_CONTROL_BUILDER_H

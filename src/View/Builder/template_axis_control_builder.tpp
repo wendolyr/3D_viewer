@@ -1,5 +1,6 @@
-#include "TemplateAxisControlBuilder.h"
+#include "template_axis_control_builder.h"
 
+namespace s21 {
 template <typename SpinBoxType>
 QWidget* TemplateAxisControlBuilder<SpinBoxType>::Build(
     SpinBoxType*& spin_box_ref, std::function<void()> minus_handler,
@@ -45,3 +46,4 @@ QWidget* TemplateAxisControlBuilder<SpinBoxType>::Build(
 
   return container;
 }
+} // namespace s21

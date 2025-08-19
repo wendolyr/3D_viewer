@@ -1,4 +1,4 @@
-#include "ColorWidgetBuilder.h"
+#include "color_widget_builder.h"
 
 #include <QHBoxLayout>
 #include <QLabel>

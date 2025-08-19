@@ -1,7 +1,8 @@
-#include "OpenGLWidget.h"
+#include "opengl_widget.h"
 
 #include <QDebug>
 
+namespace s21 {
 OpenGLWidget::OpenGLWidget(QWidget* parent)
     : QOpenGLWidget(parent),
       vbo_(QOpenGLBuffer::VertexBuffer),
@@ -239,8 +240,8 @@ void OpenGLWidget::paintGL() {
 //     const QVector<QVector3D>& vertices,
 //     const QVector<QPair<unsigned, unsigned>>& edges) {
 void OpenGLWidget::SetModelData(
-    const std::vector<s21::Vertex>& vertices,
-    const std::unordered_set<std::pair<unsigned, unsigned>, s21::PairHash>&
+    const std::vector<Vertex>& vertices,
+    const std::unordered_set<std::pair<unsigned, unsigned>, PairHash>&
         edges) {
   makeCurrent();
   vao_.bind();
@@ -254,7 +255,7 @@ void OpenGLWidget::SetModelData(
   vbo_.create();
   vbo_.bind();
   // vbo_.allocate(vertices.constData(), vertices.size() * sizeof(QVector3D));
-  vbo_.allocate(vertices.data(), vertices.size() * sizeof(s21::Vertex));
+  vbo_.allocate(vertices.data(), vertices.size() * sizeof(Vertex));
 
   QVector<GLuint> indices;
   for (const auto& edge : edges) {
@@ -272,7 +273,7 @@ void OpenGLWidget::SetModelData(
   }
 
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(s21::Vertex), nullptr);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
 
   vbo_.release();
   if (ibo_.isCreated()) ibo_.release();
@@ -411,3 +412,4 @@ void OpenGLWidget::mouseReleaseEvent(QMouseEvent* event) {
     event->ignore();
   }
 }
+} // namespace s21

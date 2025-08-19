@@ -1,12 +1,13 @@
-#ifndef CPP4_3DVIEWER_V2_0_VIEW_BUILDER_TRANSFORMCONTROLBUILDER_H
-#define CPP4_3DVIEWER_V2_0_VIEW_BUILDER_TRANSFORMCONTROLBUILDER_H
+#ifndef CPP4_3DVIEWER_V2_0_VIEW_BUILDER_TRANSFORM_CONTROL_BUILDER_H
+#define CPP4_3DVIEWER_V2_0_VIEW_BUILDER_TRANSFORM_CONTROL_BUILDER_H
 
 #include <QFormLayout>
 #include <QGroupBox>
 
-#include "../Enum.h"
-#include "TemplateAxisControlBuilder.h"
+#include "../enum.h"
+#include "template_axis_control_builder.h"
 
+namespace s21 {
 template <typename SpinBoxType>
 class TransformBuilder {
  public:
@@ -29,7 +30,8 @@ class TransformBuilder {
   QGroupBox* group_;
   QFormLayout* layout_;
 };
+} // namespace s21
 
-#include "TransformControlBuilder.tpp"
+#include "transform_control_builder.tpp"
 
-#endif  // CPP4_3DVIEWER_V2_0_VIEW_BUILDER_TRANSFORMCONTROLBUILDER_H
+#endif  // CPP4_3DVIEWER_V2_0_VIEW_BUILDER_TRANSFORM_CONTROL_BUILDER_H

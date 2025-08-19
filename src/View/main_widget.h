@@ -1,5 +1,5 @@
-#ifndef CPP4_3DVIEWER_V2_0_VIEW_MAINWIDGET_H
-#define CPP4_3DVIEWER_V2_0_VIEW_MAINWIDGET_H
+#ifndef CPP4_3DVIEWER_V2_0_VIEW_MAIN_WIDGET_H
+#define CPP4_3DVIEWER_V2_0_VIEW_MAIN_WIDGET_H
 
 #include <QComboBox>
 #include <QDoubleSpinBox>
@@ -13,10 +13,11 @@
 #include <QWidget>
 
 #include "../controller/facade.h"
-#include "CyclicDoubleSpinBox.h"
-#include "Enum.h"
-#include "OpenGLWidget.h"
+#include "cyclic_double_spin_box.h"
+#include "enum.h"
+#include "opengl_widget.h"
 
+namespace s21 {
 class MainWidget : public QWidget {
  public:
   MainWidget(QWidget* parent = nullptr);
@@ -32,7 +33,7 @@ class MainWidget : public QWidget {
   void showEvent(QShowEvent* event) override;
 
  private:
-  s21::Facade control_;
+  Facade control_;
   OpenGLWidget* gl_widget_;
 
   QString full_file_name_;
@@ -44,6 +45,8 @@ class MainWidget : public QWidget {
   QLabel* file_name_label_;
   QLabel* vertex_count_label_;
   QLabel* edge_count_label_;
+
+  QRadioButton *parallel_btn_, *central_btn_;
 
   // Для цвета ребер
   QSpinBox *edge_r_color_, *edge_g_color_, *edge_b_color_;
@@ -99,16 +102,16 @@ class MainWidget : public QWidget {
   }
 
   // RECORDING
-  bool isRecording = false;
-  QList<QImage> gifFrames;
+  bool is_recording_ = false;
+  QList<QImage> gif_frames_;
   QTimer timer;
-  int frameCounter = 0;
-  void saveGif();
+  int frame_counter_ = 0;
+  void SaveGif();
 
  private slots:
   void OnWheelScrolled(int delta);
-  void handleRotationDelta(float dx, float dy);
-  void handleTranslationDelta(float dx, float dy, float dz);
+  void HandleRotationDelta(float dx, float dy);
+  void HandleTranslationDelta(float dx, float dy, float dz);
   // Сброс преобразований
   void ResetTransform();
   void ResetDisplay();
@@ -117,10 +120,11 @@ class MainWidget : public QWidget {
 
   // RECORDING
   void RecordGif();
-  void stopRecording();
-  void captureFrame();
+  void StopRecording();
+  void CaptureFrame();
   void SaveJPEG();
   void SaveBMP();
 };
+} // namespace s21
 
-#endif  // CPP4_3DVIEWER_V2_0_VIEW_MAINWIDGET_H
+#endif  // CPP4_3DVIEWER_V2_0_VIEW_MAIN_WIDGET_H

@@ -1,9 +1,9 @@
-#include "VisualSettingsBuilder.h"
+#include "visual_settings_builder.h"
 
 #include <QHBoxLayout>
 #include <QLabel>
 
-#include "ColorWidgetBuilder.h"
+#include "color_widget_builder.h"
 
 namespace s21 {
 VisualSettingsBuilder::VisualSettingsBuilder() {
