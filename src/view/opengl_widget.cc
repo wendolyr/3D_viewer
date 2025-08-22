@@ -12,12 +12,12 @@ OpenGLWidget::OpenGLWidget(QWidget* parent)
       scale_(1.0f),
       line_program_(nullptr),
       point_program_(nullptr) {
-  projection_type_ = Central;
-  edge_type_ = Solid;
+  projection_type_ = kCentral;
+  edge_type_ = kSolid;
   edge_color_ = QVector3D(0.8f, 0.8f, 1.0f);
   edge_thickness_ = 1.0f;
 
-  vertex_display_ = Circle;
+  vertex_display_ = kCircle;
   vertex_color_ = QVector3D(1.0f, 0.0f, 0.0f);
   vertex_size_ = 2.0f;
 
@@ -165,7 +165,7 @@ void OpenGLWidget::resizeGL(int w, int h) {
   projection_.setToIdentity();
   float aspect = static_cast<float>(w) / h;
 
-  if (projection_type_ == Central) {
+  if (projection_type_ == kCentral) {
     projection_.perspective(45.0f, aspect, 0.1f, 10000.0f);
   } else {
     float viewSize = 5.0f;
@@ -205,7 +205,7 @@ void OpenGLWidget::paintGL() {
                                    QVector2D(width(), height()));
     line_program_->setUniformValue("u_thickness", edge_thickness_);
     line_program_->setUniformValue("u_color", edge_color_);
-    line_program_->setUniformValue("use_dashing", edge_type_ == Dashed);
+    line_program_->setUniformValue("use_dashing", edge_type_ == kDashed);
     line_program_->setUniformValue("u_dash_size", dash_size_);
     line_program_->setUniformValue("u_gap_size", gap_size_);
 
@@ -216,7 +216,7 @@ void OpenGLWidget::paintGL() {
   }
 
   // ===== Отрисовка точек =====
-  if (vertex_display_ != None && vertex_count_ > 0) {
+  if (vertex_display_ != kNone && vertex_count_ > 0) {
     point_program_->bind();
 
     // Передаем параметры
@@ -241,8 +241,7 @@ void OpenGLWidget::paintGL() {
 //     const QVector<QPair<unsigned, unsigned>>& edges) {
 void OpenGLWidget::SetModelData(
     const std::vector<Vertex>& vertices,
-    const std::unordered_set<std::pair<unsigned, unsigned>, PairHash>&
-        edges) {
+    const std::unordered_set<std::pair<unsigned, unsigned>, PairHash>& edges) {
   makeCurrent();
   vao_.bind();
 
@@ -283,26 +282,16 @@ void OpenGLWidget::SetModelData(
   update();
 }
 
-void OpenGLWidget::ClearModel() {
-  makeCurrent();
-  vbo_.destroy();
-  ibo_.destroy();
-  index_count_ = 0;
-  vertex_count_ = 0;
-  doneCurrent();
-  update();
-}
+// void OpenGLWidget::SetTransformations(const QVector3D& translation,
+//                                       const QVector3D& rotation, float scale)
+//                                       {
+//   translation_ = translation;
+//   rotation_ = rotation;
+//   scale_ = scale;
+//   update();
+// }
 
-void OpenGLWidget::SetTransformations(const QVector3D& translation,
-                                      const QVector3D& rotation, float scale) {
-  translation_ = translation;
-  rotation_ = rotation;
-  scale_ = scale;
-  update();
-}
-
-void OpenGLWidget::NewSetTransformations(
-    std::vector<std::vector<float>>& matrix) {
+void OpenGLWidget::SetTransformations(std::vector<std::vector<float>>& matrix) {
   for (int i = 0; i < 4; ++i) {
     for (int j = 0; j < 4; ++j) {
       model_(i, j) = matrix[i][j];
@@ -345,7 +334,7 @@ void OpenGLWidget::SetBackgroundColor(const QVector3D& color) {
 }
 
 void OpenGLWidget::wheelEvent(QWheelEvent* event) {
-  emit wheelScrolled(event->angleDelta().y());
+  emit WheelScrolled(event->angleDelta().y());
   event->accept();
 }
 
@@ -375,7 +364,7 @@ void OpenGLWidget::mouseMoveEvent(QMouseEvent* event) {
     float delta_y = rotation_sensitivity_ * delta.x();  // Вращение вокруг Y
 
     // Генерируем сигнал с дельтой вращения
-    emit rotationDeltaChanged(delta_x, delta_y);
+    emit RotationDeltaChanged(delta_x, delta_y);
     event->accept();
   } else if (is_panning_) {
     QPoint delta = event->pos() - last_mouse_pos_;
@@ -392,7 +381,7 @@ void OpenGLWidget::mouseMoveEvent(QMouseEvent* event) {
       dy = 0;
     }
 
-    emit translationDeltaChanged(dx, dy, dz);
+    emit TranslationDeltaChanged(dx, dy, dz);
     event->accept();
   } else {
     event->ignore();
@@ -412,4 +401,4 @@ void OpenGLWidget::mouseReleaseEvent(QMouseEvent* event) {
     event->ignore();
   }
 }
-} // namespace s21
+}  // namespace s21

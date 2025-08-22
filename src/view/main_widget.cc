@@ -50,8 +50,10 @@ MainWidget::MainWidget(QWidget* parent) : QWidget(parent), full_file_name_("") {
 
     gl_widget_->SetProjectionType(
         static_cast<OpenGLWidget::ProjectionType>(params.projection_type));
-    parallel_btn_->setChecked(params.projection_type == static_cast<int>(OpenGLWidget::Parallel));
-    central_btn_->setChecked(params.projection_type == static_cast<int>(OpenGLWidget::Central));
+    parallel_btn_->setChecked(params.projection_type ==
+                              static_cast<int>(OpenGLWidget::kParallel));
+    central_btn_->setChecked(params.projection_type ==
+                             static_cast<int>(OpenGLWidget::kCentral));
 
     // если базовое имя файла поменялось, значит файл с моделью существовал и
     // был корректным
@@ -133,8 +135,7 @@ void MainWidget::LoadModel() {
       QMessageBox::warning(this, "Ошибка чтения",
                            "Некорректный файл!\n"
                            "В файле должны быть координаты вершин!",
-                           QMessageBox::Ok
-      );
+                           QMessageBox::Ok);
     }
   }
 }
@@ -155,11 +156,11 @@ void MainWidget::SetupUI() {
 
 double MainWidget::GetStepValue(TransformType type) const {
   switch (type) {
-    case TransformType::Move:
+    case TransformType::kMove:
       return 0.25;
-    case TransformType::Rotate:
+    case TransformType::kRotate:
       return 1.0;
-    case TransformType::Scale:
+    case TransformType::kScale:
       return 0.05;
   }
 }
@@ -172,7 +173,7 @@ double MainWidget::DoStep(double value, bool sum, TransformType type) {
     value -= MainWidget::GetStepValue(type);
   }
   // Для поворотов цикличная арифметика
-  if (type == TransformType::Rotate) {
+  if (type == TransformType::kRotate) {
     value = fmod(value, 360.0);
     if (value < 0.0) value += 360.0;
   } else {
@@ -302,7 +303,7 @@ void MainWidget::OnTransformChanged() {
                                static_cast<float>(move_y_->value()),
                                static_cast<float>(move_z_->value())});
 
-  gl_widget_->NewSetTransformations(matrix);
+  gl_widget_->SetTransformations(matrix);
 }
 
 // tmp разобрать потом и кровью
@@ -362,11 +363,11 @@ QGroupBox* MainWidget::CreateProjectionGroup() {
   central_btn_ = new QRadioButton("Центральная");
   central_btn_->setChecked(true);
   connect(parallel_btn_, &QRadioButton::toggled, [this](bool checked) {
-    if (checked) gl_widget_->SetProjectionType(OpenGLWidget::Parallel);
+    if (checked) gl_widget_->SetProjectionType(OpenGLWidget::kParallel);
   });
 
   connect(central_btn_, &QRadioButton::toggled, [this](bool checked) {
-    if (checked) gl_widget_->SetProjectionType(OpenGLWidget::Central);
+    if (checked) gl_widget_->SetProjectionType(OpenGLWidget::kCentral);
   });
   layout->addWidget(parallel_btn_);
   layout->addWidget(central_btn_);
@@ -408,7 +409,7 @@ void MainWidget::OnWheelScrolled(int delta) {
   int direction = (delta > 0) ? 1 : -1;
 
   // Рассчитываем новый масштаб
-  double step = GetStepValue(TransformType::Scale);
+  double step = GetStepValue(TransformType::kScale);
   double new_scale =
       scale_->value() + direction * step * 0.5;  // Медленное изменение
 
@@ -566,81 +567,81 @@ void MainWidget::CreateSidebar() {
 }
 
 QGroupBox* MainWidget::CreateMoveGroup() {
-  return TransformBuilder<QDoubleSpinBox>(TransformType::Move)
+  return TransformBuilder<QDoubleSpinBox>(TransformType::kMove)
       .AddAxis(
-          Axis::X, GetStepValue(TransformType::Move), move_x_,
-          [this]() { ChangeValue(move_x_, TransformType::Move, false); },
+          Axis::kX, GetStepValue(TransformType::kMove), move_x_,
+          [this]() { ChangeValue(move_x_, TransformType::kMove, false); },
           [this]() {
             move_x_->setValue(
-                DoStep(move_x_->value(), true, TransformType::Move));
+                DoStep(move_x_->value(), true, TransformType::kMove));
           })
       .AddAxis(
-          Axis::Y, GetStepValue(TransformType::Move), move_y_,
+          Axis::kY, GetStepValue(TransformType::kMove), move_y_,
           [this]() {
             move_y_->setValue(
-                DoStep(move_y_->value(), false, TransformType::Move));
+                DoStep(move_y_->value(), false, TransformType::kMove));
           },
           [this]() {
             move_y_->setValue(
-                DoStep(move_y_->value(), true, TransformType::Move));
+                DoStep(move_y_->value(), true, TransformType::kMove));
           })
       .AddAxis(
-          Axis::Z, GetStepValue(TransformType::Move), move_z_,
+          Axis::kZ, GetStepValue(TransformType::kMove), move_z_,
           [this]() {
             move_z_->setValue(
-                DoStep(move_z_->value(), false, TransformType::Move));
+                DoStep(move_z_->value(), false, TransformType::kMove));
           },
           [this]() {
             move_z_->setValue(
-                DoStep(move_z_->value(), true, TransformType::Move));
+                DoStep(move_z_->value(), true, TransformType::kMove));
           })
       .Build();
 }
 QGroupBox* MainWidget::CreateRotateGroup() {
-  return TransformBuilder<CyclicDoubleSpinBox>(TransformType::Rotate)
+  return TransformBuilder<CyclicDoubleSpinBox>(TransformType::kRotate)
       .AddAxis(
-          Axis::X, GetStepValue(TransformType::Rotate), rotate_x_,
+          Axis::kX, GetStepValue(TransformType::kRotate), rotate_x_,
           [this]() {
             rotate_x_->setValue(
-                DoStep(rotate_x_->value(), false, TransformType::Rotate));
+                DoStep(rotate_x_->value(), false, TransformType::kRotate));
           },
           [this]() {
             rotate_x_->setValue(
-                DoStep(rotate_x_->value(), true, TransformType::Rotate));
+                DoStep(rotate_x_->value(), true, TransformType::kRotate));
           })
       .AddAxis(
-          Axis::Y, GetStepValue(TransformType::Rotate), rotate_y_,
+          Axis::kY, GetStepValue(TransformType::kRotate), rotate_y_,
           [this]() {
             rotate_y_->setValue(
-                DoStep(rotate_y_->value(), false, TransformType::Rotate));
+                DoStep(rotate_y_->value(), false, TransformType::kRotate));
           },
           [this]() {
             rotate_y_->setValue(
-                DoStep(rotate_y_->value(), true, TransformType::Rotate));
+                DoStep(rotate_y_->value(), true, TransformType::kRotate));
           })
       .AddAxis(
-          Axis::Z, GetStepValue(TransformType::Rotate), rotate_z_,
+          Axis::kZ, GetStepValue(TransformType::kRotate), rotate_z_,
           [this]() {
             rotate_z_->setValue(
-                DoStep(rotate_z_->value(), false, TransformType::Rotate));
+                DoStep(rotate_z_->value(), false, TransformType::kRotate));
           },
           [this]() {
             rotate_z_->setValue(
-                DoStep(rotate_z_->value(), true, TransformType::Rotate));
+                DoStep(rotate_z_->value(), true, TransformType::kRotate));
           })
       .Build();
 }
 QGroupBox* MainWidget::CreateScaleGroup() {
-  return TransformBuilder<QDoubleSpinBox>(TransformType::Scale)
+  return TransformBuilder<QDoubleSpinBox>(TransformType::kScale)
       .AddAxis(
-          Axis::None, GetStepValue(TransformType::Scale), scale_,
+          Axis::kNone, GetStepValue(TransformType::kScale), scale_,
           [this]() {
             scale_->setValue(
-                DoStep(scale_->value(), false, TransformType::Scale));
+                DoStep(scale_->value(), false, TransformType::kScale));
           },
           [this]() {
             scale_->setValue(
-                DoStep(scale_->value(), true, TransformType::Scale));
+                DoStep(scale_->value(), true, TransformType::kScale));
           })
       .Build();
 }
@@ -709,11 +710,11 @@ void MainWidget::CreateConnections() {
       {background_color_r_, background_color_g_, background_color_b_},
       UpdateBackground);
   // Управление мышью
-  connect(gl_widget_, &OpenGLWidget::wheelScrolled, this,
+  connect(gl_widget_, &OpenGLWidget::WheelScrolled, this,
           &MainWidget::OnWheelScrolled);
-  connect(gl_widget_, &OpenGLWidget::rotationDeltaChanged, this,
+  connect(gl_widget_, &OpenGLWidget::RotationDeltaChanged, this,
           &MainWidget::HandleRotationDelta);
-  connect(gl_widget_, &OpenGLWidget::translationDeltaChanged, this,
+  connect(gl_widget_, &OpenGLWidget::TranslationDeltaChanged, this,
           &MainWidget::HandleTranslationDelta);
 }
-} // namespace s21
+}  // namespace s21

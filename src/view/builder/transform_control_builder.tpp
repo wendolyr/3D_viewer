@@ -13,7 +13,7 @@ TransformBuilder<SpinBoxType>& TransformBuilder<SpinBoxType>::AddAxis(
     Axis axis, double step, SpinBoxType*& widgetRef,
     std::function<void()> minusHandler, std::function<void()> plusHandler) {
   QString label = GetAxisLabel(axis);
-  if (type_ == TransformType::Scale) {
+  if (type_ == TransformType::kScale) {
     auto axis_widget = TemplateAxisControlBuilder<SpinBoxType>()
                            .WithRange(GetMinValue(), GetMaxValue())
                            .WithDefaultValue(1.0)
@@ -36,11 +36,11 @@ TransformBuilder<SpinBoxType>& TransformBuilder<SpinBoxType>::AddAxis(
 template <typename SpinBoxType>
 QString TransformBuilder<SpinBoxType>::GetTitle() const {
   switch (type_) {
-    case TransformType::Move:
+    case TransformType::kMove:
       return "Перемещение";
-    case TransformType::Rotate:
+    case TransformType::kRotate:
       return "Поворот";
-    case TransformType::Scale:
+    case TransformType::kScale:
       return "Масштабирование";
   }
 }
@@ -48,13 +48,13 @@ QString TransformBuilder<SpinBoxType>::GetTitle() const {
 template <typename SpinBoxType>
 QString TransformBuilder<SpinBoxType>::GetAxisLabel(Axis axis) const {
   switch (axis) {
-    case Axis::X:
+    case Axis::kX:
       return "По X:";
-    case Axis::Y:
+    case Axis::kY:
       return "По Y:";
-    case Axis::Z:
+    case Axis::kZ:
       return "По Z:";
-    case Axis::None:
+    case Axis::kNone:
       return "Коэффициент:";
   }
 }
@@ -62,11 +62,11 @@ QString TransformBuilder<SpinBoxType>::GetAxisLabel(Axis axis) const {
 template <typename SpinBoxType>
 double TransformBuilder<SpinBoxType>::GetMinValue() const {
   switch (type_) {
-    case TransformType::Move:
+    case TransformType::kMove:
       return -100000.0;
-    case TransformType::Rotate:
+    case TransformType::kRotate:
       return 0.0;
-    case TransformType::Scale:
+    case TransformType::kScale:
       return 0.01;
   }
 }
@@ -74,11 +74,11 @@ double TransformBuilder<SpinBoxType>::GetMinValue() const {
 template <typename SpinBoxType>
 double TransformBuilder<SpinBoxType>::GetMaxValue() const {
   switch (type_) {
-    case TransformType::Move:
+    case TransformType::kMove:
       return 100000.0;
-    case TransformType::Rotate:
-      return 359.0;
-    case TransformType::Scale:
+    case TransformType::kRotate:
+      return 360.0;
+    case TransformType::kScale:
       return 1000.0;
   }
 }
@@ -86,10 +86,10 @@ double TransformBuilder<SpinBoxType>::GetMaxValue() const {
 template <typename SpinBoxType>
 int TransformBuilder<SpinBoxType>::GetDecimals() const {
   switch (type_) {
-    case TransformType::Rotate:
+    case TransformType::kRotate:
       return 0;
     default:
       return 2;
   }
 }
-} // namespace s21
+}  // namespace s21

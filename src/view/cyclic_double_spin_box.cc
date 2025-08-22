@@ -33,6 +33,7 @@ void CyclicDoubleSpinBox::stepBy(int steps) {
   // Убедимся, что значение находится в пределах [min_val, max_val]
   if (new_value < min_val) new_value = min_val;
   if (new_value > max_val) new_value = max_val;
+  if (new_value == max_val) new_value = min_val;
 
   setValue(new_value);
 }
@@ -62,4 +63,4 @@ void CyclicDoubleSpinBox::keyPressEvent(QKeyEvent *event) {
     QDoubleSpinBox::keyPressEvent(event);
   }
 }
-} // namespace s21
+}  // namespace s21
