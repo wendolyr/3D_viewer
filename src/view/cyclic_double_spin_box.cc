@@ -13,37 +13,29 @@ void CyclicDoubleSpinBox::stepBy(int steps) {
   const double step = singleStep();
   double new_value = value() + steps * step;
 
-  // Рассчитываем диапазон цикла
   const double range = max_val - min_val + step;
 
-  if (range <= 0) {
+  if (new_value >= min_val && new_value <= max_val) {
     setValue(new_value);
     return;
   }
 
-  // Корректируем значение с учётом циклического диапазона
-  if (new_value > max_val) {
-    new_value = min_val + std::fmod(new_value - min_val, range);
-    if (new_value < min_val) new_value += range;
-  } else if (new_value < min_val) {
-    new_value = max_val - std::fmod(min_val - new_value, range);
-    if (new_value > max_val) new_value -= range;
+  double normalized_value = std::fmod(new_value - min_val, range);
+  if (normalized_value < 0) {
+    normalized_value += range;
+  }
+  normalized_value += min_val;
+  if (normalized_value > max_val) {
+    normalized_value -= range;
   }
 
-  // Убедимся, что значение находится в пределах [min_val, max_val]
-  if (new_value < min_val) new_value = min_val;
-  if (new_value > max_val) new_value = max_val;
-  if (new_value == max_val) new_value = min_val;
-
-  setValue(new_value);
+  setValue(normalized_value);
 }
 
-// Обработчик колесика мыши
 void CyclicDoubleSpinBox::wheelEvent(QWheelEvent *event) {
   // Определяем направление прокрутки
   int steps = (event->angleDelta().y() > 0) ? 1 : -1;
 
-  // Вызываем stepBy с нужным количеством шагов
   stepBy(steps);
 
   // Принимаем событие, чтобы предотвратить стандартную обработку

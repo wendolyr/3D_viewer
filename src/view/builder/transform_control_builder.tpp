@@ -77,7 +77,7 @@ double TransformBuilder<SpinBoxType>::GetMaxValue() const {
     case TransformType::kMove:
       return 100000.0;
     case TransformType::kRotate:
-      return 360.0;
+      return 359.0;
     case TransformType::kScale:
       return 1000.0;
   }
