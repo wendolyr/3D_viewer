@@ -12,6 +12,7 @@
 #include <unordered_set>
 
 #include "../controller/facade.h"
+#include "shader_manager.h"
 
 namespace s21 {
 /**
@@ -164,8 +165,7 @@ class OpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
 
  private:
   QMatrix4x4 model_;  ///< Матрица модели
-  QOpenGLShaderProgram* line_program_;  ///< Шейдерная программа для линий
-  QOpenGLShaderProgram* point_program_;  ///< Шейдерная программа для точек
+  std::unique_ptr<ShaderManager> shader_manager_;  ///< Менеджер шейдеров
   QOpenGLBuffer vbo_;             ///< Вершинный буфер
   QOpenGLBuffer ibo_;             ///< Индексный буфер
   QOpenGLVertexArrayObject vao_;  ///< Vertex Array Object

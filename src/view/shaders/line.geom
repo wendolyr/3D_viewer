@@ -1,0 +1,43 @@
+#version 410 core
+layout(lines) in;
+layout(triangle_strip, max_vertices = 4) out;
+in vec3 v_position[];
+out vec3 g_position;
+flat out vec3 start;
+flat out vec3 end;
+out vec2 screen_pos;
+flat out vec2 screen_start;
+flat out vec2 screen_end;
+uniform vec2 u_resolution;
+uniform float u_thickness;
+void main() {
+  vec4 p0 = gl_in[0].gl_Position;
+  vec4 p1 = gl_in[1].gl_Position;
+  screen_start = (p0.xy / p0.w) * u_resolution;
+  screen_end = (p1.xy / p1.w) * u_resolution;
+  vec2 screen0 = screen_start;
+  vec2 screen1 = screen_end;
+  vec2 dir = normalize(screen1 - screen0);
+  vec2 normal = vec2(-dir.y, dir.x);
+  normal /= u_resolution;
+  normal *= u_thickness;
+  start = v_position[0];
+  end = v_position[1];
+  gl_Position = p0 + vec4(normal * p0.w, 0, 0);
+  g_position = v_position[0];
+  screen_pos = (gl_Position.xy / gl_Position.w) * u_resolution;
+  EmitVertex();
+  gl_Position = p0 - vec4(normal * p0.w, 0, 0);
+  g_position = v_position[0];
+  screen_pos = (gl_Position.xy / gl_Position.w) * u_resolution;
+  EmitVertex();
+  gl_Position = p1 + vec4(normal * p1.w, 0, 0);
+  g_position = v_position[1];
+  screen_pos = (gl_Position.xy / gl_Position.w) * u_resolution;
+  EmitVertex();
+  gl_Position = p1 - vec4(normal * p1.w, 0, 0);
+  g_position = v_position[1];
+  screen_pos = (gl_Position.xy / gl_Position.w) * u_resolution;
+  EmitVertex();
+  EndPrimitive();
+}
