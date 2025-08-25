@@ -9,11 +9,7 @@ OpenGLWidget::OpenGLWidget(QWidget* parent)
       ibo_(QOpenGLBuffer::IndexBuffer),
       translation_(0.0f, 0.0f, 0.0f),
       rotation_(0.0f, 0.0f, 0.0f),
-      scale_(1.0f)
-// ,
-// line_program_(nullptr),
-// point_program_(nullptr)
-{
+      scale_(1.0f) {
   shader_manager_ = std::make_unique<ShaderManager>();
   projection_type_ = kCentral;
   edge_type_ = kSolid;
@@ -32,8 +28,6 @@ OpenGLWidget::~OpenGLWidget() {
   vbo_.destroy();
   ibo_.destroy();
   vao_.destroy();
-  // delete line_program_;
-  // delete point_program_;
   doneCurrent();
 }
 
@@ -49,121 +43,6 @@ void OpenGLWidget::initializeGL() {
     qWarning() << "Failed to initialize shaders";
     return;
   }
-  // // Программа для линий
-  // line_program_ = new QOpenGLShaderProgram(this);
-  // // Вершинный шейдер для линий
-  // line_program_->addShaderFromSourceCode(
-  //     QOpenGLShader::Vertex,
-  //     "#version 410 core\n"
-  //     "layout(location = 0) in vec3 a_position;\n"
-  //     "out vec3 v_position;\n"
-  //     "uniform mat4 u_mvp;\n"
-  //     "void main() {\n"
-  //     "    v_position = a_position;\n"
-  //     "    gl_Position = u_mvp * vec4(a_position, 1.0);\n"
-  //     "}");
-  // // Геометрический шейдер для линий
-  // line_program_->addShaderFromSourceCode(
-  //     QOpenGLShader::Geometry,
-  //     "#version 410 core\n"
-  //     "layout(lines) in;\n"
-  //     "layout(triangle_strip, max_vertices = 4) out;\n"
-  //     "in vec3 v_position[];\n"
-  //     "out vec3 g_position;\n"
-  //     "flat out vec3 start;\n"
-  //     "flat out vec3 end;\n"
-  //     "out vec2 screen_pos;\n"
-  //     "flat out vec2 screen_start;\n"
-  //     "flat out vec2 screen_end;\n"
-  //     "uniform vec2 u_resolution;\n"
-  //     "uniform float u_thickness;\n"
-  //     "void main() {\n"
-  //     "    vec4 p0 = gl_in[0].gl_Position;\n"
-  //     "    vec4 p1 = gl_in[1].gl_Position;\n"
-  //     "    screen_start = (p0.xy / p0.w) * u_resolution;\n"
-  //     "    screen_end = (p1.xy / p1.w) * u_resolution;\n"
-  //     "    vec2 screen0 = screen_start;\n"
-  //     "    vec2 screen1 = screen_end;\n"
-  //     "    vec2 dir = normalize(screen1 - screen0);\n"
-  //     "    vec2 normal = vec2(-dir.y, dir.x);\n"
-  //     "    normal /= u_resolution;\n"
-  //     "    normal *= u_thickness;\n"
-  //     "    start = v_position[0];\n"
-  //     "    end = v_position[1];\n"
-  //     "    gl_Position = p0 + vec4(normal * p0.w, 0, 0);\n"
-  //     "    g_position = v_position[0];\n"
-  //     "    screen_pos = (gl_Position.xy / gl_Position.w) * u_resolution;\n"
-  //     "    EmitVertex();\n"
-  //     "    gl_Position = p0 - vec4(normal * p0.w, 0, 0);\n"
-  //     "    g_position = v_position[0];\n"
-  //     "    screen_pos = (gl_Position.xy / gl_Position.w) * u_resolution;\n"
-  //     "    EmitVertex();\n"
-  //     "    gl_Position = p1 + vec4(normal * p1.w, 0, 0);\n"
-  //     "    g_position = v_position[1];\n"
-  //     "    screen_pos = (gl_Position.xy / gl_Position.w) * u_resolution;\n"
-  //     "    EmitVertex();\n"
-  //     "    gl_Position = p1 - vec4(normal * p1.w, 0, 0);\n"
-  //     "    g_position = v_position[1];\n"
-  //     "    screen_pos = (gl_Position.xy / gl_Position.w) * u_resolution;\n"
-  //     "    EmitVertex();\n"
-  //     "    EndPrimitive();\n"
-  //     "}");
-  // // Фрагментный шейдер для линий
-  // line_program_->addShaderFromSourceCode(
-  //     QOpenGLShader::Fragment,
-  //     "#version 410 core\n"
-  //     "in vec3 g_position;\n"
-  //     "flat in vec3 start;\n"
-  //     "flat in vec3 end;\n"
-  //     "in vec2 screen_pos;\n"
-  //     "flat in vec2 screen_start;\n"
-  //     "flat in vec2 screen_end;\n"
-  //     "uniform vec3 u_color;\n"
-  //     "uniform float u_dash_size;\n"
-  //     "uniform float u_gap_size;\n"
-  //     "uniform bool use_dashing;\n"
-  //     "out vec4 fragColor;\n"
-  //     "void main() {\n"
-  //     "    if (use_dashing) {\n"
-  //     "        vec2 dir = normalize(screen_end - screen_start);\n"
-  //     "        float pos = dot(screen_pos - screen_start, dir);\n"
-  //     "        float cycle = u_dash_size + u_gap_size;\n"
-  //     "        if (fract(pos / cycle) > (u_dash_size / cycle)) {\n"
-  //     "            discard;\n"
-  //     "        }\n"
-  //     "    }\n"
-  //     "    fragColor = vec4(u_color, 1.0);\n"
-  //     "}");
-  // line_program_->link();
-
-  // // Программа для точек
-  // point_program_ = new QOpenGLShaderProgram(this);
-  // // Вершинный шейдер для точек
-  // point_program_->addShaderFromSourceCode(
-  //     QOpenGLShader::Vertex,
-  //     "#version 410 core\n"
-  //     "layout(location = 0) in vec3 a_position;\n"
-  //     "uniform mat4 u_mvp;\n"
-  //     "uniform float u_vertex_size;\n"
-  //     "void main() {\n"
-  //     "    gl_Position = u_mvp * vec4(a_position, 1.0);\n"
-  //     "    gl_PointSize = u_vertex_size;\n"
-  //     "}");
-  // // Фрагментный шейдер для точек
-  // point_program_->addShaderFromSourceCode(
-  //     QOpenGLShader::Fragment,
-  //     "#version 410 core\n"
-  //     "uniform vec3 u_color;\n"
-  //     "uniform int u_vertex_display;\n"
-  //     "out vec4 fragColor;\n"
-  //     "void main() {\n"
-  //     "    if (u_vertex_display == 1) {\n"
-  //     "        vec2 coord = gl_PointCoord.xy - vec2(0.5);\n"
-  //     "        if (dot(coord, coord) > 0.25) discard;\n"
-  //     "    }\n"
-  //     "    fragColor = vec4(u_color, 1.0);\n"
-  //     "}");
-  // point_program_->link();
 
   resizeGL(width(), height());
 }
@@ -192,20 +71,11 @@ void OpenGLWidget::paintGL() {
 
   QMatrix4x4 view;
   view.translate(0.0f, 0.0f, -15.0f);
-  // Модель нужно вынести из view и все её преобразования в том-числе
-  // QMatrix4x4 model;
-  // model.translate(translation_);
-  // model.rotate(rotation_.x(), 1.0f, 0.0f, 0.0f);
-  // model.rotate(rotation_.y(), 0.0f, 1.0f, 0.0f);
-  // model.rotate(rotation_.z(), 0.0f, 0.0f, 1.0f);
-  // model.scale(scale_);
 
   QMatrix4x4 mvp = projection_ * view * model_;
 
-  // ===== Отрисовка линий =====
   if (index_count_ > 0) {
-    auto line_program_ =
-        shader_manager_->/*ShaderManager::*/ GetShader(ShaderManager::kLINE);
+    auto line_program_ = shader_manager_->GetShader(ShaderManager::kLINE);
     if (line_program_) {
       line_program_->bind();
 
@@ -226,10 +96,8 @@ void OpenGLWidget::paintGL() {
     }
   }
 
-  // ===== Отрисовка точек =====
   if (vertex_display_ != kNone && vertex_count_ > 0) {
-    auto point_program_ =
-        shader_manager_->/*ShaderManager::*/ GetShader(ShaderManager::kPOINT);
+    auto point_program_ = shader_manager_->GetShader(ShaderManager::kPOINT);
     if (point_program_) {
       point_program_->bind();
 
@@ -251,9 +119,6 @@ void OpenGLWidget::paintGL() {
   vao_.release();
 }
 
-// void OpenGLWidget::SetModelData(
-//     const QVector<QVector3D>& vertices,
-//     const QVector<QPair<unsigned, unsigned>>& edges) {
 void OpenGLWidget::SetModelData(
     const std::vector<Vertex>& vertices,
     const std::unordered_set<std::pair<unsigned, unsigned>, PairHash>& edges) {
@@ -268,7 +133,6 @@ void OpenGLWidget::SetModelData(
 
   vbo_.create();
   vbo_.bind();
-  // vbo_.allocate(vertices.constData(), vertices.size() * sizeof(QVector3D));
   vbo_.allocate(vertices.data(), vertices.size() * sizeof(Vertex));
 
   QVector<GLuint> indices;
@@ -296,15 +160,6 @@ void OpenGLWidget::SetModelData(
   doneCurrent();
   update();
 }
-
-// void OpenGLWidget::SetTransformations(const QVector3D& translation,
-//                                       const QVector3D& rotation, float scale)
-//                                       {
-//   translation_ = translation;
-//   rotation_ = rotation;
-//   scale_ = scale;
-//   update();
-// }
 
 void OpenGLWidget::SetTransformations(std::vector<std::vector<float>>& matrix) {
   for (int i = 0; i < 4; ++i) {
