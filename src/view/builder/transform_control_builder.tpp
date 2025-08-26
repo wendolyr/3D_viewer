@@ -42,6 +42,8 @@ QString TransformBuilder<SpinBoxType>::GetTitle() const {
       return "Поворот";
     case TransformType::kScale:
       return "Масштабирование";
+    default:
+      return "";
   }
 }
 
@@ -56,6 +58,8 @@ QString TransformBuilder<SpinBoxType>::GetAxisLabel(Axis axis) const {
       return "По Z:";
     case Axis::kNone:
       return "Коэффициент:";
+    default:
+      return "";
   }
 }
 
@@ -68,6 +72,8 @@ double TransformBuilder<SpinBoxType>::GetMinValue() const {
       return 0.0;
     case TransformType::kScale:
       return 0.01;
+    default:
+      return 0.0;
   }
 }
 
@@ -80,6 +86,8 @@ double TransformBuilder<SpinBoxType>::GetMaxValue() const {
       return 359.0;
     case TransformType::kScale:
       return 1000.0;
+    default:
+      return 0.0;
   }
 }
 

@@ -118,7 +118,19 @@ void MainWidget::LoadModel() {
     FileError error = control_.ParseFile(file_name.toStdString());
     if (error == FileError::kOk) {
       full_file_name_ = file_info.fileName();
-      MainWidget::ResetTransform();
+      // MainWidget::ResetTransform();  // edfe
+      Params p = control_.GetCurrentSettings();
+      move_x_->setValue(p.shift.x);
+      move_y_->setValue(p.shift.y);
+      move_z_->setValue(p.shift.z);
+
+      rotate_x_->setValue(p.rotation.x);
+      rotate_y_->setValue(p.rotation.y);
+      rotate_z_->setValue(p.rotation.z);
+
+      scale_->setValue(p.scale);
+      OnTransformChanged();
+
       MainWidget::UpdateFileNameLabel();
       std::vector<Vertex> vertices = control_.GetVertices();
       std::unordered_set<std::pair<unsigned, unsigned>, PairHash> edges =
@@ -162,6 +174,8 @@ double MainWidget::GetStepValue(TransformType type) const {
       return 1.0;
     case TransformType::kScale:
       return 0.05;
+    default:
+      return 0;
   }
 }
 
@@ -313,7 +327,8 @@ QGroupBox* MainWidget::CreateLoadGroup() {
   QVBoxLayout* layout = new QVBoxLayout(group);
 
   file_name_label_ = new QLabel("Файл не выбран");
-  file_name_label_->setFrameStyle(QFrame::Panel | QFrame::Sunken);
+  file_name_label_->setFrameStyle(static_cast<int>(QFrame::Panel) |
+                                  static_cast<int>(QFrame::Sunken));
   file_name_label_->setStyleSheet(
       "padding: 3px; background-color: #F0F0F0; color: #0d0c0c;");
   file_name_label_->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);

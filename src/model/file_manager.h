@@ -8,6 +8,7 @@
 
 #include <charconv>
 #include <fstream>
+#include <limits>
 #include <sstream>
 #include <string>
 
@@ -25,6 +26,15 @@ namespace s21 {
  */
 class FileManager {
  public:
+  struct MinMaxValues {
+    float min_x = std::numeric_limits<float>::max();
+    float min_y = std::numeric_limits<float>::max();
+    float min_z = std::numeric_limits<float>::max();
+    float max_x = std::numeric_limits<float>::lowest();
+    float max_y = std::numeric_limits<float>::lowest();
+    float max_z = std::numeric_limits<float>::lowest();
+  };
+
   /**
    * @brief Parses a .obj file into FigureModel
    * @returns FileError status.
@@ -47,7 +57,8 @@ class FileManager {
    * @brief Helper for parsing line with vertices
    * @returns FileError status.
    */
-  FileError ParseVertices(const char *ptr, std::vector<Vertex> &vertices);
+  FileError ParseVertices(const char *ptr, std::vector<Vertex> &vertices,
+                          MinMaxValues &values);
 
   /**
    * @brief Helper for parsing line with edges
