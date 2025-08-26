@@ -14,15 +14,13 @@ DIST_DIR = dist
 DIST_NAME = 3D_viewer_v2.0.tar.gz
 DIST_FILES = controller model view tests Makefile CmakeLists.txt Doxyfile *.cc
 
-all: clean lib.a
+all: clean install
 
 install: uninstall
 		@mkdir -p build
 		@cd build && cmake ..
 		@$(MAKE) -C build
 
-lib.a: $(BACK_OBJ)
-		@ar rcs $@ $^
 
 uninstall: 
 		@rm -rf build
@@ -34,6 +32,7 @@ test: clean $(BACK_OBJ)
 		@$(CXX) $(CXXFLAGS) $(BACK_OBJ) $(TEST_SRC) -o $(TESTS_BIN) -lgtest
 		@clear
 		@./$(TESTS_BIN)
+		@rm -rf .last_settings.txt
 
 gcov_report: CXXFLAGS += --coverage
 gcov_report: test
@@ -60,9 +59,18 @@ dist:	clear
 
 leaks: test
 		@leaks -atExit -- ./$(TESTS_BIN)
+		@rm -rf .last_settings.txt
 
 valgrind: test
 		@valgrind --tool=memcheck --leak-check=yes ./$(TESTS_BIN)
+		@rm -rf .last_settings.txt
+
+clang:
+		@echo "Checking clang-format..."
+		@cp ../materials/linters/.clang-format .
+		@find . -type f -name "*.cc" -exec clang-format -n {} \;
+		@rm -rf .clang-format
+		@echo "Checking completed!"
 
 clean:
 		@rm -rf $(OBJ_DIR) $(TESTS_BIN) $(LOGS_DIR) *.gcno *.gcda .last_object.obj .last_settings.txt doxygen *.a *.out

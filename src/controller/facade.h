@@ -24,36 +24,73 @@ class Facade {
   Facade() = default;
   ~Facade() = default;
 
-  /// Parses a 3D object file and initializes the model.
+  /**
+   * @brief Parses a 3D object file and initializes the model
+   * @param file - name of the object file
+   * @returns FileError status
+   */
   FileError ParseFile(const std::string& file);
 
-  /// Saves the current model state and view settings to files.
+  /**
+   * @brief Saves the current model state and view settings to files
+   * @param view_param - current visual settings (colors, thickness etc)
+   */
   void SaveModel(ViewParams& view_params);
 
-  /// Loads the last saved model state and view settings. Returns true on
-  /// success.
+  /**
+   * @brief Loads the last saved model state and view settings
+   * @param view_param - current visual settings (colors, thickness etc)
+   * @returns True if loaded successfully and false otherwise
+   */
   bool LoadLastState(ViewParams& view_params);
 
-  /// Returns a reference to the model's vertex data.
+  /**
+   * @brief Getter for vertices
+   * @returns Constant reference to the model vertices
+   */
   const std::vector<Vertex>& GetVertices() const;
 
-  /// Returns a reference to the model's polygon edge indices.
+  /**
+   * @brief Getter for edges
+   * @returns Constant reference to the model edges
+   */
   const std::unordered_set<std::pair<unsigned, unsigned>, PairHash>& GetEdges()
       const;
 
-  /// Returns current transformation parameters (shift, rotation, scale).
+  /**
+   * @brief Getter for current settings (shift, rotate, scale)
+   * @returns Params struct which contains shift, rotate, scale
+   */
   const Params GetCurrentSettings() const;
 
-  /// Translates the model by the specified offset.
+  /**
+   * @brief Calculates a 4x4 representation matrix for the current axis offset
+   * @param matrix - reference to the current representation matrix
+   * @param shift - current offset in x, y, z
+   * @warning matrix must be 4x4!
+   */
   void MoveFigure(std::vector<std::vector<float>>& matrix, Vertex&& shift);
 
-  /// Scales the model by the given factor.
+  /**
+   * @brief Calculates a 4x4 representation matrix for the current scale
+   * @param matrix - reference to the current representation matrix
+   * @param scale - current scale factor
+   * @warning matrix must be 4x4!
+   */
   void ScaleFigure(std::vector<std::vector<float>>& matrix, float scale);
 
   /// Rotates the model by the specified angles (in degrees).
+  /**
+   * @brief Rotates the model by the specified angles (in degrees)
+   * @param matrix - reference to the current representation matrix
+   * @param angle - current rotation angles along the x, y, z axes
+   * @warning matrix must be 4x4!
+   */
   void RotateFigure(std::vector<std::vector<float>>& matrix, Vertex&& angle);
 
-  /// Resets all transformations to initial state.
+  /**
+   * @brief Resets all transformations to initial state
+   */
   void ResetSettings();
 
  private:

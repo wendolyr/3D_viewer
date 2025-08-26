@@ -22,10 +22,15 @@ class TransformStrategy {
  public:
   virtual ~TransformStrategy() = default;
 
-  /// Applies transformation to vertices using the parameter value
+  /**
+   * @brief Applies transformation to vertices using the parameter value
+   */
   virtual void Transform(std::vector<std::vector<float>> &matrix,
                          const Vertex value) = 0;
 
+  /**
+   * @brief Method for multiplying two matrices
+   */
   std::vector<std::vector<float>> MulSquareMatrix(
       std::vector<std::vector<float>> &matrix_one,
       std::vector<std::vector<float>> &matrix_two);

@@ -26,4 +26,6 @@ void CreateEmptyLastSettingsFile();
 void CreateIncorrectLastObjectFile();
 void CreateEmptyLastObjectFile();
 
+std::vector<std::vector<float>> CreateMatrix();
+
 #endif

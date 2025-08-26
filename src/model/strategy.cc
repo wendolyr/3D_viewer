@@ -53,20 +53,23 @@ void RotateStrategy::Transform(std::vector<std::vector<float>> &matrix,
   float ry = axis.y * M_PI / 180;
   float rz = axis.z * M_PI / 180;
 
-  std::vector<std::vector<float>> Rx = {{1, 0, 0, 0},
-                                        {0, cos(rx), -sin(rx), 0},
-                                        {0, sin(rx), cos(rx), 0},
-                                        {0, 0, 0, 1}};
+  std::vector<std::vector<float>> Rx = {
+      {1, 0, 0, 0},
+      {0, static_cast<float>(cos(rx)), static_cast<float>(-sin(rx)), 0},
+      {0, static_cast<float>(sin(rx)), static_cast<float>(cos(rx)), 0},
+      {0, 0, 0, 1}};
 
-  std::vector<std::vector<float>> Ry = {{cos(ry), 0, sin(ry), 0},
-                                        {0, 1, 0, 0},
-                                        {-sin(ry), 0, cos(ry), 0},
-                                        {0, 0, 0, 1}};
+  std::vector<std::vector<float>> Ry = {
+      {static_cast<float>(cos(ry)), 0, static_cast<float>(sin(ry)), 0},
+      {0, 1, 0, 0},
+      {static_cast<float>(-sin(ry)), 0, static_cast<float>(cos(ry)), 0},
+      {0, 0, 0, 1}};
 
-  std::vector<std::vector<float>> Rz = {{cos(rz), -sin(rz), 0, 0},
-                                        {sin(rz), cos(rz), 0, 0},
-                                        {0, 0, 1, 0},
-                                        {0, 0, 0, 1}};
+  std::vector<std::vector<float>> Rz = {
+      {static_cast<float>(cos(rz)), static_cast<float>(-sin(rz)), 0, 0},
+      {static_cast<float>(sin(rz)), static_cast<float>(cos(rz)), 0, 0},
+      {0, 0, 1, 0},
+      {0, 0, 0, 1}};
 
   auto Rxy = MulSquareMatrix(Ry, Rx);
   std::vector<std::vector<float>> R = MulSquareMatrix(Rz, Rxy);

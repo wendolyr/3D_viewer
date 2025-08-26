@@ -1,7 +1,7 @@
 #ifndef CPP4_3DVIEWER_V2_0_VIEW_SHADER_MANAGER_H
 #define CPP4_3DVIEWER_V2_0_VIEW_SHADER_MANAGER_H
 
-#include <QOPenGLShaderProgram>
+#include <QOpenGLShaderProgram>
 #include <QString>
 
 namespace s21 {

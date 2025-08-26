@@ -81,7 +81,7 @@ void FigureModel::SetSettings(Params &params) {
 }
 
 void FigureModel::ResetSettings() {
-  scale_ = 0;
+  scale_ = 1.0;
   shift_ = {0.0, 0.0, 0.0};
   rotation_ = {0.0, 0.0, 0.0};
 }

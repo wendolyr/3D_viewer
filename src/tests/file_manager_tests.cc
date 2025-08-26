@@ -51,7 +51,7 @@ TEST(FileManagerTester, SaveLoadSettingsTest2) {
   s21::Facade controller;
   CreateCorrectFile();
   controller.ParseFile("test.obj");
-  std::vector<std::vector<float>> tmp;
+  std::vector<std::vector<float>> tmp(4, std::vector<float>(4, 0.0f));
   controller.RotateFigure(tmp, {90.0, 0, 0});
   controller.MoveFigure(tmp, {0.0, 24.0, 0});
   controller.ScaleFigure(tmp, 3.0);
@@ -71,8 +71,6 @@ TEST(FileManagerTester, SaveLoadSettingsTest2) {
   EXPECT_EQ(before.shift.y, after.shift.y);
   EXPECT_EQ(before.shift.z, after.shift.z);
   EXPECT_EQ(before.scale, after.scale);
-
-  // std::cout << after.size() << '\n';
 }
 
 TEST(FileManagerTester, SaveLoadSettingsTest3) {

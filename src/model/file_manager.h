@@ -31,10 +31,15 @@ class FileManager {
    */
   FileError ParseFile(const std::string &file_name, FigureModel &model);
 
-  /// Saves model and view parameters to disk.
+  /**
+   * @brief Saves model and view parameters to disk.
+   */
   void SaveModel(FigureModel &model, ViewParams &view_params);
 
-  /// Restores the last saved model state and view settings
+  /**
+   * @brief Restores the last saved model state and view settings
+   * @returns True if state load successfully and false otherwise
+   */
   bool LoadLastState(FigureModel &model, ViewParams &view_params);
 
  private:
@@ -58,7 +63,7 @@ class FileManager {
   void SaveSettings(FigureModel &model, ViewParams &view_params);
 
   /**
-   * @brief Loading settings from file
+   * @brief Load settings from file
    * @returns True if loading completed successfully and false otherwise
    */
   bool LoadSettings(FigureModel &model, ViewParams &view_params);

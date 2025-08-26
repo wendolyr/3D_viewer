@@ -106,3 +106,12 @@ void CreateIncorrectLastObjectFile() {
 void CreateEmptyLastSettingsFile() { std::ofstream file(".last_settings.txt"); }
 
 void CreateEmptyLastObjectFile() { std::ofstream file(".last_object.obj"); }
+
+std::vector<std::vector<float>> CreateMatrix() {
+  std::vector<std::vector<float>> t(4, std::vector<float>(4, 0.0f));
+  for (int i = 0; i < 4; ++i) {
+    t[i][i] = 1;
+  }
+
+  return t;
+}
