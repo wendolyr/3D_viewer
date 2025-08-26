@@ -69,6 +69,8 @@ class FigureModel {
   Vertex shift_;     ///< Shift along three axes
   Vertex rotation_;  ///< Rotation along three axes
   float scale_;      ///< Current scale
+
+  Quaternion rotation_quaternion_;
 };
 
 }  // namespace s21

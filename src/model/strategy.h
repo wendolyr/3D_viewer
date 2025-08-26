@@ -31,7 +31,7 @@ class TransformStrategy {
   /**
    * @brief Method for multiplying two matrices
    */
-  std::vector<std::vector<float>> MulSquareMatrix(
+  static std::vector<std::vector<float>> MulSquareMatrix(
       std::vector<std::vector<float>> &matrix_one,
       std::vector<std::vector<float>> &matrix_two);
 };
