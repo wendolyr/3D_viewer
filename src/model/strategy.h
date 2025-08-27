@@ -7,7 +7,7 @@
 #define CPP4_3DVIEWER_V2_0_MODEL_STRATEGY_H
 
 #include <cmath>
-#include <thread>
+#include <memory>
 #include <vector>
 
 #include "common_objects.h"

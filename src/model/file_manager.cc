@@ -16,13 +16,12 @@ FileError FileManager::ParseFile(const std::string &file_name,
   std::string line;
   std::vector<Vertex> vertices;
   std::unordered_set<std::pair<unsigned, unsigned>, PairHash> edges;
-  MinMaxValues values;
   auto start = std::chrono::steady_clock::now();
   while (std::getline(file, line)) {
     const char *ptr = &line[0];
 
     if (*ptr == 'v' && *(ptr + 1) == ' ') {
-      if (ParseVertices(ptr, vertices, values) != FileError::kOk) {
+      if (ParseVertices(ptr, vertices) != FileError::kOk) {
         return FileError::kInvalidFile;
       }
     } else if (*ptr == 'f' && *(ptr + 1) == ' ') {
@@ -40,20 +39,7 @@ FileError FileManager::ParseFile(const std::string &file_name,
   auto duration =
       std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
-  std::cout << "Parsing time " << duration.count() << " ms" << std::endl;
-
-  // Params p;
-
-  // float len_x = values.max_x - values.min_x;
-  // float len_y = values.max_y - values.min_y;
-  // float len_z = values.max_z - values.min_z;
-  // float max_len = std::max({len_x, len_y, len_z});
-  // p.scale = max_len < 1e-6 ? 1 : 2 / max_len;
-
-  // p.shift.x = -(values.max_x + values.min_x) / 2;
-  // p.shift.y = -(values.max_y + values.min_y) / 2;
-  // p.shift.z = -(values.max_z + values.min_z) / 2;
-  // model.SetSettings(p);
+  std::cout << "Parsing time: " << duration.count() << " ms" << std::endl;
 
   model.SetVertices(vertices);
   model.SetEdges(edges);
@@ -61,8 +47,7 @@ FileError FileManager::ParseFile(const std::string &file_name,
 }
 
 FileError FileManager::ParseVertices(const char *ptr,
-                                     std::vector<Vertex> &vertices,
-                                     MinMaxValues &values) {
+                                     std::vector<Vertex> &vertices) {
   ++(++ptr);
   std::vector<double> nums(3, 0.0);
   char *end;
@@ -81,13 +66,6 @@ FileError FileManager::ParseVertices(const char *ptr,
 
   vertices.emplace_back(nums[0], nums[1], nums[2]);
 
-  values.min_x = nums[0] < values.min_x ? nums[0] : values.min_x;
-  values.min_y = nums[1] < values.min_y ? nums[1] : values.min_y;
-  values.min_z = nums[2] < values.min_z ? nums[2] : values.min_z;
-  values.max_x = nums[0] > values.max_x ? nums[0] : values.max_x;
-  values.max_y = nums[1] > values.max_y ? nums[1] : values.max_y;
-  values.max_z = nums[2] > values.max_z ? nums[2] : values.max_z;
-
   return FileError::kOk;
 }
 
@@ -102,13 +80,11 @@ FileError FileManager::ParseEdges(
       ++ptr;
       continue;
     }
-
     unsigned num = 0;
     bool negative = *ptr == '-';
     if (negative) {
       ++ptr;
     }
-
     if (*ptr >= '0' && *ptr <= '9') {
       while (*ptr >= '0' && *ptr <= '9') {
         num = num * 10 + (*ptr - '0');
@@ -117,21 +93,16 @@ FileError FileManager::ParseEdges(
     } else {
       return FileError::kInvalidFile;
     }
-
     while (*ptr == '/' || (*ptr >= '0' && *ptr <= '9')) {
       ++ptr;
     }
-
     if (*ptr != ' ' && *ptr != '\0' && *ptr != '\r') {
       return FileError::kInvalidFile;
     }
-
     num = negative ? static_cast<unsigned>(vertices.size()) - num : num - 1;
-
     if (num >= static_cast<unsigned>(vertices.size())) {
       return FileError::kInvalidFile;
     }
-
     face.push_back(num);
   }
 

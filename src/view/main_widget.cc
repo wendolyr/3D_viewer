@@ -55,8 +55,6 @@ MainWidget::MainWidget(QWidget* parent) : QWidget(parent), full_file_name_("") {
     central_btn_->setChecked(params.projection_type ==
                              static_cast<int>(OpenGLWidget::kCentral));
 
-    // если базовое имя файла поменялось, значит файл с моделью существовал и
-    // был корректным
     if (params.file_name != ".obj" && control_.GetVertices().size()) {
       full_file_name_ = QString::fromStdString(params.file_name);
       vertex_count_label_->setText(
@@ -296,7 +294,6 @@ void MainWidget::ResetDisplay() {
 }
 
 void MainWidget::OnTransformChanged() {
-  qDebug() << "Here";
   std::vector<std::vector<float>> matrix(4, std::vector<float>(4, 0.0f));
   for (int i = 0; i < 4; ++i) {
     matrix[i][i] = 1;

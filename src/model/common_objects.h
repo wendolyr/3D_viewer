@@ -2,7 +2,6 @@
 #define CPP4_3DVIEWER_V2_0_MODEL_COMMON_OBJECTS_H
 
 #include <cmath>
-#include <functional>
 #include <string>
 #include <vector>
 
