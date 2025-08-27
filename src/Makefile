@@ -12,7 +12,7 @@ LOGS_DIR = ./logs
 
 DIST_DIR = dist
 DIST_NAME = 3D_viewer_v2.0.tar.gz
-DIST_FILES = controller model view tests Makefile CmakeLists.txt Doxyfile *.cc
+DIST_FILES = controller model view tests Makefile CMakeLists.txt Doxyfile *.cc
 
 all: clean install
 
@@ -20,7 +20,6 @@ install: uninstall
 		@mkdir -p build
 		@cd build && cmake ..
 		@$(MAKE) -C build
-
 
 uninstall: 
 		@rm -rf build
@@ -51,7 +50,7 @@ gcov_report: test
 dvi:
 		@doxygen && open doxygen/html/index.html
 
-dist:	clear
+dist:	clean
 		@echo "Creating archive..."
 		@mkdir -p $(DIST_DIR)
 		@tar -czf $(DIST_DIR)/$(DIST_NAME) $(DIST_FILES)
@@ -73,7 +72,7 @@ clang:
 		@echo "Checking completed!"
 
 clean:
-		@rm -rf $(OBJ_DIR) $(TESTS_BIN) $(LOGS_DIR) *.gcno *.gcda .last_object.obj .last_settings.txt doxygen *.a *.out
+		@rm -rf $(OBJ_DIR) $(TESTS_BIN) $(LOGS_DIR) $(DIST_DIR) *.gcno *.gcda .last_object.obj .last_settings.txt doxygen *.a *.out
 
 $(OBJ_DIR)/%.o: %.cc
 		@mkdir -p $(dir $@)
