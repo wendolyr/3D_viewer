@@ -66,9 +66,9 @@ MainWidget::MainWidget(QWidget* parent) : QWidget(parent), full_file_name_("") {
       move_x_->setValue(affine.shift.x);
       move_y_->setValue(affine.shift.y);
       move_z_->setValue(affine.shift.z);
-      rotate_x_->setValue(affine.rotation.x);
-      rotate_y_->setValue(affine.rotation.y);
       rotate_z_->setValue(affine.rotation.z);
+      rotate_y_->setValue(affine.rotation.y);
+      rotate_x_->setValue(affine.rotation.x);
       scale_->setValue(affine.scale);
     }
   } else {
@@ -118,18 +118,6 @@ void MainWidget::LoadModel() {
     FileError error = control_.ParseFile(file_name.toStdString());
     if (error == FileError::kOk) {
       full_file_name_ = file_info.fileName();
-      // MainWidget::ResetTransform();  // edfe
-      Params p = control_.GetCurrentSettings();
-      move_x_->setValue(p.shift.x);
-      move_y_->setValue(p.shift.y);
-      move_z_->setValue(p.shift.z);
-
-      rotate_x_->setValue(p.rotation.x);
-      rotate_y_->setValue(p.rotation.y);
-      rotate_z_->setValue(p.rotation.z);
-
-      scale_->setValue(p.scale);
-      OnTransformChanged();
 
       MainWidget::UpdateFileNameLabel();
       std::vector<Vertex> vertices = control_.GetVertices();
@@ -138,6 +126,7 @@ void MainWidget::LoadModel() {
       vertex_count_label_->setText(QString::number(vertices.size()));
       edge_count_label_->setText(QString::number(edges.size()));
       gl_widget_->SetModelData(vertices, edges);
+      MainWidget::ResetTransform();
     } else if (error == FileError::kNotExist) {
       QMessageBox::warning(this, "Ошибка открытия",
                            "Файл не существует!\n"
@@ -278,6 +267,8 @@ void MainWidget::ResetTransform() {
 
   scale_->setValue(1.0);
 
+  control_.ResetSettings();
+
   OnTransformChanged();
 }
 
@@ -305,6 +296,7 @@ void MainWidget::ResetDisplay() {
 }
 
 void MainWidget::OnTransformChanged() {
+  qDebug() << "Here";
   std::vector<std::vector<float>> matrix(4, std::vector<float>(4, 0.0f));
   for (int i = 0; i < 4; ++i) {
     matrix[i][i] = 1;

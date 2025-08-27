@@ -58,8 +58,8 @@ class Facade {
       const;
 
   /**
-   * @brief Getter for current settings (shift, rotate, scale)
-   * @returns Params struct which contains shift, rotate, scale
+   * @brief Getter for current settings
+   * @returns Params struct which contains shift, rotate, scale, quaternion
    */
   const Params GetCurrentSettings() const;
 
@@ -79,7 +79,6 @@ class Facade {
    */
   void ScaleFigure(std::vector<std::vector<float>>& matrix, float scale);
 
-  /// Rotates the model by the specified angles (in degrees).
   /**
    * @brief Rotates the model by the specified angles (in degrees)
    * @param matrix - reference to the current representation matrix

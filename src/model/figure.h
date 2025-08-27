@@ -24,39 +24,86 @@ namespace s21 {
  */
 class FigureModel {
  public:
+  /**
+   * @brief Model constructor
+   */
   FigureModel();
+
+  /**
+   * @brief Model destructor
+   */
   ~FigureModel();
+
+  /**
+   * @brief overload operator "=" for FigureModel
+   */
   FigureModel& operator=(FigureModel&& other);
 
-  /// Setter for model vertices
+  /**
+   * @brief Setter for model vertices
+   * @param v Reference to the parsed model vertices
+   */
   void SetVertices(std::vector<Vertex>& v);
 
-  /// Setter for model edges
+  /**
+   * @brief Setter for model edges
+   * @param p Reference to the parsed model edges
+   */
   void SetEdges(std::unordered_set<std::pair<unsigned, unsigned>, PairHash>& p);
 
-  /// Setter for model settings (shift, rotate, scale)
+  /**
+   * @brief Setter for model settings
+   * @param params A structure containing current shift, rotate, scale and
+   * quaternion
+   */
   void SetSettings(Params& params);
 
-  /// Getter for model vertices
+  /**
+   * @brief Getter for model vertices
+   * @returns Vector of the model vertices
+   */
   const std::vector<Vertex>& GetVertices() const;
 
-  /// Getter for model edges
+  /**
+   * @brief Getter for model edges
+   * @returns Unordered set of the model edges
+   */
   const std::unordered_set<std::pair<unsigned, unsigned>, PairHash>& GetEdges()
       const;
 
-  /// Getter for model settings
+  /**
+   * @brief Getter for current settings
+   * @returns Params struct which contains shift, rotate, scale, quaternion
+   */
   const Params GetCurrentSettings() const;
 
-  /// Rotate figure method
+  /**
+   * @brief Calculates a 4x4 representation matrix for the current axis offset
+   * @param matrix - reference to the current representation matrix
+   * @param shift - current offset in x, y, z
+   * @warning matrix must be 4x4!
+   */
   void MoveFigure(std::vector<std::vector<float>>& matrix, Vertex&& shift);
 
-  /// Scale figure method
+  /**
+   * @brief Calculates a 4x4 representation matrix for the current scale
+   * @param matrix - reference to the current representation matrix
+   * @param scale - current scale factor
+   * @warning matrix must be 4x4!
+   */
   void ScaleFigure(std::vector<std::vector<float>>& matrix, float scale);
 
-  /// Rotate figure method
+  /**
+   * @brief Rotates the model by the specified angles (in degrees)
+   * @param matrix - reference to the current representation matrix
+   * @param angle - current rotation angles along the x, y, z axes
+   * @warning matrix must be 4x4!
+   */
   void RotateFigure(std::vector<std::vector<float>>& matrix, Vertex&& angle);
 
-  /// Resets all transformations to identity
+  /**
+   * @brief Resets all transformations to initial state
+   */
   void ResetSettings();
 
  private:
@@ -67,10 +114,8 @@ class FigureModel {
   std::unique_ptr<Context> strategy_;  ///< Transformation strategy context
 
   Vertex shift_;     ///< Shift along three axes
-  Vertex rotation_;  ///< Rotation along three axes
+  Vertex rotation_;  ///< Rotation along three axes (Euler)
   float scale_;      ///< Current scale
-
-  Quaternion rotation_quaternion_;
 };
 
 }  // namespace s21

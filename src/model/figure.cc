@@ -5,10 +5,7 @@
 namespace s21 {
 
 FigureModel::FigureModel()
-    : shift_{0.0, 0.0, 0.0},
-      rotation_{0.0, 0.0, 0.0},
-      scale_{1.0},
-      rotation_quaternion_() {
+    : shift_{0.0, 0.0, 0.0}, rotation_{0.0, 0.0, 0.0}, scale_{1.0} {
   strategy_ = std::make_unique<Context>();
 }
 
@@ -49,22 +46,10 @@ void FigureModel::ScaleFigure(std::vector<std::vector<float>> &matrix,
 
 void FigureModel::RotateFigure(std::vector<std::vector<float>> &matrix,
                                Vertex &&angle) {
-  // RotateStrategyCreator creator;
-  // auto temp = creator.CreateStrategy();
-  // strategy_->SetStrategy(std::move(temp));
-  // strategy_->Transform(matrix, angle);
-
-  Quaternion new_rotation =
-      Quaternion::FromEuler((angle.y - rotation_.y) * M_PI / 180.0f,
-                            (angle.z - rotation_.z) * M_PI / 180.0f,
-                            (angle.x - rotation_.x) * M_PI / 180.0f);
-
-  rotation_quaternion_ = new_rotation * rotation_quaternion_;
-  std::vector<std::vector<float>> rotation_matrix =
-      rotation_quaternion_.ToMatrix();
-
-  // Применяем матрицу вращения
-  matrix = TransformStrategy::MulSquareMatrix(rotation_matrix, matrix);
+  RotateStrategyCreator creator;
+  auto temp = creator.CreateStrategy();
+  strategy_->SetStrategy(std::move(temp));
+  strategy_->Transform(matrix, angle - rotation_);
 
   rotation_ = angle;
 }
@@ -86,21 +71,21 @@ FigureModel::GetEdges() const {
 }
 
 const Params FigureModel::GetCurrentSettings() const {
-  return {shift_, rotation_, scale_};
+  return {shift_, rotation_, scale_, RotateStrategy::GetRotation()};
 }
 
 void FigureModel::SetSettings(Params &params) {
   shift_ = params.shift;
   rotation_ = params.rotation;
   scale_ = params.scale;
-  rotation_quaternion_ = Quaternion();
+  RotateStrategy::SetRotation(params.quaternion);
 }
 
 void FigureModel::ResetSettings() {
   scale_ = 1.0;
   shift_ = {0.0, 0.0, 0.0};
   rotation_ = {0.0, 0.0, 0.0};
-  rotation_quaternion_ = Quaternion();
+  RotateStrategy::ResetRotation();
 }
 
 }  // namespace s21

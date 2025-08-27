@@ -43,6 +43,25 @@ class RotateStrategy : public TransformStrategy {
  public:
   void Transform(std::vector<std::vector<float>> &matrix,
                  const Vertex angles) override;
+
+  /**
+   * @brief Set the quaternion to its default value
+   */
+  static void ResetRotation();
+
+  /**
+   * @brief Set the quaternion to a specific value
+   */
+  static void SetRotation(Quaternion &q);
+
+  /**
+   * @brief Get current quaternion
+   */
+  static Quaternion GetRotation();
+
+ private:
+  inline static Quaternion rotation_quaternion_ =
+      Quaternion();  ///< Accumulate all rotations
 };
 
 /**

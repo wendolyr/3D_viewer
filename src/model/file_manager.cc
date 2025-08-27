@@ -42,18 +42,18 @@ FileError FileManager::ParseFile(const std::string &file_name,
 
   std::cout << "Parsing time " << duration.count() << " ms" << std::endl;
 
-  Params p;
+  // Params p;
 
-  float len_x = values.max_x - values.min_x;
-  float len_y = values.max_y - values.min_y;
-  float len_z = values.max_z - values.min_z;
-  float max_len = std::max({len_x, len_y, len_z});
-  p.scale = max_len < 1e-6 ? 1 : 2 / max_len;
+  // float len_x = values.max_x - values.min_x;
+  // float len_y = values.max_y - values.min_y;
+  // float len_z = values.max_z - values.min_z;
+  // float max_len = std::max({len_x, len_y, len_z});
+  // p.scale = max_len < 1e-6 ? 1 : 2 / max_len;
 
-  p.shift.x = -(values.max_x + values.min_x) / 2;
-  p.shift.y = -(values.max_y + values.min_y) / 2;
-  p.shift.z = -(values.max_z + values.min_z) / 2;
-  model.SetSettings(p);
+  // p.shift.x = -(values.max_x + values.min_x) / 2;
+  // p.shift.y = -(values.max_y + values.min_y) / 2;
+  // p.shift.z = -(values.max_z + values.min_z) / 2;
+  // model.SetSettings(p);
 
   model.SetVertices(vertices);
   model.SetEdges(edges);
@@ -176,6 +176,8 @@ void FileManager::SaveSettings(FigureModel &model, ViewParams &view_params) {
   file << par.rotation.x << ' ' << par.rotation.y << ' ' << par.rotation.z
        << std::endl;
   file << par.scale << std::endl;
+  file << par.quaternion.x << ' ' << par.quaternion.y << ' ' << par.quaternion.z
+       << ' ' << par.quaternion.w << ' ' << std::endl;
 
   file << view_params.edge_color.x << ' ' << view_params.edge_color.y << ' '
        << view_params.edge_color.z << ' ' << std::endl;
@@ -229,6 +231,7 @@ bool FileManager::LoadSettings(FigureModel &model, ViewParams &view_params) {
   is_loaded = LoadTripleSetting(temp_p.shift, file) &&
               LoadTripleSetting(temp_p.rotation, file) &&
               LoadSingleSetting(temp_p.scale, file) &&
+              LoadQuadraSetting(temp_p.quaternion, file) &&
               LoadTripleSetting(temp_vp.edge_color, file) &&
               LoadTripleSetting(temp_vp.vertex_color, file) &&
               LoadTripleSetting(temp_vp.background_color, file) &&
@@ -263,6 +266,22 @@ bool FileManager::LoadTripleSetting(Vertex &p, std::ifstream &file) {
   return false;
 }
 
+bool FileManager::LoadQuadraSetting(Quaternion &q, std::ifstream &file) {
+  std::string extra;
+  std::string line;
+
+  if (!std::getline(file, line)) {
+    return false;
+  }
+
+  std::istringstream input(line);
+  if ((input >> q.x >> q.y >> q.z >> q.w) && !(input >> extra)) {
+    return true;
+  }
+
+  return false;
+}
+
 template <typename T>
 bool FileManager::LoadSingleSetting(T &p, std::ifstream &file) {
   std::string extra;
@@ -274,6 +293,21 @@ bool FileManager::LoadSingleSetting(T &p, std::ifstream &file) {
 
   std::istringstream input(line);
   if ((input >> p) && !(input >> extra)) {
+    return true;
+  }
+
+  return false;
+}
+
+bool FileManager::LoadSingleSetting(std::string &p, std::ifstream &file) {
+  std::string line;
+
+  if (!std::getline(file, line)) {
+    return false;
+  }
+
+  if (line.ends_with(".obj")) {
+    p = line;
     return true;
   }
 

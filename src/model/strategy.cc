@@ -49,31 +49,33 @@ void MoveStrategy::Transform(std::vector<std::vector<float>> &matrix,
 
 void RotateStrategy::Transform(std::vector<std::vector<float>> &matrix,
                                const Vertex axis) {
-  float rx = axis.x * M_PI / 180;
-  float ry = axis.y * M_PI / 180;
-  float rz = axis.z * M_PI / 180;
+  Quaternion new_rotation =
+      Quaternion::FromEuler((axis.y) * M_PI / 180.0f, (axis.z) * M_PI / 180.0f,
+                            (axis.x) * M_PI / 180.0f);
 
-  std::vector<std::vector<float>> Rx = {
-      {1, 0, 0, 0},
-      {0, static_cast<float>(cos(rx)), static_cast<float>(-sin(rx)), 0},
-      {0, static_cast<float>(sin(rx)), static_cast<float>(cos(rx)), 0},
-      {0, 0, 0, 1}};
+  rotation_quaternion_ = new_rotation * rotation_quaternion_;
 
-  std::vector<std::vector<float>> Ry = {
-      {static_cast<float>(cos(ry)), 0, static_cast<float>(sin(ry)), 0},
-      {0, 1, 0, 0},
-      {static_cast<float>(-sin(ry)), 0, static_cast<float>(cos(ry)), 0},
-      {0, 0, 0, 1}};
+  float norm = sqrt(rotation_quaternion_.x * rotation_quaternion_.x +
+                    rotation_quaternion_.y * rotation_quaternion_.y +
+                    rotation_quaternion_.z * rotation_quaternion_.z +
+                    rotation_quaternion_.w * rotation_quaternion_.w);
+  if (norm > 0.0f) {
+    rotation_quaternion_.x /= norm;
+    rotation_quaternion_.y /= norm;
+    rotation_quaternion_.z /= norm;
+    rotation_quaternion_.w /= norm;
+  }
 
-  std::vector<std::vector<float>> Rz = {
-      {static_cast<float>(cos(rz)), static_cast<float>(-sin(rz)), 0, 0},
-      {static_cast<float>(sin(rz)), static_cast<float>(cos(rz)), 0, 0},
-      {0, 0, 1, 0},
-      {0, 0, 0, 1}};
+  std::vector<std::vector<float>> rotation_matrix =
+      rotation_quaternion_.ToMatrix();
 
-  auto Rxy = MulSquareMatrix(Ry, Rx);
-  std::vector<std::vector<float>> R = MulSquareMatrix(Rz, Rxy);
-  matrix = MulSquareMatrix(R, matrix);
+  matrix = MulSquareMatrix(rotation_matrix, matrix);
 }
+
+void RotateStrategy::ResetRotation() { rotation_quaternion_ = Quaternion(); }
+
+void RotateStrategy::SetRotation(Quaternion &q) { rotation_quaternion_ = q; }
+
+Quaternion RotateStrategy::GetRotation() { return rotation_quaternion_; }
 
 }  // namespace s21

@@ -86,11 +86,23 @@ class FileManager {
   bool LoadTripleSetting(Vertex &p, std::ifstream &file);
 
   /**
+   * @brief Parse line with four parameters
+   * @returns True if parsed successfully and false otherwise
+   */
+  bool LoadQuadraSetting(Quaternion &p, std::ifstream &file);
+
+  /**
    * @brief Parse line with one parameter
    * @returns True if parsed successfully and false otherwise
    */
   template <typename T>
   bool LoadSingleSetting(T &p, std::ifstream &file);
+
+  /**
+   * @brief Parse line with one parameter (specifically for strings)
+   * @returns True if parsed successfully and false otherwise
+   */
+  bool LoadSingleSetting(std::string &p, std::ifstream &file);
 };
 
 }  // namespace s21
