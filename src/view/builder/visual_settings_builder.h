@@ -6,7 +6,6 @@
 #include <QDoubleSpinBox>
 #include <QGroupBox>
 #include <QLabel>
-#include <QList>
 #include <QSpinBox>
 #include <QVBoxLayout>
 #include <QWidget>

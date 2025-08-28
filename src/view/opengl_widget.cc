@@ -6,10 +6,7 @@ namespace s21 {
 OpenGLWidget::OpenGLWidget(QWidget* parent)
     : QOpenGLWidget(parent),
       vbo_(QOpenGLBuffer::VertexBuffer),
-      ibo_(QOpenGLBuffer::IndexBuffer),
-      translation_(0.0f, 0.0f, 0.0f),
-      rotation_(0.0f, 0.0f, 0.0f),
-      scale_(1.0f) {
+      ibo_(QOpenGLBuffer::IndexBuffer) {
   shader_manager_ = std::make_unique<ShaderManager>();
   projection_type_ = kCentral;
   edge_type_ = kSolid;
@@ -125,8 +122,8 @@ void OpenGLWidget::SetModelData(
   makeCurrent();
   vao_.bind();
 
-  vbo_.destroy();
-  ibo_.destroy();
+  if (vbo_.isCreated()) vbo_.destroy();
+  if (ibo_.isCreated()) ibo_.destroy();
 
   index_count_ = 0;
   vertex_count_ = vertices.size();

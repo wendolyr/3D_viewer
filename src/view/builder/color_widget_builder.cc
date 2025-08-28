@@ -1,7 +1,6 @@
 #include "color_widget_builder.h"
 
 #include <QHBoxLayout>
-#include <QLabel>
 
 namespace s21 {
 ColorWidgetBuilder& ColorWidgetBuilder::SetLabel(const QString& label) {

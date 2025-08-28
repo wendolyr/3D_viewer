@@ -1,7 +1,6 @@
 #include "shader_manager.h"
 
 #include <QDebug>
-#include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QTextStream>

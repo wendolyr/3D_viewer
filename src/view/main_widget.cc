@@ -2,20 +2,14 @@
 
 #include <QApplication>
 #include <QComboBox>
-#include <QElapsedTimer>
 #include <QFileDialog>
 #include <QFileInfo>
-#include <QFormLayout>
 #include <QGroupBox>
-#include <QHBoxLayout>
 #include <QMessageBox>
 #include <QProcess>
 #include <QPushButton>
 #include <QRadioButton>
-#include <QResizeEvent>
 #include <QScrollArea>
-#include <QVBoxLayout>
-#include <QWidget>
 
 #include "../controller/facade.h"
 #include "builder/template_axis_control_builder.h"

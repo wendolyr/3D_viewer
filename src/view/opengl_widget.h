@@ -166,13 +166,10 @@ class OpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
  private:
   QMatrix4x4 model_;  ///< Матрица модели
   std::unique_ptr<ShaderManager> shader_manager_;  ///< Менеджер шейдеров
-  QOpenGLBuffer vbo_;             ///< Вершинный буфер
-  QOpenGLBuffer ibo_;             ///< Индексный буфер
-  QOpenGLVertexArrayObject vao_;  ///< Vertex Array Object
-  QMatrix4x4 projection_;         ///< Матрица проекции
-  QVector3D translation_;         ///< Вектор перемещения
-  QVector3D rotation_;            ///< Вектор вращения
-  float scale_;  ///< Коэффициент масштабирования
+  QOpenGLBuffer vbo_;               ///< Вершинный буфер
+  QOpenGLBuffer ibo_;               ///< Индексный буфер
+  QOpenGLVertexArrayObject vao_;    ///< Vertex Array Object
+  QMatrix4x4 projection_;           ///< Матрица проекции
   int index_count_ = 0;             ///< Количество индексов
   int vertex_count_ = 0;            ///< Количество вершин
   ProjectionType projection_type_;  ///< Тип проекции
