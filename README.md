@@ -16,7 +16,7 @@ A comprehensive 3D model visualization application built with **C++** and **Qt**
 ### 🎨 Customizable Rendering
 -   **Projection Types**: Switch between **central (perspective)** and **parallel (orthographic)** projections.
 -   **Edge Display**: Customize edge **color**, **thickness**, and **style** (solid or dashed).
--   **Vertex Display**: Customize vertex **color**, **size**, and display mode (none 🔇, circle 🔵, or square 🟦).
+-   **Vertex Display**: Customize vertex **color**, **size**, and display mode (none, circle, or square).
 -   **Background Color**: Change the viewport background color.
 
 ### 🖱️ Mouse Controls
@@ -87,7 +87,7 @@ The project is built following the **Model-View-Controller (MVC)** pattern, ensu
     make install
     ```
 
-3.  **Run the executable!** 🎉
+3.  **Run the executable!**
     ```bash
     make run
     ```
