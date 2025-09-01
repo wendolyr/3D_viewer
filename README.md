@@ -37,20 +37,20 @@ A comprehensive 3D model visualization application built with **C++** and **Qt**
 
 The project is built following the **Model-View-Controller (MVC)** pattern, ensuring a clean separation of concerns.
 
--   **`Model` (`/model/`)**
+-   **`Model`**
     -   `FigureModel`: The core data structure holding vertices, edges, and transformation state.
     -   `FileManager`: Responsible for parsing `.obj` files and serializing/deserializing model and application state.
--   **`Controller` (`/controller/`)**
+-   **`Controller`**
     -   `Facade`: Provides a simplified, unified interface to the complex Model layer (Facade pattern). It's the main entry point for the View.
--   **`View` (`/view/`)**
+-   **`View`**
     -   `MainWidget`: The main window UI, built with Qt widgets.
     -   `OpenGLWidget`: A custom Qt widget handling all OpenGL rendering.
     -   `ShaderManager`: Manages the loading and compilation of GLSL shader programs.
 
 ### 🧩 Design Patterns Used:
--   **Strategy** (`strategy.h/cc`): Encapsulates affine transformation algorithms into interchangeable objects.
--   **Factory Method** (`factory.h`): Creates strategy objects.
--   **Facade** (`facade.h/cc`): Simplifies interaction with complex subsystems.
+-   **Strategy**: Encapsulates affine transformation algorithms into interchangeable objects.
+-   **Factory Method**: Creates strategy objects.
+-   **Facade**: Simplifies interaction with complex subsystems.
 -   **Builder**: Used in UI code to simplify the construction of complex control groups.
 
 ---
